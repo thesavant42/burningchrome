@@ -1,4 +1,5 @@
 import { download, saveHtml, saveJson } from './lib/export.js';
+import { storage } from './lib/storage.js';
 import mime from 'mime/lite';
 
 let _type = '';
@@ -8,18 +9,19 @@ let filteredData = [];
 let selectedRows = new Set();
 
 async function init() {
-  const result = await chrome.storage.local.get(['timemapData', 'crtshData']);
+  const timemapData = await storage.get('timemapData');
+  const crtshData = await storage.get('crtshData');
 
-  if (result.timemapData) {
+  if (timemapData) {
     _type = 'wayback';
-    setTitle(`${result.timemapData.domain} - Wayback`);
+    setTitle(`${timemapData.domain} - Wayback`);
     document.getElementById('stats').textContent = 'Loading...';
-    await loadWayback(result.timemapData);
-  } else if (result.crtshData) {
+    await loadWayback(timemapData);
+  } else if (crtshData) {
     _type = 'crtsh';
-    setTitle(`${result.crtshData.domain} - Crt.sh`);
+    setTitle(`${crtshData.domain} - Crt.sh`);
     document.getElementById('stats').textContent = 'Loading...';
-    await loadCrtsh(result.crtshData);
+    await loadCrtsh(crtshData);
   } else {
     showError('No data. Use context menu on a webpage.');
   }
@@ -71,7 +73,7 @@ async function loadWayback(data) {
     return;
   }
 
-  await chrome.storage.local.remove('timemapData');
+  await storage.remove('timemapData');
 }
 
 async function loadCrtsh(data) {
@@ -98,7 +100,7 @@ async function loadCrtsh(data) {
   renderCrtshTable();
   setupFilter('#tableBody tr');
   setupExportCrtsh();
-  await chrome.storage.local.remove('crtshData');
+  await storage.remove('crtshData');
 }
 
 function setTitle(text) {

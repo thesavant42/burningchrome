@@ -5,11 +5,14 @@
   "scripts": {
     "build": "rollup -c"
   },
-  "dependencies": {
-    "mime": "^4.1.0"
-  },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.12.0",
+    "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "rollup": "^4.53.5"
+  },
+  "dependencies": {
+    "idb-keyval": "^6.2.1",
+    "mime": "^4.1.0"
   }
 }

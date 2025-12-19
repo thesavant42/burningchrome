@@ -1,0 +1,37 @@
+flowchart TB
+    subgraph Browser["Chrome Browser"]
+        CM["Context Menu"]
+        BG["background.js"]
+        RP["report.html + report.js"]
+        ST["chrome.storage.local"]
+    end
+
+    subgraph External["External APIs"]
+        WB["Wayback Machine CDX API"]
+        CT["Crt.sh Certificate API"]
+    end
+
+    subgraph Export["Export Formats"]
+        HTML["HTML Report"]
+        JSON["JSON Data"]
+        MD["Markdown List"]
+    end
+
+    CM -->|"Timemap this domain"| BG
+    CM -->|"Crt.sh Domain"| BG
+    
+    BG -->|"Fetch archived URLs"| WB
+    BG -->|"Fetch certificates"| CT
+    
+    WB -->|"CDX JSON response"| BG
+    CT -->|"Certificate JSON"| BG
+    
+    BG -->|"Store data"| ST
+    BG -->|"Open new tab"| RP
+    
+    ST -->|"Read data"| RP
+    
+    RP -->|"Save HTML"| HTML
+    RP -->|"Save JSON"| JSON
+    RP -->|"Save MD"| MD
+

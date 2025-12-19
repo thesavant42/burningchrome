@@ -1,3 +1,5 @@
+import { storage } from './lib/storage.js';
+
 // CDX API constants
 const MAX_RETRIES = 3;
 const CDX_BATCH_SIZE = 1000;
@@ -47,18 +49,16 @@ async function handleTimemapRequest(tab) {
   const fetchUrl = `https://web.archive.org/cdx/search/cdx?url=*.${domain}&output=json&fl=original,timestamp,statuscode,mimetype&collapse=urlkey&limit=${CDX_BATCH_SIZE}&showResumeKey=true`;
 
   // Store loading state immediately
-  await chrome.storage.local.set({
-    timemapData: {
-      domain: domain,
-      data: null,
-      loading: true,
-      error: null,
-      page: 0,
-      recordCount: 0,
-      startTime: startTime,
-      fetchUrl: fetchUrl,
-      timestamp: Date.now()
-    }
+  await storage.set('timemapData', {
+    domain: domain,
+    data: null,
+    loading: true,
+    error: null,
+    page: 0,
+    recordCount: 0,
+    startTime: startTime,
+    fetchUrl: fetchUrl,
+    timestamp: Date.now()
   });
 
   // Open report page immediately
@@ -69,43 +69,37 @@ async function handleTimemapRequest(tab) {
   startKeepAlive();
   try {
     const allData = await fetchAllCDXData(domain, async (partialData, recordCount, page, totalPages) => {
-      await chrome.storage.local.set({
-        timemapData: {
-          domain: domain,
-          data: partialData,
-          loading: true,
-          error: null,
-          page: page,
-          totalPages: totalPages,
-          recordCount: recordCount,
-          startTime: startTime,
-          debugLog: getDebugLog(),
-          timestamp: Date.now()
-        }
-      });
-    });
-    await chrome.storage.local.set({
-      timemapData: {
+      await storage.set('timemapData', {
         domain: domain,
-        data: allData,
-        loading: false,
+        data: partialData,
+        loading: true,
         error: null,
-        fetchUrl: fetchUrl,
+        page: page,
+        totalPages: totalPages,
+        recordCount: recordCount,
+        startTime: startTime,
         debugLog: getDebugLog(),
         timestamp: Date.now()
-      }
+      });
+    });
+    await storage.set('timemapData', {
+      domain: domain,
+      data: allData,
+      loading: false,
+      error: null,
+      fetchUrl: fetchUrl,
+      debugLog: getDebugLog(),
+      timestamp: Date.now()
     });
   } catch (error) {
     console.error('CDX fetch failed:', error);
-    await chrome.storage.local.set({
-      timemapData: {
-        domain: domain,
-        data: null,
-        loading: false,
-        error: error.message,
-        debugLog: error.debugLog || getDebugLog(),
-        timestamp: Date.now()
-      }
+    await storage.set('timemapData', {
+      domain: domain,
+      data: null,
+      loading: false,
+      error: error.message,
+      debugLog: error.debugLog || getDebugLog(),
+      timestamp: Date.now()
     });
   } finally {
     clearDebugLog();
@@ -121,16 +115,14 @@ async function handleCrtshRequest(tab) {
   const fetchUrl = `https://crt.sh/json?q=${domain}`;
 
   // Store domain immediately so the report page can show loading state
-  await chrome.storage.local.set({
-    crtshData: {
-      domain: domain,
-      data: null,
-      loading: true,
-      error: null,
-      fetchUrl: fetchUrl,
-      startTime: startTime,
-      timestamp: Date.now()
-    }
+  await storage.set('crtshData', {
+    domain: domain,
+    data: null,
+    loading: true,
+    error: null,
+    fetchUrl: fetchUrl,
+    startTime: startTime,
+    timestamp: Date.now()
   });
 
   // Open report page immediately
@@ -141,25 +133,21 @@ async function handleCrtshRequest(tab) {
   startKeepAlive();
   try {
     const crtData = await fetchCrtshData(domain);
-    await chrome.storage.local.set({
-      crtshData: {
-        domain: domain,
-        data: crtData,
-        loading: false,
-        error: null,
-        timestamp: Date.now()
-      }
+    await storage.set('crtshData', {
+      domain: domain,
+      data: crtData,
+      loading: false,
+      error: null,
+      timestamp: Date.now()
     });
   } catch (error) {
     console.error('Crt.sh fetch failed:', error);
-    await chrome.storage.local.set({
-      crtshData: {
-        domain: domain,
-        data: null,
-        loading: false,
-        error: error.message,
-        timestamp: Date.now()
-      }
+    await storage.set('crtshData', {
+      domain: domain,
+      data: null,
+      loading: false,
+      error: error.message,
+      timestamp: Date.now()
     });
   } finally {
     stopKeepAlive();

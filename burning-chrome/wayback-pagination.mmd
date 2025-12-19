@@ -1,0 +1,60 @@
+flowchart TB
+    subgraph Init["Initialization"]
+        A[User clicks context menu] --> B[Extract domain from URL]
+        B --> C[Set initial state:<br/>resumeKey = empty<br/>page = 0<br/>allRecords = empty]
+    end
+
+    subgraph Loop["Pagination Loop"]
+        C --> D[page++]
+        D --> E[Build CDX API URL<br/>limit=1000, showResumeKey=true]
+        E --> F{resumeKey exists?}
+        F -->|Yes| G[Append resumeKey to URL]
+        F -->|No| H[First page request]
+        G --> I[Fetch CDX Page]
+        H --> I
+    end
+
+    subgraph Response["Response Handling"]
+        I --> J{HTTP Status?}
+        J -->|503/429| K{retryCount < 3?}
+        K -->|Yes| L[Exponential backoff<br/>wait 10s * 2^retry]
+        L --> I
+        K -->|No| M[Throw rate limit error]
+        J -->|Timeout| N{retryCount < 3?}
+        N -->|Yes| O[Wait 5s * 2^retry]
+        O --> I
+        N -->|No| P[Throw timeout error]
+        J -->|200 OK| Q[Parse JSON Response]
+    end
+
+    subgraph Parse["parseCDXResponse"]
+        Q --> R[Check last row of response]
+        R --> S{Last row has<br/>single element?}
+        S -->|Yes| T[Extract resumeKey<br/>from last row]
+        T --> U[Set hasMore = true]
+        S -->|No| V[Set hasMore = false<br/>resumeKey = empty]
+        U --> W[Skip header row<br/>Parse data rows into records]
+        V --> W
+    end
+
+    subgraph Accumulate["Data Accumulation"]
+        W --> X[Append new records<br/>to allRecords]
+        X --> Y[Send progress update<br/>to UI with partial data]
+        Y --> Z{hasMore AND<br/>resumeKey exists?}
+        Z -->|Yes| AA[Store new resumeKey]
+        AA --> D
+        Z -->|No| AB[Pagination complete]
+    end
+
+    subgraph Complete["Completion"]
+        AB --> AC[Return final dataset<br/>with header + all records]
+        AC --> AD[Update UI with<br/>total snapshot count]
+    end
+
+    style Init fill:#1a1a2e,stroke:#4a4ae0,color:#fff
+    style Loop fill:#16213e,stroke:#4a4ae0,color:#fff
+    style Response fill:#1a1a2e,stroke:#e94560,color:#fff
+    style Parse fill:#16213e,stroke:#0f3460,color:#fff
+    style Accumulate fill:#1a1a2e,stroke:#4a4ae0,color:#fff
+    style Complete fill:#16213e,stroke:#4ae04a,color:#fff
+
