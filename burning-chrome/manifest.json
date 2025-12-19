@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Burning Chrome",
+  "description": "Wayback Machine Timemap and Crt.sh subdomain report generator",
+  "version": "1.0.32",
+  "permissions": ["contextMenus", "storage"],
+  "host_permissions": ["https://web.archive.org/*", "https://crt.sh/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "64": "icons/icon64.png",
+    "96": "icons/icon96.png",
+    "128": "icons/icon128.png",
+    "256": "icons/icon256.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    },
+    "default_title": "Burning Chrome"
+  },
+  "web_accessible_resources": []
+}

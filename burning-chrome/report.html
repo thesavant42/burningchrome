@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="content">
+    <pre id="debugLog" class="debug-log hidden"></pre>
+    <h1 id="title"></h1>
+    <div class="stats" id="stats"></div>
+    
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="Filter URLs..." autocomplete="off">
+      <select id="statusFilter" aria-label="Filter by HTTP status code">
+        <option value="">All Status</option>
+        <option value="200">200 OK</option>
+        <option value="301">301 Redirect</option>
+        <option value="302">302 Redirect</option>
+        <option value="404">404 Not Found</option>
+        <option value="500">500 Error</option>
+      </select>
+      <select id="mimeFilter" aria-label="Filter by content type">
+        <option value="">All Types</option>
+        <option value="text/html">HTML</option>
+        <option value="application/javascript">JavaScript</option>
+        <option value="text/css">CSS</option>
+        <option value="application/json">JSON</option>
+        <option value="image/">Images</option>
+      </select>
+      <button id="deleteSelected" class="danger hidden" aria-label="Delete selected snapshots">Delete Selected</button>
+      <div class="spacer"></div>
+      <button id="saveHtml">Save HTML</button>
+      <button id="saveJson">Save JSON</button>
+      <button id="saveExtra" class="hidden" aria-label="Export data"></button>
+    </div>
+    
+    <div class="toolbar secondary">
+      <label><input type="checkbox" id="selectAll" aria-label="Select all visible snapshots"> Select All Visible</label>
+      <span id="selectedCount" class="selected-count"></span>
+    </div>
+
+    <!-- Wayback table view -->
+    <table id="waybackTable" class="hidden">
+      <thead>
+        <tr>
+          <th class="col-check"><input type="checkbox" id="headerCheck" aria-label="Select all visible snapshots"></th>
+          <th class="col-url">URL</th>
+          <th class="col-date">Date</th>
+          <th class="col-status">Status</th>
+          <th class="col-mime">Type</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="waybackBody"></tbody>
+    </table>
+
+    <!-- Simple list view (legacy fallback) -->
+    <ul id="links" class="link-list hidden"></ul>
+    
+    <!-- Crt.sh table view -->
+    <table id="dataTable" class="hidden">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <script type="module" src="dist/report.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "burning-chrome",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "dependencies": {
+    "mime": "^4.1.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "rollup": "^4.53.5"
+  }
+}
