@@ -1,2 +1,10 @@
-*.db
+**/*.db
 **/node_modules/
+**/dist/
+**/build/
+**/coverage/
+**/.vscode/
+**/.idea/
+**/.DS_Store
+**/.env
+**/*.zip

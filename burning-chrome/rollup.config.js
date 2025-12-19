@@ -1,4 +1,5 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 export default {
   input: 'report.js',
@@ -6,7 +7,9 @@ export default {
     file: 'dist/report.js',
     format: 'es'
   },
+  context: 'this',
   plugins: [
-    nodeResolve()
+    nodeResolve(),
+    commonjs()
   ]
 };
