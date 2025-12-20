@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domains - Burning Chrome</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="content">
+    <h1 id="title">Project</h1>
+    <div class="stats">
+      <a href="landing.html">Back to Projects</a>
+      <span id="domainStats"></span>
+    </div>
+    
+    <div class="toolbar">
+      <input type="text" id="domainInput" placeholder="Enter domain (e.g. example.com)..." autocomplete="off">
+      <button id="addDomain">Add Domain</button>
+    </div>
+    
+    <table id="domainsTable" class="hidden">
+      <thead>
+        <tr>
+          <th>Domain</th>
+          <th>Subdomains</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="domainsBody"></tbody>
+    </table>
+    
+    <div id="emptyState" class="stats">No domains yet. Add one above.</div>
+    
+    <div id="subdomainPanel" class="hidden">
+      <div class="toolbar">
+        <h2 id="panelTitle">Subdomains</h2>
+        <div class="spacer"></div>
+        <button id="closePanel">Close</button>
+      </div>
+      <table id="subdomainsTable">
+        <thead>
+          <tr>
+            <th>Subdomain</th>
+            <th>Source</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="subdomainsBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <script type="module" src="dist/domains.js"></script>
+</body>
+</html>
+

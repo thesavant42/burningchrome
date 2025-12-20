@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Burning Chrome</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="content">
+    <h1 id="title">Burning Chrome</h1>
+    <div class="stats"><a href="config.html">Configure API Keys</a></div>
+    
+    <div class="toolbar">
+      <input type="text" id="projectName" placeholder="New project name..." autocomplete="off">
+      <button id="createProject">Create Project</button>
+    </div>
+    
+    <table id="projectTable" class="hidden">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Domains</th>
+          <th>Subdomains</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="projectBody"></tbody>
+    </table>
+    
+    <div id="emptyState" class="stats hidden">No projects yet. Create one above.</div>
+  </div>
+  <script type="module" src="dist/landing.js"></script>
+</body>
+</html>
+

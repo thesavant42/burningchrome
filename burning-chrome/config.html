@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Configuration - Burning Chrome</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="content">
+    <h1 id="title">API Configuration</h1>
+    <div class="stats"><a href="landing.html">Back to Projects</a></div>
+    
+    <div class="toolbar">
+      <label>VirusTotal API Key</label>
+    </div>
+    <div class="toolbar">
+      <input type="password" id="vtApiKey" placeholder="Enter VirusTotal API key..." autocomplete="off">
+    </div>
+    
+    <div class="toolbar">
+      <label>GitHub Token (optional)</label>
+    </div>
+    <div class="toolbar">
+      <input type="password" id="githubToken" placeholder="ghp_..." autocomplete="off">
+    </div>
+    
+    <div class="toolbar">
+      <button id="saveConfig">Save Configuration</button>
+      <span id="saveStatus"></span>
+    </div>
+  </div>
+  <script type="module" src="dist/config.js"></script>
+</body>
+</html>
+

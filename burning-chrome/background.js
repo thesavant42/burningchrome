@@ -1,5 +1,153 @@
 import { storage } from './lib/storage.js';
 
+// Open landing page when extension icon is clicked
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('landing.html') });
+});
+
+// Handle messages from other pages
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === 'vt-subdomains') {
+    fetchVirusTotalSubdomains(msg.domain, msg.apiKey)
+      .then(sendResponse)
+      .catch(err => sendResponse({ error: err.message }));
+    return true; // Keep channel open for async response
+  }
+  
+  if (msg.type === 'crtsh-subdomains') {
+    fetchCrtshSubdomainsForEnumeration(msg.domain)
+      .then(sendResponse)
+      .catch(err => sendResponse({ error: err.message }));
+    return true;
+  }
+  
+  if (msg.type === 'cdx-scan') {
+    handleCdxScanFromMessage(msg.domain);
+    sendResponse({ started: true });
+  }
+});
+
+// VirusTotal subdomain enumeration
+async function fetchVirusTotalSubdomains(domain, apiKey) {
+  const url = `https://www.virustotal.com/api/v3/domains/${domain}/subdomains?limit=40`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'x-apikey': apiKey,
+      'Accept': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    if (response.status === 401) throw new Error('Invalid VirusTotal API key');
+    if (response.status === 429) throw new Error('VirusTotal rate limit exceeded');
+    throw new Error(`VirusTotal API error: ${response.status}`);
+  }
+  
+  const json = await response.json();
+  
+  return json.data.map(d => ({
+    name: d.id,
+    source: 'virustotal',
+    fetchedAt: Date.now()
+  }));
+}
+
+// crt.sh subdomain enumeration (extract subdomains from certificates)
+async function fetchCrtshSubdomainsForEnumeration(domain) {
+  const response = await fetch(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`, {
+    headers: { 'Accept': 'application/json' }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`crt.sh API error: ${response.status}`);
+  }
+  
+  const json = await response.json();
+  
+  const seen = new Set();
+  const results = [];
+  
+  json.forEach(cert => {
+    const names = (cert.name_value || '').split('\n');
+    names.forEach(name => {
+      const cleaned = name.trim().toLowerCase();
+      if (cleaned && !cleaned.startsWith('*') && !seen.has(cleaned)) {
+        seen.add(cleaned);
+        results.push({
+          name: cleaned,
+          source: 'crtsh',
+          fetchedAt: Date.now()
+        });
+      }
+    });
+  });
+  
+  return results;
+}
+
+// CDX scan triggered from domains page (not from context menu)
+async function handleCdxScanFromMessage(domain) {
+  const startTime = Date.now();
+  const fetchUrl = `https://web.archive.org/cdx/search/cdx?url=*.${domain}&output=json&fl=original,timestamp,statuscode,mimetype&collapse=urlkey&limit=${CDX_BATCH_SIZE}&showResumeKey=true`;
+
+  await storage.set('timemapData', {
+    domain: domain,
+    data: null,
+    loading: true,
+    error: null,
+    page: 0,
+    recordCount: 0,
+    startTime: startTime,
+    fetchUrl: fetchUrl,
+    timestamp: Date.now()
+  });
+
+  chrome.tabs.create({ url: chrome.runtime.getURL('report.html') });
+
+  startKeepAlive();
+  try {
+    const allData = await fetchAllCDXData(domain, async (partialData, recordCount, page, totalPages) => {
+      await storage.set('timemapData', {
+        domain: domain,
+        data: partialData,
+        loading: true,
+        error: null,
+        page: page,
+        totalPages: totalPages,
+        recordCount: recordCount,
+        startTime: startTime,
+        debugLog: getDebugLog(),
+        timestamp: Date.now()
+      });
+    });
+    await storage.set('timemapData', {
+      domain: domain,
+      data: allData,
+      loading: false,
+      error: null,
+      fetchUrl: fetchUrl,
+      debugLog: getDebugLog(),
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('CDX fetch failed:', error);
+    const current = await storage.get('timemapData');
+    await storage.set('timemapData', {
+      domain: domain,
+      data: error.cancelled && current?.data ? current.data : null,
+      loading: false,
+      error: error.message,
+      cancelled: error.cancelled || false,
+      debugLog: error.debugLog || getDebugLog(),
+      timestamp: Date.now()
+    });
+  } finally {
+    clearDebugLog();
+    stopKeepAlive();
+  }
+}
+
 // CDX API constants
 const MAX_RETRIES = 3;
 const CDX_BATCH_SIZE = 1000;
