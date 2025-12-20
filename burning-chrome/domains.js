@@ -89,6 +89,7 @@ function renderDomains() {
         <select class="enumerate-select" data-domain="${escapeHtml(domain.name)}">
           <option value="">Enumerate...</option>
           <option value="virustotal">VirusTotal</option>
+          <option value="shodan">Shodan</option>
           <option value="crtsh">crt.sh</option>
         </select>
         ${hasCached ? `<button class="view-btn" data-domain="${escapeHtml(domain.name)}">View</button>` : ''}
@@ -190,6 +191,14 @@ async function enumerateSubdomains(domainName, source) {
     }
   }
   
+  if (source === 'shodan') {
+    const shodanKey = await apiKeys.get('shodan');
+    if (!shodanKey) {
+      alert('Shodan API key not configured. Go to Config.');
+      return;
+    }
+  }
+  
   const statsEl = document.getElementById('domainStats');
   const originalStatus = statsEl.textContent;
   statsEl.textContent = ` | Enumerating ${domainName} via ${source}...`;
@@ -203,6 +212,13 @@ async function enumerateSubdomains(domainName, source) {
         type: 'vt-subdomains',
         domain: domainName,
         apiKey: vtKey
+      });
+    } else if (source === 'shodan') {
+      const shodanKey = await apiKeys.get('shodan');
+      results = await chrome.runtime.sendMessage({
+        type: 'shodan-subdomains',
+        domain: domainName,
+        apiKey: shodanKey
       });
     } else {
       results = await chrome.runtime.sendMessage({

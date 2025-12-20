@@ -2,9 +2,9 @@
   "manifest_version": 3,
   "name": "Burning Chrome",
   "description": "Wayback Machine Timemap and Crt.sh subdomain report generator",
-    "version": "1.0.48",
+    "version": "1.0.52",
   "permissions": ["contextMenus", "storage"],
-  "host_permissions": ["https://web.archive.org/*", "https://crt.sh/*", "https://www.virustotal.com/*"],
+  "host_permissions": ["https://web.archive.org/*", "https://crt.sh/*", "https://www.virustotal.com/*", "https://api.shodan.io/*"],
   "background": {
     "service_worker": "dist/background.js",
     "type": "module"
