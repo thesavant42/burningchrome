@@ -8,9 +8,15 @@
 </head>
 <body>
   <div id="content">
-    <h1 id="title">DockerHub</h1>
     <div class="stats">
-      <a href="landing.html">Back to Projects</a>
+      <span id="title" class="page-title">Project</span> |
+      <a href="landing.html">Back to Projects</a> |
+      <a id="navDomains" href="domains.html">Domains</a> |
+      <a id="navPoi" href="poi.html">POI</a> |
+      <a id="navGithub" href="github.html">GitHub</a> |
+      <a href="#" class="nav-active">DockerHub</a> |
+      <a id="navBuckets" href="buckets.html">Buckets</a> |
+      <a id="navCreds" href="creds.html">Creds</a>
     </div>
     
     <div class="toolbar">
@@ -34,6 +40,17 @@
       </tbody>
     </table>
   </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const projectName = params.get('project') || 'Project';
+    const projectParam = `?project=${encodeURIComponent(projectName)}`;
+    document.getElementById('title').textContent = projectName;
+    document.title = `${projectName} - DockerHub - Burning Chrome by thesavant42`;
+    document.getElementById('navDomains').href = `domains.html${projectParam}`;
+    document.getElementById('navPoi').href = `poi.html${projectParam}`;
+    document.getElementById('navGithub').href = `github.html${projectParam}`;
+    document.getElementById('navBuckets').href = `buckets.html${projectParam}`;
+    document.getElementById('navCreds').href = `creds.html${projectParam}`;
+  </script>
 </body>
 </html>
-
