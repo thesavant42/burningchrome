@@ -1,4 +1,5 @@
 import { download, saveHtml, saveJson } from './lib/export.js';
+import { getTimemap, getCrtsh, getMeta, deleteMeta, deleteTimemap, deleteCrtsh } from './lib/db.js';
 import mime from 'mime/lite';
 
 let _type = '';
@@ -8,18 +9,21 @@ let filteredData = [];
 let selectedRows = new Set();
 
 async function init() {
-  const result = await chrome.storage.local.get(['timemapData', 'crtshData']);
+  const timemapMeta = await getMeta('timemap');
+  const crtshMeta = await getMeta('crtsh');
 
-  if (result.timemapData) {
+  if (timemapMeta) {
     _type = 'wayback';
-    setTitle(`${result.timemapData.domain} - Wayback`);
+    setTitle(`${timemapMeta.domain} - Wayback`);
     document.getElementById('stats').textContent = 'Loading...';
-    await loadWayback(result.timemapData);
-  } else if (result.crtshData) {
+    const data = await getTimemap(timemapMeta.domain);
+    await loadWayback({ ...timemapMeta, data });
+  } else if (crtshMeta) {
     _type = 'crtsh';
-    setTitle(`${result.crtshData.domain} - Crt.sh`);
+    setTitle(`${crtshMeta.domain} - Crt.sh`);
     document.getElementById('stats').textContent = 'Loading...';
-    await loadCrtsh(result.crtshData);
+    const data = await getCrtsh(crtshMeta.domain);
+    await loadCrtsh({ ...crtshMeta, data });
   } else {
     showError('No data. Use context menu on a webpage.');
   }
@@ -71,7 +75,8 @@ async function loadWayback(data) {
     return;
   }
 
-  await chrome.storage.local.remove('timemapData');
+  await deleteMeta('timemap');
+  await deleteTimemap(domain);
 }
 
 async function loadCrtsh(data) {
@@ -98,7 +103,8 @@ async function loadCrtsh(data) {
   renderCrtshTable();
   setupFilter('#tableBody tr');
   setupExportCrtsh();
-  await chrome.storage.local.remove('crtshData');
+  await deleteMeta('crtsh');
+  await deleteCrtsh(domain);
 }
 
 function setTitle(text) {
