@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Report</title>
+  <title>Report - Burning Chrome by thesavant42</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,7 +12,13 @@
       <button id="debugToggle" class="debug-toggle-btn hidden">Debug Log</button>
     </div>
     <pre id="debugLog" class="debug-log hidden"></pre>
-    <h1 id="title"></h1>
+    
+    <div class="stats">
+      <span id="title" class="page-title"></span>
+      <span id="rangeInfo" class="range-info-inline"></span>
+      <label class="select-all-inline"><input type="checkbox" id="selectAllTop" class="select-all-check"> Select All</label>
+      <span id="selectedCountInline" class="selected-count"></span>
+    </div>
     
     <div class="toolbar">
       <input type="text" id="search" placeholder="Filter URLs..." autocomplete="off">
@@ -59,9 +65,6 @@
     <!-- Pagination controls (bottom) -->
     <div id="paginationBottom" class="pagination"></div>
 
-    <!-- Simple list view (legacy fallback) -->
-    <ul id="links" class="link-list hidden"></ul>
-    
     <!-- Crt.sh table view -->
     <table id="dataTable" class="hidden">
       <thead id="tableHead"></thead>

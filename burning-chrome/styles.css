@@ -482,6 +482,28 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
   color: var(--pink);
 }
 
+/* Inline range info for title row */
+.range-info-inline {
+  color: var(--comment);
+  font-size: 0.85rem;
+  margin-left: 0.75rem;
+}
+
+/* Inline select all for title row */
+.select-all-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 1rem;
+  color: var(--comment);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.select-all-inline input {
+  accent-color: var(--purple);
+}
+
 /* Utility */
 .hidden { display: none !important; }
 .wildcard { color: var(--orange); }
