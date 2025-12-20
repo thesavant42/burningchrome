@@ -4,14 +4,26 @@ import commonjs from '@rollup/plugin-commonjs';
 export default [
   {
     input: 'report.js',
-    output: { file: 'dist/report.js', format: 'es' },
+    output: {
+      file: 'dist/report.js',
+      format: 'es'
+    },
     context: 'this',
-    plugins: [nodeResolve(), commonjs()]
+    plugins: [
+      nodeResolve(),
+      commonjs()
+    ]
   },
   {
     input: 'background.js',
-    output: { file: 'dist/background.js', format: 'es' },
+    output: {
+      file: 'dist/background.js',
+      format: 'es'
+    },
     context: 'this',
-    plugins: [nodeResolve(), commonjs()]
+    plugins: [
+      nodeResolve(),
+      commonjs()
+    ]
   }
 ];

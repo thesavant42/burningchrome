@@ -323,6 +323,77 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
   text-decoration: none;
 }
 
+/* Pagination controls */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  padding: 0.4rem 0.75rem;
+  min-width: 36px;
+  border: 1px solid var(--purple);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--purple);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--purple);
+  color: var(--bg);
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  color: var(--cyan);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0 0.5rem;
+}
+
+.pagination .page-jump {
+  width: 60px;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.pagination .page-jump:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+
+.pagination .page-jump::-webkit-outer-spin-button,
+.pagination .page-jump::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pagination .page-jump[type=number] {
+  -moz-appearance: textfield;
+}
+
+.pagination .range-info {
+  color: var(--comment);
+  font-size: 0.8rem;
+  padding-left: 0.5rem;
+}
+
 /* Utility */
 .hidden { display: none !important; }
 .wildcard { color: var(--orange); }

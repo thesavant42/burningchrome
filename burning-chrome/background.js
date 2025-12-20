@@ -1,4 +1,4 @@
-import { saveTimemap, saveMeta, saveCrtsh } from './lib/db.js';
+import { storage } from './lib/storage.js';
 
 // CDX API constants
 const MAX_RETRIES = 3;
@@ -49,8 +49,9 @@ async function handleTimemapRequest(tab) {
   const fetchUrl = `https://web.archive.org/cdx/search/cdx?url=*.${domain}&output=json&fl=original,timestamp,statuscode,mimetype&collapse=urlkey&limit=${CDX_BATCH_SIZE}&showResumeKey=true`;
 
   // Store loading state immediately
-  await saveMeta('timemap', {
+  await storage.set('timemapData', {
     domain: domain,
+    data: null,
     loading: true,
     error: null,
     page: 0,
@@ -68,9 +69,9 @@ async function handleTimemapRequest(tab) {
   startKeepAlive();
   try {
     const allData = await fetchAllCDXData(domain, async (partialData, recordCount, page, totalPages) => {
-      await saveTimemap(domain, partialData);
-      await saveMeta('timemap', {
+      await storage.set('timemapData', {
         domain: domain,
+        data: partialData,
         loading: true,
         error: null,
         page: page,
@@ -81,9 +82,9 @@ async function handleTimemapRequest(tab) {
         timestamp: Date.now()
       });
     });
-    await saveTimemap(domain, allData);
-    await saveMeta('timemap', {
+    await storage.set('timemapData', {
       domain: domain,
+      data: allData,
       loading: false,
       error: null,
       fetchUrl: fetchUrl,
@@ -92,10 +93,14 @@ async function handleTimemapRequest(tab) {
     });
   } catch (error) {
     console.error('CDX fetch failed:', error);
-    await saveMeta('timemap', {
+    // Get current data to preserve partial results on cancel
+    const current = await storage.get('timemapData');
+    await storage.set('timemapData', {
       domain: domain,
+      data: error.cancelled && current?.data ? current.data : null,
       loading: false,
       error: error.message,
+      cancelled: error.cancelled || false,
       debugLog: error.debugLog || getDebugLog(),
       timestamp: Date.now()
     });
@@ -113,8 +118,9 @@ async function handleCrtshRequest(tab) {
   const fetchUrl = `https://crt.sh/json?q=${domain}`;
 
   // Store domain immediately so the report page can show loading state
-  await saveMeta('crtsh', {
+  await storage.set('crtshData', {
     domain: domain,
+    data: null,
     loading: true,
     error: null,
     fetchUrl: fetchUrl,
@@ -130,17 +136,18 @@ async function handleCrtshRequest(tab) {
   startKeepAlive();
   try {
     const crtData = await fetchCrtshData(domain);
-    await saveCrtsh(domain, crtData);
-    await saveMeta('crtsh', {
+    await storage.set('crtshData', {
       domain: domain,
+      data: crtData,
       loading: false,
       error: null,
       timestamp: Date.now()
     });
   } catch (error) {
     console.error('Crt.sh fetch failed:', error);
-    await saveMeta('crtsh', {
+    await storage.set('crtshData', {
       domain: domain,
+      data: null,
       loading: false,
       error: error.message,
       timestamp: Date.now()
@@ -159,6 +166,16 @@ async function fetchAllCDXData(domain, progressCallback) {
   let page = 0;
 
   while (true) {
+    // Check for cancel request
+    const timemapData = await storage.get('timemapData');
+    if (timemapData?.cancelled) {
+      addDebug('Fetch cancelled by user');
+      const err = new Error('Cancelled by user');
+      err.cancelled = true;
+      err.debugLog = getDebugLog();
+      throw err;
+    }
+
     page++;
     const result = await fetchCDXPage(domain, resumeKey);
     

@@ -1,5 +1,5 @@
 import { download, saveHtml, saveJson } from './lib/export.js';
-import { getTimemap, getCrtsh, getMeta, deleteMeta, deleteTimemap, deleteCrtsh } from './lib/db.js';
+import { storage } from './lib/storage.js';
 import mime from 'mime/lite';
 
 let _type = '';
@@ -8,22 +8,29 @@ let rawData = [];
 let filteredData = [];
 let selectedRows = new Set();
 
-async function init() {
-  const timemapMeta = await getMeta('timemap');
-  const crtshMeta = await getMeta('crtsh');
+// Pagination state
+const ROWS_PER_PAGE = 50;
+let currentPage = 1;
+let totalPages = 1;
 
-  if (timemapMeta) {
+async function init() {
+  // Wire up cancel button once
+  const cancelBtn = document.getElementById('cancelFetch');
+  cancelBtn.onclick = cancelFetch;
+  
+  const timemapData = await storage.get('timemapData');
+  const crtshData = await storage.get('crtshData');
+
+  if (timemapData) {
     _type = 'wayback';
-    setTitle(`${timemapMeta.domain} - Wayback`);
+    setTitle(`${timemapData.domain} - Wayback`);
     document.getElementById('stats').textContent = 'Loading...';
-    const data = await getTimemap(timemapMeta.domain);
-    await loadWayback({ ...timemapMeta, data });
-  } else if (crtshMeta) {
+    await loadWayback(timemapData);
+  } else if (crtshData) {
     _type = 'crtsh';
-    setTitle(`${crtshMeta.domain} - Crt.sh`);
+    setTitle(`${crtshData.domain} - Crt.sh`);
     document.getElementById('stats').textContent = 'Loading...';
-    const data = await getCrtsh(crtshMeta.domain);
-    await loadCrtsh({ ...crtshMeta, data });
+    await loadCrtsh(crtshData);
   } else {
     showError('No data. Use context menu on a webpage.');
   }
@@ -35,6 +42,11 @@ async function loadWayback(data) {
 
   // Always show debug log if present
   showDebugLog(data.debugLog);
+
+  // Hide cancel button when not loading
+  if (!data.loading) {
+    showCancelButton(false);
+  }
 
   if (data.error) {
     showError(data.error);
@@ -75,8 +87,7 @@ async function loadWayback(data) {
     return;
   }
 
-  await deleteMeta('timemap');
-  await deleteTimemap(domain);
+  await storage.remove('timemapData');
 }
 
 async function loadCrtsh(data) {
@@ -103,8 +114,7 @@ async function loadCrtsh(data) {
   renderCrtshTable();
   setupFilter('#tableBody tr');
   setupExportCrtsh();
-  await deleteMeta('crtsh');
-  await deleteCrtsh(domain);
+  await storage.remove('crtshData');
 }
 
 function setTitle(text) {
@@ -130,7 +140,32 @@ function showLoadingProgress(data) {
     msg = `Fetching: ${url} (${elapsed}s)`;
   }
   showDebugLog(msg + (data.debugLog ? '\n' + data.debugLog : ''));
+  
+  // Show cancel button during loading
+  showCancelButton(true);
+  
   setTimeout(init, 500);
+}
+
+function showCancelButton(show) {
+  const cancelBtn = document.getElementById('cancelFetch');
+  if (show) {
+    cancelBtn.classList.remove('hidden');
+  } else {
+    cancelBtn.classList.add('hidden');
+  }
+}
+
+async function cancelFetch() {
+  const timemapData = await storage.get('timemapData');
+  if (timemapData && timemapData.loading) {
+    await storage.set('timemapData', {
+      ...timemapData,
+      cancelled: true
+    });
+    showCancelButton(false);
+    document.getElementById('stats').innerHTML = '<span class="error">Cancelling...</span>';
+  }
 }
 
 function showError(msg) {
@@ -165,14 +200,18 @@ function getArchiveUrl(url, timestamp) {
   return `https://web.archive.org/web/${timestamp}/${url}`;
 }
 
-// Render the Wayback table with all metadata
+// Render the Wayback table with all metadata (paginated)
 function renderWaybackTable() {
   const table = document.getElementById('waybackTable');
   const tbody = document.getElementById('waybackBody');
   table.classList.remove('hidden');
   tbody.innerHTML = '';
 
-  filteredData.forEach((row) => {
+  // Calculate pagination
+  calculateTotalPages();
+  const pageData = getPageData();
+
+  pageData.forEach((row) => {
     const tr = document.createElement('tr');
     tr.dataset.id = row.id;
     if (selectedRows.has(row.id)) {
@@ -196,6 +235,10 @@ function renderWaybackTable() {
   });
 
   updateStats();
+  
+  // Render pagination controls (top and bottom)
+  renderPaginationControls('paginationTop');
+  renderPaginationControls('paginationBottom');
 }
 
 function formatStatus(status) {
@@ -258,6 +301,8 @@ function setupWaybackFilters() {
       return true;
     });
 
+    // Reset to first page when filters change
+    currentPage = 1;
     renderWaybackTable();
   };
 
@@ -334,6 +379,8 @@ function setupSelection() {
       return true;
     });
 
+    // Recalculate pagination after deletion
+    calculateTotalPages();
     renderWaybackTable();
     updateSelectionUI();
   });
@@ -368,6 +415,119 @@ function updateStats() {
   } else {
     stats.textContent = `${filteredData.length} of ${rawData.length} snapshots`;
   }
+}
+
+// Pagination functions
+function calculateTotalPages() {
+  totalPages = Math.max(1, Math.ceil(filteredData.length / ROWS_PER_PAGE));
+  if (currentPage > totalPages) {
+    currentPage = totalPages;
+  }
+}
+
+function getPageData() {
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
+  const end = start + ROWS_PER_PAGE;
+  return filteredData.slice(start, end);
+}
+
+function goToPage(page) {
+  const newPage = Math.max(1, Math.min(page, totalPages));
+  if (newPage !== currentPage) {
+    currentPage = newPage;
+    renderWaybackTable();
+    // Scroll to top of table
+    document.getElementById('waybackTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function renderPaginationControls(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (totalPages <= 1) {
+    container.classList.add('hidden');
+    return;
+  }
+  
+  container.classList.remove('hidden');
+  
+  // First/Prev buttons
+  const firstBtn = document.createElement('button');
+  firstBtn.textContent = '<<';
+  firstBtn.title = 'First page';
+  firstBtn.disabled = currentPage === 1;
+  firstBtn.onclick = () => goToPage(1);
+  container.appendChild(firstBtn);
+  
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '<';
+  prevBtn.title = 'Previous page';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => goToPage(currentPage - 1);
+  container.appendChild(prevBtn);
+  
+  // Page info
+  const pageInfo = document.createElement('span');
+  pageInfo.className = 'page-info';
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  container.appendChild(pageInfo);
+  
+  // Jump to page input
+  const jumpInput = document.createElement('input');
+  jumpInput.type = 'number';
+  jumpInput.className = 'page-jump';
+  jumpInput.min = 1;
+  jumpInput.max = totalPages;
+  jumpInput.placeholder = '#';
+  jumpInput.title = 'Jump to page';
+  jumpInput.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      const page = parseInt(jumpInput.value, 10);
+      if (!isNaN(page)) {
+        goToPage(page);
+        jumpInput.value = '';
+      }
+    }
+  };
+  container.appendChild(jumpInput);
+  
+  const goBtn = document.createElement('button');
+  goBtn.textContent = 'Go';
+  goBtn.title = 'Jump to page';
+  goBtn.onclick = () => {
+    const page = parseInt(jumpInput.value, 10);
+    if (!isNaN(page)) {
+      goToPage(page);
+      jumpInput.value = '';
+    }
+  };
+  container.appendChild(goBtn);
+  
+  // Next/Last buttons
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = '>';
+  nextBtn.title = 'Next page';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => goToPage(currentPage + 1);
+  container.appendChild(nextBtn);
+  
+  const lastBtn = document.createElement('button');
+  lastBtn.textContent = '>>';
+  lastBtn.title = 'Last page';
+  lastBtn.disabled = currentPage === totalPages;
+  lastBtn.onclick = () => goToPage(totalPages);
+  container.appendChild(lastBtn);
+  
+  // Row range info
+  const start = (currentPage - 1) * ROWS_PER_PAGE + 1;
+  const end = Math.min(currentPage * ROWS_PER_PAGE, filteredData.length);
+  const rangeInfo = document.createElement('span');
+  rangeInfo.className = 'range-info';
+  rangeInfo.textContent = `(${start}-${end} of ${filteredData.length})`;
+  container.appendChild(rangeInfo);
 }
 
 // Crt.sh table rendering

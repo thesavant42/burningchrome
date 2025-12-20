@@ -30,6 +30,7 @@
         <option value="application/json">JSON</option>
         <option value="image/">Images</option>
       </select>
+      <button id="cancelFetch" class="danger hidden" aria-label="Cancel fetch">Cancel</button>
       <button id="deleteSelected" class="danger hidden" aria-label="Delete selected snapshots">Delete Selected</button>
       <div class="spacer"></div>
       <button id="saveHtml">Save HTML</button>
@@ -41,6 +42,9 @@
       <label><input type="checkbox" id="selectAll" aria-label="Select all visible snapshots"> Select All Visible</label>
       <span id="selectedCount" class="selected-count"></span>
     </div>
+
+    <!-- Pagination controls (top) -->
+    <div id="paginationTop" class="pagination hidden"></div>
 
     <!-- Wayback table view -->
     <table id="waybackTable" class="hidden">
@@ -56,6 +60,9 @@
       </thead>
       <tbody id="waybackBody"></tbody>
     </table>
+
+    <!-- Pagination controls (bottom) -->
+    <div id="paginationBottom" class="pagination hidden"></div>
 
     <!-- Simple list view (legacy fallback) -->
     <ul id="links" class="link-list hidden"></ul>
