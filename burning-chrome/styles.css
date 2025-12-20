@@ -386,6 +386,7 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
 }
 
 .pagination .page-jump[type=number] {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 
@@ -503,6 +504,23 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
 }
 
 .cdx-btn:hover {
+  background: var(--cyan);
+  color: var(--bg);
+}
+
+/* Open action button */
+.open-btn {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--cyan);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--cyan);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.open-btn:hover {
   background: var(--cyan);
   color: var(--bg);
 }

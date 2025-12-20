@@ -180,13 +180,22 @@ async function cancelFetch() {
   }
   
   const timemapData = await storage.get('timemapData');
-  if (timemapData && timemapData.loading) {
+  if (!timemapData) {
+    // Storage already cleared, nothing to cancel
+    showCancelButton(false);
+    return;
+  }
+  
+  if (timemapData.loading) {
     await storage.set('timemapData', {
       ...timemapData,
       cancelled: true
     });
     showCancelButton(false);
     document.getElementById('stats').innerHTML = '<span class="error">Cancelling...</span>';
+  } else {
+    // Fetch already complete, just hide button
+    showCancelButton(false);
   }
 }
 
