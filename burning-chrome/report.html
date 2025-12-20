@@ -13,7 +13,6 @@
     </div>
     <pre id="debugLog" class="debug-log hidden"></pre>
     <h1 id="title"></h1>
-    <p id="stats"></p>
     
     <div class="toolbar">
       <input type="text" id="search" placeholder="Filter URLs..." autocomplete="off">
@@ -36,15 +35,11 @@
       </select>
       <button id="cancelFetch" class="danger hidden" aria-label="Cancel fetch">Cancel</button>
       <button id="deleteSelected" class="danger hidden" aria-label="Delete selected snapshots">Delete Selected</button>
-      <div class="spacer"></div>
+      <span id="paginationTop" class="pagination-inline"></span>
       <button id="saveHtml">Save HTML</button>
       <button id="saveJson">Save JSON</button>
       <button id="saveExtra" class="hidden" aria-label="Export data"></button>
     </div>
-    
-
-    <!-- Pagination controls (top) -->
-    <div id="paginationTop" class="pagination hidden"></div>
 
     <!-- Wayback table view -->
     <table id="waybackTable" class="hidden">
@@ -62,7 +57,7 @@
     </table>
 
     <!-- Pagination controls (bottom) -->
-    <div id="paginationBottom" class="pagination hidden"></div>
+    <div id="paginationBottom" class="pagination"></div>
 
     <!-- Simple list view (legacy fallback) -->
     <ul id="links" class="link-list hidden"></ul>

@@ -50,12 +50,10 @@ async function init() {
   if (timemapData) {
     _type = 'wayback';
     setTitle(`${timemapData.domain} - Wayback`);
-    document.getElementById('stats').textContent = 'Loading...';
     await loadWayback(timemapData);
   } else if (crtshData) {
     _type = 'crtsh';
     setTitle(`${crtshData.domain} - Crt.sh`);
-    document.getElementById('stats').textContent = 'Loading...';
     await loadCrtsh(crtshData);
   } else {
     showError('No data. Use context menu on a webpage.');
@@ -67,7 +65,6 @@ async function loadCachedWayback(domainName) {
   _type = 'wayback';
   domain = domainName;
   setTitle(`${domain} - Wayback (cached)`);
-  document.getElementById('stats').textContent = 'Loading from cache...';
   
   const cached = await getTimemap(domain);
   
@@ -247,7 +244,6 @@ async function cancelFetch() {
       cancelled: true
     });
     showCancelButton(false);
-    document.getElementById('stats').innerHTML = '<span class="error">Cancelling...</span>';
   } else {
     // Fetch already complete, just hide button
     showCancelButton(false);
@@ -255,7 +251,7 @@ async function cancelFetch() {
 }
 
 function showError(msg) {
-  document.getElementById('stats').innerHTML =
+  document.getElementById('title').innerHTML =
     `<span class="error">${msg}</span>`;
 }
 
@@ -276,7 +272,6 @@ function showDebugLog(debugLog) {
 
 function show(title, stats) {
   setTitle(title);
-  document.getElementById('stats').textContent = stats;
 }
 
 // Format Wayback timestamp (YYYYMMDDHHmmss) as fixed-width badge
@@ -328,8 +323,6 @@ function renderWaybackTable() {
     tbody.appendChild(tr);
   });
 
-  updateStats();
-  
   // Render pagination controls (top and bottom)
   renderPaginationControls('paginationTop');
   renderPaginationControls('paginationBottom');
@@ -505,14 +498,6 @@ function updateSelectionUI() {
   });
 }
 
-function updateStats() {
-  const stats = document.getElementById('stats');
-  if (filteredData.length === rawData.length) {
-    stats.textContent = `${rawData.length} snapshots`;
-  } else {
-    stats.textContent = `${filteredData.length} of ${rawData.length} snapshots`;
-  }
-}
 
 // Pagination functions
 function calculateTotalPages() {
@@ -545,11 +530,8 @@ function renderPaginationControls(containerId) {
   container.innerHTML = '';
   
   if (totalPages <= 1) {
-    container.classList.add('hidden');
     return;
   }
-  
-  container.classList.remove('hidden');
   
   // First/Prev buttons
   const firstBtn = document.createElement('button');
@@ -741,23 +723,6 @@ function setupExportCrtsh() {
     saveHtml(domain, '-crtsh');
   document.getElementById('saveJson').onclick = () =>
     saveJson(domain, rawData, '-crtsh');
-  const btn = document.getElementById('saveExtra');
-  btn.textContent = 'Save CSV';
-  btn.classList.remove('hidden');
-  btn.onclick = () => {
-    const header = 'id,logged_at,not_before,not_after,common_name,name_value';
-    const rows = rawData.map((c) =>
-      [
-        c.id,
-        c.entry_timestamp,
-        c.not_before,
-        c.not_after,
-        c.common_name,
-        `"${(c.name_value || '').replace(/"/g, '""')}"`
-      ].join(',')
-    );
-    download([header, ...rows].join('\n'), `${domain}-crtsh.csv`, 'text/csv');
-  };
 }
 
 init();

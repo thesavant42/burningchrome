@@ -26,12 +26,11 @@ body {
   font-family: system-ui, sans-serif;
   background: var(--bg);
   color: var(--fg);
-  padding: 2rem;
+  padding: 1rem;
   line-height: 1.5;
 }
 
-h1 { color: var(--pink); margin-bottom: 0.5rem; }
-.stats { color: var(--comment); margin-bottom: 1.5rem; }
+h1 { color: var(--pink); margin-bottom: 0.25rem; }
 
 a { color: var(--cyan); text-decoration: none; }
 a:hover { color: var(--green); text-decoration: underline; }
@@ -39,20 +38,20 @@ a:hover { color: var(--green); text-decoration: underline; }
 /* Toolbar */
 .toolbar {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  flex-wrap: nowrap;
+  margin-bottom: 0.5rem;
 }
 
 .toolbar input[type="text"] {
-  flex: 1;
-  min-width: 200px;
-  max-width: 350px;
-  padding: 0.5rem 0.75rem;
+  width: 250px;
+  padding: 0.4rem 0.75rem;
   border: 1px solid var(--comment);
   border-radius: 4px;
   background: var(--bg-alt);
   color: var(--fg);
+  font-size: 0.85rem;
 }
 
 .toolbar input:focus { outline: none; border-color: var(--purple); }
@@ -112,7 +111,7 @@ a:hover { color: var(--green); text-decoration: underline; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--bg-alt); }
 th { background: var(--bg-alt); color: var(--cyan); position: sticky; top: 0; }
-tr:hover { background: rgba(255, 121, 198, 0.15); }
+tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(--pink); }
 
 /* Secondary toolbar */
 .toolbar.secondary {
@@ -121,7 +120,8 @@ tr:hover { background: rgba(255, 121, 198, 0.15); }
 }
 
 .toolbar .spacer {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .toolbar .selected-count {
@@ -140,12 +140,13 @@ tr:hover { background: rgba(255, 121, 198, 0.15); }
 }
 
 .toolbar select {
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   border: 1px solid var(--comment);
   border-radius: 4px;
   background: var(--bg-alt);
   color: var(--fg);
   cursor: pointer;
+  font-size: 0.85rem;
 }
 
 .toolbar select:focus {
@@ -178,10 +179,12 @@ tr:hover { background: rgba(255, 121, 198, 0.15); }
 
 #waybackTable tr:hover {
   background: rgba(255, 121, 198, 0.15);
+  box-shadow: inset 3px 0 0 var(--pink);
 }
 
 #waybackTable tr.selected {
-  background: rgba(255, 121, 198, 0.25);
+  background: rgba(255, 121, 198, 0.2);
+  box-shadow: inset 3px 0 0 var(--pink);
 }
 
 /* Fixed-width columns stay in viewport, URL wraps */
@@ -330,8 +333,65 @@ tr:hover { background: rgba(255, 121, 198, 0.15); }
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 0;
+  padding: 0.25rem 0;
   flex-wrap: wrap;
+}
+
+.pagination-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-inline button {
+  padding: 0.4rem 0.75rem;
+  min-width: 36px;
+  border: 1px solid var(--purple);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--purple);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.pagination-inline button:hover:not(:disabled) {
+  background: var(--purple);
+  color: var(--bg);
+}
+
+.pagination-inline button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-inline .page-info {
+  color: var(--cyan);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0 0.5rem;
+}
+
+.pagination-inline .page-jump {
+  width: 60px;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.pagination-inline .page-jump:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+
+.pagination-inline .range-info {
+  color: var(--comment);
+  font-size: 0.8rem;
+  padding-left: 0.5rem;
 }
 
 .pagination button {
