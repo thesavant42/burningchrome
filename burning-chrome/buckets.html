@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buckets - Burning Chrome</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="content">
+    <h1 id="title">Buckets</h1>
+    <div class="stats">
+      <a href="landing.html">Back to Projects</a>
+    </div>
+    
+    <div class="toolbar">
+      <input type="text" id="bucketSearch" placeholder="Search bucket contents..." autocomplete="off" disabled>
+      <button disabled>Import XML</button>
+    </div>
+    
+    <table id="bucketTable">
+      <thead>
+        <tr>
+          <th>Bucket</th>
+          <th>Key</th>
+          <th>Size</th>
+          <th>Last Modified</th>
+        </tr>
+      </thead>
+      <tbody id="bucketBody">
+        <tr>
+          <td colspan="4" class="stats">TODO: S3 bucket listing parser coming soon.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
+
