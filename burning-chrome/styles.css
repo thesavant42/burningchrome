@@ -112,7 +112,7 @@ a:hover { color: var(--green); text-decoration: underline; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--bg-alt); }
 th { background: var(--bg-alt); color: var(--cyan); position: sticky; top: 0; }
-tr:hover { background: rgba(139, 233, 253, 0.05); }
+tr:hover { background: rgba(255, 121, 198, 0.15); }
 
 /* Secondary toolbar */
 .toolbar.secondary {
@@ -177,11 +177,11 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
 }
 
 #waybackTable tr:hover {
-  background: rgba(139, 233, 253, 0.05);
+  background: rgba(255, 121, 198, 0.15);
 }
 
 #waybackTable tr.selected {
-  background: rgba(189, 147, 249, 0.1);
+  background: rgba(255, 121, 198, 0.25);
 }
 
 /* Fixed-width columns stay in viewport, URL wraps */
