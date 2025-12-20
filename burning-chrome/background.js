@@ -237,13 +237,29 @@ async function fetchCDXPage(domain, resumeKey = '', retryCount = 0) {
   addDebug(`Timeout: ${CDX_TIMEOUT_MS}ms`);
   const start = Date.now();
 
+  const controller = new AbortController();
+  let cancelCheckId = null;
+  let timeoutId = null;
+  let wasCancelled = false;
+
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
+    timeoutId = setTimeout(() => {
       addDebug(`ABORT triggered after ${CDX_TIMEOUT_MS}ms`);
       controller.abort();
     }, CDX_TIMEOUT_MS);
+    
+    // Poll for cancel request during fetch
+    cancelCheckId = setInterval(async () => {
+      const data = await storage.get('timemapData');
+      if (data?.cancelled) {
+        addDebug('Cancel requested - aborting fetch');
+        wasCancelled = true;
+        controller.abort();
+      }
+    }, 500);
+    
     const response = await fetch(url, { signal: controller.signal });
+    clearInterval(cancelCheckId);
     clearTimeout(timeoutId);
     addDebug(`Response: ${response.status} (${Date.now() - start}ms)`);
 
@@ -271,9 +287,20 @@ async function fetchCDXPage(domain, resumeKey = '', retryCount = 0) {
     return parseCDXResponse(json);
 
   } catch (error) {
+    clearInterval(cancelCheckId);
+    clearTimeout(timeoutId);
     const elapsed = Date.now() - start;
     
     if (error.name === 'AbortError') {
+      // Check if this was a user cancel vs timeout
+      if (wasCancelled) {
+        addDebug(`Cancelled by user after ${elapsed}ms`);
+        const err = new Error('Cancelled by user');
+        err.cancelled = true;
+        err.debugLog = getDebugLog();
+        throw err;
+      }
+      
       addDebug(`TIMEOUT after ${elapsed}ms (limit: ${CDX_TIMEOUT_MS}ms)`);
       if (retryCount < MAX_RETRIES) {
         const backoff = Math.pow(2, retryCount) * 5000;
