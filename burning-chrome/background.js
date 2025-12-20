@@ -160,15 +160,20 @@ async function handleCrtshRequest(tab) {
 // CDX API with resumeKey pagination based on:
 // https://github.com/thesavant42/gitsome-ng/blob/main/internal/api/wayback.go
 
+// Helper to check if fetch was cancelled
+async function isCancelled() {
+  const data = await storage.get('timemapData');
+  return data?.cancelled === true;
+}
+
 async function fetchAllCDXData(domain, progressCallback) {
   const allRecords = [];
   let resumeKey = '';
   let page = 0;
 
   while (true) {
-    // Check for cancel request
-    const timemapData = await storage.get('timemapData');
-    if (timemapData?.cancelled) {
+    // Check for cancel request before each page
+    if (await isCancelled()) {
       addDebug('Fetch cancelled by user');
       const err = new Error('Cancelled by user');
       err.cancelled = true;
@@ -178,6 +183,15 @@ async function fetchAllCDXData(domain, progressCallback) {
 
     page++;
     const result = await fetchCDXPage(domain, resumeKey);
+    
+    // Check for cancel after fetch completes
+    if (await isCancelled()) {
+      addDebug('Fetch cancelled by user after page completed');
+      const err = new Error('Cancelled by user');
+      err.cancelled = true;
+      err.debugLog = getDebugLog();
+      throw err;
+    }
     
     allRecords.push(...result.records);
     console.log(`Page ${page}: ${result.records.length} records, total: ${allRecords.length}, hasMore: ${result.hasMore}`);
@@ -373,8 +387,20 @@ function parseCDXResponse(rawRows) {
   return result;
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+// Cancellable sleep - rejects if cancelled during wait
+async function sleep(ms) {
+  const checkInterval = 250;
+  const iterations = Math.ceil(ms / checkInterval);
+  for (let i = 0; i < iterations; i++) {
+    await new Promise(resolve => setTimeout(resolve, Math.min(checkInterval, ms - i * checkInterval)));
+    if (await isCancelled()) {
+      addDebug('Cancelled during backoff wait');
+      const err = new Error('Cancelled by user');
+      err.cancelled = true;
+      err.debugLog = getDebugLog();
+      throw err;
+    }
+  }
 }
 
 // Crt.sh API functions

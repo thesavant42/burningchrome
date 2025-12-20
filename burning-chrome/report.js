@@ -13,6 +13,9 @@ const ROWS_PER_PAGE = 50;
 let currentPage = 1;
 let totalPages = 1;
 
+// Polling timer for loading state
+let loadingPollTimer = null;
+
 async function init() {
   // Wire up cancel button once
   const cancelBtn = document.getElementById('cancelFetch');
@@ -144,7 +147,11 @@ function showLoadingProgress(data) {
   // Show cancel button during loading
   showCancelButton(true);
   
-  setTimeout(init, 500);
+  // Clear any existing timer before setting a new one
+  if (loadingPollTimer) {
+    clearTimeout(loadingPollTimer);
+  }
+  loadingPollTimer = setTimeout(init, 500);
 }
 
 function showCancelButton(show) {
@@ -157,6 +164,12 @@ function showCancelButton(show) {
 }
 
 async function cancelFetch() {
+  // Stop the polling timer immediately
+  if (loadingPollTimer) {
+    clearTimeout(loadingPollTimer);
+    loadingPollTimer = null;
+  }
+  
   const timemapData = await storage.get('timemapData');
   if (timemapData && timemapData.loading) {
     await storage.set('timemapData', {
