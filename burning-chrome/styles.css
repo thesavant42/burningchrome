@@ -476,6 +476,12 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
   margin-left: 0.5rem;
 }
 
+/* Page title inline with nav */
+.page-title {
+  font-weight: 700;
+  color: var(--pink);
+}
+
 /* Utility */
 .hidden { display: none !important; }
 .wildcard { color: var(--orange); }
