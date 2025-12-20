@@ -352,7 +352,7 @@ function sleep(ms) {
 
 // Crt.sh API functions
 async function fetchCrtshData(domain) {
-  const crtUrl = `https://crt.sh/json?q=${domain}`;
+  const crtUrl = `https://crt.sh/?q=${domain}&output=json`;
   console.log(`Fetching crt.sh data for ${domain}...`);
 
   const response = await fetch(crtUrl, {
