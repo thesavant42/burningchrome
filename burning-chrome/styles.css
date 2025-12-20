@@ -199,7 +199,7 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
 .col-date { width: 110px; min-width: 110px; max-width: 110px; white-space: nowrap; }
 .col-status { width: 50px; min-width: 50px; max-width: 50px; text-align: center; }
 .col-mime { width: 64px; min-width: 64px; max-width: 64px; text-align: center; }
-.col-actions { width: 94px; min-width: 94px; max-width: 94px; white-space: nowrap; text-align: center; }
+.col-actions { width: 106px; min-width: 106px; max-width: 106px; white-space: nowrap; text-align: center; }
 
 /* Fixed-width badges */
 .badge-date {
@@ -236,6 +236,7 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
   display: inline-block;
   width: 54px;
   padding: 3px 4px;
+  border: 1px solid currentColor;
   border-radius: 3px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -261,7 +262,7 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
 
 .badge-action {
   display: inline-block;
-  width: 38px;
+  width: 44px;
   padding: 3px 0;
   margin: 0 2px;
   border-radius: 3px;
@@ -394,6 +395,26 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
   padding-left: 0.5rem;
 }
 
+.pagination-select-all {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 1rem;
+  color: var(--comment);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.pagination-select-all input {
+  accent-color: var(--purple);
+}
+
+.pagination-selected-count {
+  color: var(--orange);
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
 /* Utility */
 .hidden { display: none !important; }
 .wildcard { color: var(--orange); }
@@ -414,6 +435,31 @@ tr:hover { background: rgba(139, 233, 253, 0.05); }
   overflow-x: hidden;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.debug-toggle-container {
+  margin-bottom: 0.5rem;
+}
+
+.debug-toggle-btn {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--comment);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.debug-toggle-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.debug-toggle-btn.active {
+  background: rgba(80, 250, 123, 0.1);
+  border-color: var(--green);
+  color: var(--green);
 }
 
 /* Inline select for table cells */

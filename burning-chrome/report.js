@@ -20,6 +20,15 @@ async function init() {
   // Wire up cancel button once
   const cancelBtn = document.getElementById('cancelFetch');
   cancelBtn.onclick = cancelFetch;
+
+  // Wire up debug toggle button
+  document.getElementById('debugToggle').addEventListener('click', () => {
+    const debugEl = document.getElementById('debugLog');
+    const toggleBtn = document.getElementById('debugToggle');
+    const isHidden = debugEl.classList.toggle('hidden');
+    toggleBtn.classList.toggle('active', !isHidden);
+    localStorage.setItem('showDebugLog', !isHidden);
+  });
   
   const timemapData = await storage.get('timemapData');
   const crtshData = await storage.get('crtshData');
@@ -189,8 +198,16 @@ function showError(msg) {
 function showDebugLog(debugLog) {
   if (!debugLog) return;
   const debugEl = document.getElementById('debugLog');
-  debugEl.classList.remove('hidden');
+  const toggleBtn = document.getElementById('debugToggle');
+  
+  // Show toggle button when there's debug content
+  toggleBtn.classList.remove('hidden');
   debugEl.textContent = debugLog;
+  
+  // Apply stored visibility preference (default: hidden)
+  const showDebug = localStorage.getItem('showDebugLog') === 'true';
+  debugEl.classList.toggle('hidden', !showDebug);
+  toggleBtn.classList.toggle('active', showDebug);
 }
 
 function show(title, stats) {
@@ -240,8 +257,8 @@ function renderWaybackTable() {
       <td class="col-status">${formatStatus(row.status)}</td>
       <td class="col-mime">${formatMime(row.mime)}</td>
       <td class="col-actions">
-        <a href="${archiveUrl}" target="_blank" class="badge-action badge-action-archive" title="View archived snapshot">ARC</a>
-        <a href="${row.url}" target="_blank" class="badge-action badge-action-live" title="View live page">LIV</a>
+        <a href="${archiveUrl}" target="_blank" class="badge-action badge-action-archive" title="View archived snapshot">WARC</a>
+        <a href="${row.url}" target="_blank" class="badge-action badge-action-live" title="View live page">LIVE</a>
       </td>
     `;
     tbody.appendChild(tr);
@@ -326,7 +343,6 @@ function setupWaybackFilters() {
 
 function setupSelection() {
   const headerCheck = document.getElementById('headerCheck');
-  const selectAllCheck = document.getElementById('selectAll');
   const deleteBtn = document.getElementById('deleteSelected');
   const tbody = document.getElementById('waybackBody');
 
@@ -362,10 +378,12 @@ function setupSelection() {
     updateSelectionUI();
   });
 
-  // Select All Visible label checkbox
-  selectAllCheck.addEventListener('change', () => {
-    headerCheck.checked = selectAllCheck.checked;
-    headerCheck.dispatchEvent(new Event('change'));
+  // Pagination select-all checkboxes (delegated)
+  document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('select-all-check')) {
+      headerCheck.checked = e.target.checked;
+      headerCheck.dispatchEvent(new Event('change'));
+    }
   });
 
   // Delete selected
@@ -401,24 +419,26 @@ function setupSelection() {
 
 function updateSelectionUI() {
   const deleteBtn = document.getElementById('deleteSelected');
-  const countSpan = document.getElementById('selectedCount');
-  const selectAllCheck = document.getElementById('selectAll');
   const headerCheck = document.getElementById('headerCheck');
+
+  // Update all selected count spans
+  document.querySelectorAll('.pagination-selected-count').forEach((span) => {
+    span.textContent = selectedRows.size > 0 ? `${selectedRows.size} selected` : '';
+  });
 
   if (selectedRows.size > 0) {
     deleteBtn.classList.remove('hidden');
-    countSpan.textContent = `${selectedRows.size} selected`;
   } else {
     deleteBtn.classList.add('hidden');
-    countSpan.textContent = '';
   }
 
-  // Sync checkboxes
+  // Sync all checkboxes
   const allVisible = document.querySelectorAll('.row-check');
-  const allChecked =
-    allVisible.length > 0 && [...allVisible].every((cb) => cb.checked);
+  const allChecked = allVisible.length > 0 && [...allVisible].every((cb) => cb.checked);
   headerCheck.checked = allChecked;
-  selectAllCheck.checked = allChecked;
+  document.querySelectorAll('.select-all-check').forEach((cb) => {
+    cb.checked = allChecked;
+  });
 }
 
 function updateStats() {
@@ -541,6 +561,27 @@ function renderPaginationControls(containerId) {
   rangeInfo.className = 'range-info';
   rangeInfo.textContent = `(${start}-${end} of ${filteredData.length})`;
   container.appendChild(rangeInfo);
+
+  // Select All Visible checkbox (inline with pagination)
+  const selectLabel = document.createElement('label');
+  selectLabel.className = 'pagination-select-all';
+  const selectCheck = document.createElement('input');
+  selectCheck.type = 'checkbox';
+  selectCheck.id = containerId === 'paginationTop' ? 'selectAllTop' : 'selectAllBottom';
+  selectCheck.className = 'select-all-check';
+  selectCheck.setAttribute('aria-label', 'Select all visible snapshots');
+  selectLabel.appendChild(selectCheck);
+  selectLabel.appendChild(document.createTextNode(' Select All'));
+  container.appendChild(selectLabel);
+
+  // Selected count indicator
+  const countSpan = document.createElement('span');
+  countSpan.className = 'selected-count pagination-selected-count';
+  countSpan.id = containerId === 'paginationTop' ? 'selectedCountTop' : 'selectedCountBottom';
+  if (selectedRows.size > 0) {
+    countSpan.textContent = `${selectedRows.size} selected`;
+  }
+  container.appendChild(countSpan);
 }
 
 // Crt.sh table rendering

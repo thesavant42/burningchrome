@@ -8,6 +8,9 @@
 </head>
 <body>
   <div id="content">
+    <div class="debug-toggle-container">
+      <button id="debugToggle" class="debug-toggle-btn hidden">Debug Log</button>
+    </div>
     <pre id="debugLog" class="debug-log hidden"></pre>
     <h1 id="title"></h1>
     <div class="stats" id="stats"></div>
@@ -38,10 +41,6 @@
       <button id="saveExtra" class="hidden" aria-label="Export data"></button>
     </div>
     
-    <div class="toolbar secondary">
-      <label><input type="checkbox" id="selectAll" aria-label="Select all visible snapshots"> Select All Visible</label>
-      <span id="selectedCount" class="selected-count"></span>
-    </div>
 
     <!-- Pagination controls (top) -->
     <div id="paginationTop" class="pagination hidden"></div>
