@@ -1,7 +1,10 @@
 import { getProject, saveProject, apiKeys } from './lib/storage.js';
+import { getTimemap } from './lib/db.js';
 
 let project = null;
 let currentDomain = null;
+// Cache of domains that have cached CDX data
+let cachedDomains = new Set();
 
 async function init() {
   const params = new URLSearchParams(window.location.search);
@@ -23,8 +26,32 @@ async function init() {
   document.getElementById('title').textContent = project.name;
   document.title = `${project.name} - Burning Chrome`;
   
+  // Check which domains have cached CDX data
+  await checkCachedDomains();
+  
   renderDomains();
   setupEventListeners();
+}
+
+// Check which domains and subdomains have cached CDX data
+async function checkCachedDomains() {
+  cachedDomains.clear();
+  
+  for (const domain of project.domains) {
+    // Check main domain
+    const cached = await getTimemap(domain.name);
+    if (cached?.data) {
+      cachedDomains.add(domain.name);
+    }
+    
+    // Check subdomains
+    for (const sub of (domain.subdomains || [])) {
+      const subCached = await getTimemap(sub.name);
+      if (subCached?.data) {
+        cachedDomains.add(sub.name);
+      }
+    }
+  }
 }
 
 function renderDomains() {
@@ -53,6 +80,7 @@ function renderDomains() {
   project.domains.forEach(domain => {
     const tr = document.createElement('tr');
     const subCount = domain.subdomains?.length || 0;
+    const hasCached = cachedDomains.has(domain.name);
     
     tr.innerHTML = `
       <td><a href="#" class="domain-link" data-domain="${escapeHtml(domain.name)}">${escapeHtml(domain.name)}</a></td>
@@ -63,6 +91,7 @@ function renderDomains() {
           <option value="virustotal">VirusTotal</option>
           <option value="crtsh">crt.sh</option>
         </select>
+        ${hasCached ? `<button class="view-btn" data-domain="${escapeHtml(domain.name)}">View</button>` : ''}
         <button class="cdx-btn" data-domain="${escapeHtml(domain.name)}">CDX</button>
         <button class="delete-btn danger" data-domain="${escapeHtml(domain.name)}">X</button>
       </td>
@@ -115,6 +144,12 @@ async function handleDomainClick(e) {
   if (e.target.classList.contains('domain-link')) {
     e.preventDefault();
     showSubdomainPanel(domainName);
+    return;
+  }
+  
+  if (e.target.classList.contains('view-btn')) {
+    // Navigate to report page in view mode (loads from cache)
+    window.open(`report.html?view=${encodeURIComponent(domainName)}`, '_blank');
     return;
   }
   
@@ -210,19 +245,31 @@ function showSubdomainPanel(domainName) {
   
   domain.subdomains.forEach(sub => {
     const tr = document.createElement('tr');
+    const hasCached = cachedDomains.has(sub.name);
     tr.innerHTML = `
       <td>${escapeHtml(sub.name)}</td>
       <td>${sub.source}</td>
-      <td><button class="cdx-btn" data-subdomain="${escapeHtml(sub.name)}">CDX</button></td>
+      <td>
+        ${hasCached ? `<button class="view-btn" data-subdomain="${escapeHtml(sub.name)}">View</button>` : ''}
+        <button class="cdx-btn" data-subdomain="${escapeHtml(sub.name)}">CDX</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
 function handleSubdomainClick(e) {
+  const subdomain = e.target.dataset.subdomain;
+  if (!subdomain) return;
+  
+  if (e.target.classList.contains('view-btn')) {
+    // Navigate to report page in view mode (loads from cache)
+    window.open(`report.html?view=${encodeURIComponent(subdomain)}`, '_blank');
+    return;
+  }
+  
   if (e.target.classList.contains('cdx-btn')) {
-    const subdomain = e.target.dataset.subdomain;
-    if (subdomain) chrome.runtime.sendMessage({ type: 'cdx-scan', domain: subdomain });
+    chrome.runtime.sendMessage({ type: 'cdx-scan', domain: subdomain });
   }
 }
 

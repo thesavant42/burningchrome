@@ -1,5 +1,6 @@
 import { download, saveHtml, saveJson } from './lib/export.js';
 import { storage } from './lib/storage.js';
+import { getTimemap } from './lib/db.js';
 import mime from 'mime/lite';
 
 let _type = '';
@@ -16,6 +17,9 @@ let totalPages = 1;
 // Polling timer for loading state
 let loadingPollTimer = null;
 
+// View mode: when true, we're viewing cached data (not fetching)
+let viewMode = false;
+
 async function init() {
   // Wire up cancel button once
   const cancelBtn = document.getElementById('cancelFetch');
@@ -29,6 +33,16 @@ async function init() {
     toggleBtn.classList.toggle('active', !isHidden);
     localStorage.setItem('showDebugLog', !isHidden);
   });
+  
+  // Check for view mode (loading cached data from IndexedDB)
+  const params = new URLSearchParams(window.location.search);
+  const viewDomain = params.get('view');
+  
+  if (viewDomain) {
+    viewMode = true;
+    await loadCachedWayback(viewDomain);
+    return;
+  }
   
   const timemapData = await storage.get('timemapData');
   const crtshData = await storage.get('crtshData');
@@ -46,6 +60,47 @@ async function init() {
   } else {
     showError('No data. Use context menu on a webpage.');
   }
+}
+
+// Load cached Wayback data from IndexedDB (view mode)
+async function loadCachedWayback(domainName) {
+  _type = 'wayback';
+  domain = domainName;
+  setTitle(`${domain} - Wayback (cached)`);
+  document.getElementById('stats').textContent = 'Loading from cache...';
+  
+  const cached = await getTimemap(domain);
+  
+  if (!cached || !cached.data) {
+    showError(`No cached data found for ${domain}`);
+    return;
+  }
+  
+  // Parse CDX data: skip header row, each row is [url, timestamp, statuscode, mimetype]
+  const rows = cached.data || [];
+  if (rows.length <= 1) {
+    showError(`No archived URLs found for ${domain}`);
+    return;
+  }
+  
+  // Convert to objects for easier handling
+  rawData = rows.slice(1).map((r, idx) => ({
+    id: idx,
+    url: r[0],
+    timestamp: r[1],
+    status: r[2] || '',
+    mime: r[3] || ''
+  }));
+
+  filteredData = [...rawData];
+
+  const fetchedDate = cached.fetchedAt ? new Date(cached.fetchedAt).toLocaleDateString() : 'unknown';
+  const partialNote = cached.partial ? ' (partial)' : '';
+  show(`${domain} - Wayback (cached)`, `${rawData.length} snapshots${partialNote} - cached ${fetchedDate}`);
+  renderWaybackTable();
+  setupWaybackFilters();
+  setupSelection();
+  setupExportWayback();
 }
 
 async function loadWayback(data) {

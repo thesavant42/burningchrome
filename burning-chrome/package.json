@@ -12,6 +12,7 @@
     "rollup": "^4.53.5"
   },
   "dependencies": {
+    "idb": "^8.0.3",
     "idb-keyval": "^6.2.1",
     "mime": "^4.1.0"
   }

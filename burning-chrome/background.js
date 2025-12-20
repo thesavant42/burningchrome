@@ -1,4 +1,5 @@
 import { storage } from './lib/storage.js';
+import { saveTimemap } from './lib/db.js';
 
 // Open landing page when extension icon is clicked
 chrome.action.onClicked.addListener(() => {
@@ -33,14 +34,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 async function fetchVirusTotalSubdomains(domain, apiKey) {
   const results = [];
   let cursor = null;
-  let requestCount = 0;
-  const MAX_REQUESTS = 50; // Safety limit to prevent infinite loops
+  let previousCursor = null;
   
-  while (requestCount < MAX_REQUESTS) {
+  while (true) {
     // Build URL - add cursor parameter if we have one from previous response
-    let url = `https://www.virustotal.com/api/v3/domains/${domain}/subdomains?`;
+    let url = `https://www.virustotal.com/api/v3/domains/${domain}/subdomains`;
     if (cursor) {
-      url += `&cursor=${encodeURIComponent(cursor)}`;
+      url += `?cursor=${encodeURIComponent(cursor)}`;
     }
     
     // Make the API request
@@ -51,8 +51,6 @@ async function fetchVirusTotalSubdomains(domain, apiKey) {
       }
     });
     
-    requestCount++;
-    
     // Handle errors
     if (!response.ok) {
       if (response.status === 401) {
@@ -60,10 +58,8 @@ async function fetchVirusTotalSubdomains(domain, apiKey) {
       }
       if (response.status === 429) {
         // Rate limited - wait 60 seconds then retry the SAME request
-        // Do NOT increment cursor, do NOT move to next page
         console.log('VirusTotal rate limited, waiting 60 seconds...');
         await new Promise(resolve => setTimeout(resolve, 60000));
-        requestCount--; // Don't count this as a successful request
         continue; // Retry the same URL
       }
       throw new Error(`VirusTotal API error: ${response.status}`);
@@ -88,13 +84,19 @@ async function fetchVirusTotalSubdomains(domain, apiKey) {
     }
     
     // Get cursor for next page
-    // cursor is in json.meta.cursor
     cursor = json.meta?.cursor || null;
     
     // If no cursor, we've reached the last page
     if (!cursor) {
       break;
     }
+    
+    // Duplicate cursor detection - prevent infinite loops
+    if (cursor === previousCursor) {
+      console.warn('VirusTotal returned duplicate cursor, stopping pagination');
+      break;
+    }
+    previousCursor = cursor;
     
     // RATE LIMITING: Wait 15 seconds before next request
     // VirusTotal allows 4 requests per minute = 1 request per 15 seconds
@@ -181,6 +183,8 @@ async function handleCdxScanFromMessage(domain) {
       debugLog: getDebugLog(),
       timestamp: Date.now()
     });
+    // Persist to IndexedDB for future viewing
+    await saveTimemap(domain, { data: allData, fetchedAt: Date.now() });
   } catch (error) {
     console.error('CDX fetch failed:', error);
     const current = await storage.get('timemapData');
@@ -193,6 +197,10 @@ async function handleCdxScanFromMessage(domain) {
       debugLog: error.debugLog || getDebugLog(),
       timestamp: Date.now()
     });
+    // Persist partial data on cancel
+    if (error.cancelled && current?.data) {
+      await saveTimemap(domain, { data: current.data, fetchedAt: Date.now(), partial: true });
+    }
   } finally {
     clearDebugLog();
     stopKeepAlive();
@@ -290,6 +298,8 @@ async function handleTimemapRequest(tab) {
       debugLog: getDebugLog(),
       timestamp: Date.now()
     });
+    // Persist to IndexedDB for future viewing
+    await saveTimemap(domain, { data: allData, fetchedAt: Date.now() });
   } catch (error) {
     console.error('CDX fetch failed:', error);
     // Get current data to preserve partial results on cancel
@@ -303,6 +313,10 @@ async function handleTimemapRequest(tab) {
       debugLog: error.debugLog || getDebugLog(),
       timestamp: Date.now()
     });
+    // Persist partial data on cancel
+    if (error.cancelled && current?.data) {
+      await saveTimemap(domain, { data: current.data, fetchedAt: Date.now(), partial: true });
+    }
   } finally {
     clearDebugLog();
     stopKeepAlive();
