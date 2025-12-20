@@ -92,7 +92,7 @@ function renderDomains() {
           <option value="shodan">Shodan</option>
           <option value="crtsh">crt.sh</option>
         </select>
-        ${hasCached ? `<button class="view-btn" data-domain="${escapeHtml(domain.name)}">View</button>` : ''}
+        ${hasCached ? `<button class="open-btn" data-domain="${escapeHtml(domain.name)}">View</button>` : ''}
         <button class="cdx-btn" data-domain="${escapeHtml(domain.name)}">CDX</button>
         <button class="delete-btn danger" data-domain="${escapeHtml(domain.name)}">X</button>
       </td>
@@ -148,7 +148,7 @@ async function handleDomainClick(e) {
     return;
   }
   
-  if (e.target.classList.contains('view-btn')) {
+  if (e.target.classList.contains('open-btn')) {
     // Navigate to report page in view mode (loads from cache)
     window.open(`report.html?view=${encodeURIComponent(domainName)}`, '_blank');
     return;
@@ -266,7 +266,7 @@ function showSubdomainPanel(domainName) {
       <td>${escapeHtml(sub.name)}</td>
       <td>${sub.source}</td>
       <td>
-        ${hasCached ? `<button class="view-btn" data-subdomain="${escapeHtml(sub.name)}">View</button>` : ''}
+        ${hasCached ? `<button class="open-btn" data-subdomain="${escapeHtml(sub.name)}">View</button>` : ''}
         <button class="cdx-btn" data-subdomain="${escapeHtml(sub.name)}">CDX</button>
       </td>
     `;
@@ -278,7 +278,7 @@ function handleSubdomainClick(e) {
   const subdomain = e.target.dataset.subdomain;
   if (!subdomain) return;
   
-  if (e.target.classList.contains('view-btn')) {
+  if (e.target.classList.contains('open-btn')) {
     // Navigate to report page in view mode (loads from cache)
     window.open(`report.html?view=${encodeURIComponent(subdomain)}`, '_blank');
     return;
