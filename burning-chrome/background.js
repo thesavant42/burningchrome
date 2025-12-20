@@ -27,30 +27,81 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-// VirusTotal subdomain enumeration
+// VirusTotal subdomain enumeration with pagination and rate limiting
+// API docs: https://docs.virustotal.com/reference/subdomains
+// Rate limit: 4 requests per minute (public API)
 async function fetchVirusTotalSubdomains(domain, apiKey) {
-  const url = `https://www.virustotal.com/api/v3/domains/${domain}/subdomains?limit=40`;
+  const results = [];
+  let cursor = null;
+  let requestCount = 0;
+  const MAX_REQUESTS = 50; // Safety limit to prevent infinite loops
   
-  const response = await fetch(url, {
-    headers: {
-      'x-apikey': apiKey,
-      'Accept': 'application/json'
+  while (requestCount < MAX_REQUESTS) {
+    // Build URL - add cursor parameter if we have one from previous response
+    let url = `https://www.virustotal.com/api/v3/domains/${domain}/subdomains?`;
+    if (cursor) {
+      url += `&cursor=${encodeURIComponent(cursor)}`;
     }
-  });
-  
-  if (!response.ok) {
-    if (response.status === 401) throw new Error('Invalid VirusTotal API key');
-    if (response.status === 429) throw new Error('VirusTotal rate limit exceeded');
-    throw new Error(`VirusTotal API error: ${response.status}`);
+    
+    // Make the API request
+    const response = await fetch(url, {
+      headers: {
+        'x-apikey': apiKey,
+        'Accept': 'application/json'
+      }
+    });
+    
+    requestCount++;
+    
+    // Handle errors
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Invalid VirusTotal API key');
+      }
+      if (response.status === 429) {
+        // Rate limited - wait 60 seconds then retry the SAME request
+        // Do NOT increment cursor, do NOT move to next page
+        console.log('VirusTotal rate limited, waiting 60 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 60000));
+        requestCount--; // Don't count this as a successful request
+        continue; // Retry the same URL
+      }
+      throw new Error(`VirusTotal API error: ${response.status}`);
+    }
+    
+    // Parse response
+    const json = await response.json();
+    
+    // Check if we got any data
+    if (!json.data || json.data.length === 0) {
+      // No more subdomains, we're done
+      break;
+    }
+    
+    // Add subdomains to results
+    for (const item of json.data) {
+      results.push({
+        name: item.id,
+        source: 'virustotal',
+        fetchedAt: Date.now()
+      });
+    }
+    
+    // Get cursor for next page
+    // cursor is in json.meta.cursor
+    cursor = json.meta?.cursor || null;
+    
+    // If no cursor, we've reached the last page
+    if (!cursor) {
+      break;
+    }
+    
+    // RATE LIMITING: Wait 15 seconds before next request
+    // VirusTotal allows 4 requests per minute = 1 request per 15 seconds
+    await new Promise(resolve => setTimeout(resolve, 15000));
   }
   
-  const json = await response.json();
-  
-  return json.data.map(d => ({
-    name: d.id,
-    source: 'virustotal',
-    fetchedAt: Date.now()
-  }));
+  return results;
 }
 
 // crt.sh subdomain enumeration (extract subdomains from certificates)
