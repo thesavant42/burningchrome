@@ -8,11 +8,14 @@
 </head>
 <body>
   <div id="content">
+    <div class="debug-toggle-container">
+      <button id="debugToggle" class="debug-toggle-btn hidden">Debug Log</button>
+    </div>
     <pre id="debugLog" class="debug-log hidden"></pre>
+    <h1 id="title"></h1>
+    <div class="stats" id="stats"></div>
     
     <div class="toolbar">
-      <button id="debugToggle" class="debug-toggle-btn hidden">Debug Log</button>
-      <h1 id="title"></h1>
       <input type="text" id="search" placeholder="Filter URLs..." autocomplete="off">
       <select id="statusFilter" aria-label="Filter by HTTP status code">
         <option value="">All Status</option>
