@@ -504,6 +504,14 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
   accent-color: var(--purple);
 }
 
+/* Active nav link (current page) */
+.nav-active {
+  color: var(--pink);
+  font-weight: 600;
+  pointer-events: none;
+  cursor: default;
+}
+
 /* Utility */
 .hidden { display: none !important; }
 .wildcard { color: var(--orange); }

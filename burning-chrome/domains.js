@@ -24,7 +24,15 @@ async function init() {
   }
   
   document.getElementById('title').textContent = project.name;
-  document.title = `${project.name} - Burning Chrome`;
+  document.title = `${project.name} - Burning Chrome by thesavant42`;
+  
+  // Update nav links with project parameter
+  const projectParam = `?project=${encodeURIComponent(projectName)}`;
+  document.getElementById('navPoi').href = `poi.html${projectParam}`;
+  document.getElementById('navGithub').href = `github.html${projectParam}`;
+  document.getElementById('navDockerhub').href = `dockerhub.html${projectParam}`;
+  document.getElementById('navBuckets').href = `buckets.html${projectParam}`;
+  document.getElementById('navCreds').href = `creds.html${projectParam}`;
   
   // Check which domains have cached CDX data
   await checkCachedDomains();
