@@ -106,7 +106,10 @@
       <div class="modal-dialog modal-wide">
         <div class="modal-header">Edit Row</div>
         <div class="modal-body edit-form">
-          <label for="editUrl">URL: <button type="button" id="editUrlEncode" class="btn-icon btn-icon-wide" title="Encode selection">URL</button></label>
+          <label for="editUrl">URL: 
+            <button type="button" id="editUrlToggle" class="btn-icon btn-icon-wide" title="Mode: Encode">ENC</button>
+            <button type="button" id="editUrlApply" class="btn-icon btn-icon-wide" title="Apply to selection">GO</button>
+          </label>
           <textarea id="editUrl"></textarea>
           <input type="hidden" id="editTimestamp">
           <input type="hidden" id="editStatus">

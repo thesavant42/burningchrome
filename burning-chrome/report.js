@@ -896,11 +896,21 @@ function setupEditModal() {
     }
   };
   
-  // URL encode/decode toggle
-  const encodeBtn = document.getElementById('editUrlEncode');
+  // URL encode/decode toggle and apply buttons
+  const toggleBtn = document.getElementById('editUrlToggle');
+  const applyBtn = document.getElementById('editUrlApply');
   const urlTextarea = document.getElementById('editUrl');
 
-  encodeBtn.onclick = () => {
+  // Toggle button - switches mode
+  toggleBtn.onclick = () => {
+    urlEncodeMode = !urlEncodeMode;
+    toggleBtn.textContent = urlEncodeMode ? 'ENC' : 'DEC';
+    toggleBtn.classList.toggle('active', !urlEncodeMode);
+    toggleBtn.title = urlEncodeMode ? 'Mode: Encode' : 'Mode: Decode';
+  };
+
+  // Apply button - encodes/decodes selection without toggling mode
+  applyBtn.onclick = () => {
     const start = urlTextarea.selectionStart;
     const end = urlTextarea.selectionEnd;
     
@@ -910,25 +920,24 @@ function setupEditModal() {
     const text = urlTextarea.value;
     const selected = text.substring(start, end);
     
+    // MDN-verified encode/decode functions
     let transformed;
-    if (urlEncodeMode) {
-      transformed = encodeURIComponent(selected);
-      encodeBtn.title = 'Decode selection';
-    } else {
-      transformed = decodeURIComponent(selected);
-      encodeBtn.title = 'Encode selection';
+    try {
+      transformed = urlEncodeMode 
+        ? encodeURIComponent(selected)
+        : decodeURIComponent(selected);
+    } catch (e) {
+      // URIError: malformed URI sequence - leave unchanged
+      return;
     }
     
     // Replace selection with transformed text
     urlTextarea.value = text.substring(0, start) + transformed + text.substring(end);
     
-    // Restore cursor position after the transformed text
+    // Restore selection around transformed text
     urlTextarea.selectionStart = start;
     urlTextarea.selectionEnd = start + transformed.length;
     urlTextarea.focus();
-    
-    // Toggle mode for next click
-    urlEncodeMode = !urlEncodeMode;
   };
 }
 
