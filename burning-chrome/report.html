@@ -89,14 +89,16 @@
     <!-- Notes Modal -->
     <div id="notesModal" class="modal-overlay hidden">
       <div class="modal-dialog modal-wide">
-        <div class="modal-header">Notes</div>
-        <div class="modal-body">
-          <div id="notesUrlPreview" class="notes-url-preview"></div>
-          <textarea id="notesTextarea" rows="6" placeholder="Add notes..."></textarea>
+        <div class="modal-header">
+          <span>Notes</span>
+          <div class="modal-header-actions">
+            <span id="notesUrlPreview" class="notes-url-preview"></span>
+            <button id="notesSave" class="modal-btn">Save</button>
+            <a href="#" id="notesCancel" class="modal-cancel">Cancel</a>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button id="notesSave" class="modal-btn">Save</button>
-          <a href="#" id="notesCancel" class="modal-cancel">Cancel</a>
+        <div class="modal-body">
+          <textarea id="notesTextarea" placeholder="Add notes..."></textarea>
         </div>
       </div>
     </div>
@@ -104,20 +106,21 @@
     <!-- Edit Modal -->
     <div id="editModal" class="modal-overlay hidden">
       <div class="modal-dialog modal-wide">
-        <div class="modal-header">Edit Row</div>
-        <div class="modal-body edit-form">
-          <label for="editUrl">URL: 
-            <button type="button" id="editUrlToggle" class="btn-icon btn-icon-wide" title="Mode: Encode">ENC</button>
+        <div class="modal-header">
+          <span>Edit Row</span>
+          <div class="modal-header-actions">
+            <button type="button" id="editUrlToggle" class="btn-icon btn-icon-wide" title="URL Encode mode">ENC</button>
+            <button type="button" id="editB64Toggle" class="btn-icon btn-icon-wide" title="Base64 Encode mode">B64</button>
             <button type="button" id="editUrlApply" class="btn-icon btn-icon-wide" title="Apply to selection">GO</button>
-          </label>
+            <button id="editSave" class="modal-btn">Save</button>
+            <a href="#" id="editCancel" class="modal-cancel">Cancel</a>
+          </div>
+        </div>
+        <div class="modal-body edit-form">
           <textarea id="editUrl"></textarea>
           <input type="hidden" id="editTimestamp">
           <input type="hidden" id="editStatus">
           <input type="hidden" id="editMime">
-        </div>
-        <div class="modal-footer">
-          <button id="editSave" class="modal-btn">Save</button>
-          <a href="#" id="editCancel" class="modal-cancel">Cancel</a>
         </div>
       </div>
     </div>

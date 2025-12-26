@@ -9,6 +9,12 @@ let currentEditRowId = null;
 // URL encode/decode toggle state: true = encode, false = decode
 let urlEncodeMode = true;
 
+// Base64 encode/decode toggle state: true = encode, false = decode
+let base64EncodeMode = true;
+
+// Active encoding mode: 'url' or 'base64'
+let activeEncodingMode = 'url';
+
 let _type = '';
 let domain = '';
 let rawData = [];
@@ -897,19 +903,30 @@ function setupEditModal() {
   };
   
   // URL encode/decode toggle and apply buttons
-  const toggleBtn = document.getElementById('editUrlToggle');
+  const urlToggleBtn = document.getElementById('editUrlToggle');
+  const b64ToggleBtn = document.getElementById('editB64Toggle');
   const applyBtn = document.getElementById('editUrlApply');
   const urlTextarea = document.getElementById('editUrl');
 
-  // Toggle button - switches mode
-  toggleBtn.onclick = () => {
+  // URL Toggle button - switches URL encode/decode mode
+  urlToggleBtn.onclick = () => {
     urlEncodeMode = !urlEncodeMode;
-    toggleBtn.textContent = urlEncodeMode ? 'ENC' : 'DEC';
-    toggleBtn.classList.toggle('active', !urlEncodeMode);
-    toggleBtn.title = urlEncodeMode ? 'Mode: Encode' : 'Mode: Decode';
+    urlToggleBtn.textContent = urlEncodeMode ? 'ENC' : 'DEC';
+    urlToggleBtn.classList.toggle('active', !urlEncodeMode);
+    urlToggleBtn.title = urlEncodeMode ? 'URL Encode mode' : 'URL Decode mode';
+    activeEncodingMode = 'url';
   };
 
-  // Apply button - encodes/decodes selection without toggling mode
+  // Base64 Toggle button - switches Base64 encode/decode mode
+  b64ToggleBtn.onclick = () => {
+    base64EncodeMode = !base64EncodeMode;
+    b64ToggleBtn.textContent = base64EncodeMode ? 'B64' : '64D';
+    b64ToggleBtn.classList.toggle('active', !base64EncodeMode);
+    b64ToggleBtn.title = base64EncodeMode ? 'Base64 Encode mode' : 'Base64 Decode mode';
+    activeEncodingMode = 'base64';
+  };
+
+  // Apply button - encodes/decodes selection based on active mode
   applyBtn.onclick = () => {
     const start = urlTextarea.selectionStart;
     const end = urlTextarea.selectionEnd;
@@ -920,14 +937,20 @@ function setupEditModal() {
     const text = urlTextarea.value;
     const selected = text.substring(start, end);
     
-    // MDN-verified encode/decode functions
     let transformed;
     try {
-      transformed = urlEncodeMode 
-        ? encodeURIComponent(selected)
-        : decodeURIComponent(selected);
+      if (activeEncodingMode === 'url') {
+        transformed = urlEncodeMode 
+          ? encodeURIComponent(selected)
+          : decodeURIComponent(selected);
+      } else {
+        // Base64 mode
+        transformed = base64EncodeMode 
+          ? btoa(selected)
+          : atob(selected);
+      }
     } catch (e) {
-      // URIError: malformed URI sequence - leave unchanged
+      // URIError or DOMException: malformed input - leave unchanged
       return;
     }
     

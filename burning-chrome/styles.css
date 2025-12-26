@@ -674,10 +674,19 @@ th.col-check button {
 }
 
 .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   color: var(--pink); /* matches h1 and .page-title */
   font-weight: 600;
   font-size: 1rem;
   margin-bottom: 1rem;
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .modal-body {
@@ -721,9 +730,23 @@ th.col-check button {
 
 /* Wide modal variant for edit/notes */
 .modal-wide {
-  width: var(--modal-wide-max-width);
+  width: 90vw;
+  height: 90vh;
   min-width: 400px;
-  max-width: var(--modal-wide-max-width);
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-wide .modal-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-wide .modal-footer {
+  flex-shrink: 0;
 }
 
 /* Icon buttons in Actions column */
@@ -779,13 +802,16 @@ th.col-check button {
 .notes-url-preview {
   color: var(--comment);
   font-size: 0.8rem;
-  margin-bottom: 0.5rem;
   word-break: break-all;
   overflow-wrap: anywhere;
+  max-width: 60%;
+  text-align: right;
 }
 
 #notesTextarea {
   width: 100%;
+  flex: 1;
+  min-height: 100px;
   background: var(--bg);
   color: var(--fg);
   border: 1px solid var(--comment);
@@ -793,7 +819,7 @@ th.col-check button {
   padding: 0.5rem;
   font-family: inherit;
   font-size: 0.85rem;
-  resize: vertical;
+  resize: none;
 }
 
 #notesTextarea:focus {
@@ -836,7 +862,8 @@ th.col-check button {
 /* Edit URL textarea */
 #editUrl {
   width: 100%;
-  height: var(--edit-url-height);
+  flex: 1;
+  min-height: 100px;
   padding: 0.4rem 0.5rem;
   background: var(--bg);
   color: var(--fg);
@@ -845,7 +872,7 @@ th.col-check button {
   font-size: 0.85rem;
   font-family: monospace;
   line-height: 1.4;
-  resize: vertical;
+  resize: none;
 }
 
 #editUrl:focus {
