@@ -1,7 +1,10 @@
 import { download, saveHtml, saveJson } from './lib/export.js';
 import { storage } from './lib/storage.js';
-import { getTimemap } from './lib/db.js';
+import { getTimemap, saveTimemap } from './lib/db.js';
 import mime from 'mime/lite';
+
+// Current row being edited/noted
+let currentEditRowId = null;
 
 let _type = '';
 let domain = '';
@@ -25,15 +28,6 @@ async function init() {
   const cancelBtn = document.getElementById('cancelFetch');
   cancelBtn.onclick = cancelFetch;
 
-  // Wire up debug toggle button
-  document.getElementById('debugToggle').addEventListener('click', () => {
-    const debugEl = document.getElementById('debugLog');
-    const toggleBtn = document.getElementById('debugToggle');
-    const isHidden = debugEl.classList.toggle('hidden');
-    toggleBtn.classList.toggle('active', !isHidden);
-    localStorage.setItem('showDebugLog', !isHidden);
-  });
-  
   // Check for view mode (loading cached data from IndexedDB)
   const params = new URLSearchParams(window.location.search);
   const viewDomain = params.get('view');
@@ -86,7 +80,8 @@ async function loadCachedWayback(domainName) {
     url: r[0],
     timestamp: r[1],
     status: r[2] || '',
-    mime: r[3] || ''
+    mime: r[3] || '',
+    notes: r[4] || ''
   }));
 
   filteredData = [...rawData];
@@ -97,6 +92,7 @@ async function loadCachedWayback(domainName) {
   renderWaybackTable();
   setupWaybackFilters();
   setupSelection();
+  setupRowActions();
   setupExportWayback();
 }
 
@@ -126,7 +122,8 @@ async function loadWayback(data) {
       url: r[0],
       timestamp: r[1],
       status: r[2] || '',
-      mime: r[3] || ''
+      mime: r[3] || '',
+      notes: r[4] || ''
     }));
 
     filteredData = [...rawData];
@@ -138,6 +135,7 @@ async function loadWayback(data) {
     renderWaybackTable();
     setupWaybackFilters();
     setupSelection();
+    setupRowActions();
     setupExportWayback();
   }
 
@@ -256,18 +254,8 @@ function showError(msg) {
 }
 
 function showDebugLog(debugLog) {
-  if (!debugLog) return;
   const debugEl = document.getElementById('debugLog');
-  const toggleBtn = document.getElementById('debugToggle');
-  
-  // Show toggle button when there's debug content
-  toggleBtn.classList.remove('hidden');
-  debugEl.textContent = debugLog;
-  
-  // Apply stored visibility preference (default: hidden)
-  const showDebug = localStorage.getItem('showDebugLog') === 'true';
-  debugEl.classList.toggle('hidden', !showDebug);
-  toggleBtn.classList.toggle('active', showDebug);
+  debugEl.textContent = debugLog || '';
 }
 
 function show(title, stats) {
@@ -316,6 +304,9 @@ function renderWaybackTable() {
       <td class="col-status">${formatStatus(row.status)}</td>
       <td class="col-mime">${formatMime(row.mime)}</td>
       <td class="col-actions">
+        <button class="btn-icon btn-edit" data-id="${row.id}" title="Edit row">E</button>
+        <button class="btn-icon btn-notes${row.notes ? ' has-notes' : ''}" data-id="${row.id}" title="Add/view notes">N</button>
+        <button class="btn-icon btn-delete-row" data-id="${row.id}" title="Delete row">X</button>
         <a href="${archiveUrl}" target="_blank" class="badge-action badge-action-archive" title="View archived snapshot">WARC</a>
         <a href="${row.url}" target="_blank" class="badge-action badge-action-live" title="View live page">LIVE</a>
       </td>
@@ -435,14 +426,6 @@ function setupSelection() {
     updateSelectionUI();
   });
 
-  // Pagination select-all checkboxes (delegated)
-  document.addEventListener('change', (e) => {
-    if (e.target.classList.contains('select-all-check')) {
-      headerCheck.checked = e.target.checked;
-      headerCheck.dispatchEvent(new Event('change'));
-    }
-  });
-
   // Delete selected
   deleteBtn.addEventListener('click', () => {
     if (selectedRows.size === 0) return;
@@ -478,24 +461,13 @@ function updateSelectionUI() {
   const deleteBtn = document.getElementById('deleteSelected');
   const headerCheck = document.getElementById('headerCheck');
 
-  // Update all selected count spans
-  document.querySelectorAll('.pagination-selected-count').forEach((span) => {
-    span.textContent = selectedRows.size > 0 ? `${selectedRows.size} selected` : '';
-  });
+  // Toggle disabled state instead of hidden
+  deleteBtn.disabled = selectedRows.size === 0;
 
-  if (selectedRows.size > 0) {
-    deleteBtn.classList.remove('hidden');
-  } else {
-    deleteBtn.classList.add('hidden');
-  }
-
-  // Sync all checkboxes
+  // Sync header checkbox with row selections
   const allVisible = document.querySelectorAll('.row-check');
   const allChecked = allVisible.length > 0 && [...allVisible].every((cb) => cb.checked);
   headerCheck.checked = allChecked;
-  document.querySelectorAll('.select-all-check').forEach((cb) => {
-    cb.checked = allChecked;
-  });
 }
 
 
@@ -607,27 +579,6 @@ function renderPaginationControls(containerId) {
   rangeInfo.className = 'range-info';
   rangeInfo.textContent = `(${start}-${end} of ${filteredData.length})`;
   container.appendChild(rangeInfo);
-
-  // Select All Visible checkbox (inline with pagination)
-  const selectLabel = document.createElement('label');
-  selectLabel.className = 'pagination-select-all';
-  const selectCheck = document.createElement('input');
-  selectCheck.type = 'checkbox';
-  selectCheck.id = containerId === 'paginationTop' ? 'selectAllTop' : 'selectAllBottom';
-  selectCheck.className = 'select-all-check';
-  selectCheck.setAttribute('aria-label', 'Select all visible snapshots');
-  selectLabel.appendChild(selectCheck);
-  selectLabel.appendChild(document.createTextNode(' Select All'));
-  container.appendChild(selectLabel);
-
-  // Selected count indicator
-  const countSpan = document.createElement('span');
-  countSpan.className = 'selected-count pagination-selected-count';
-  countSpan.id = containerId === 'paginationTop' ? 'selectedCountTop' : 'selectedCountBottom';
-  if (selectedRows.size > 0) {
-    countSpan.textContent = `${selectedRows.size} selected`;
-  }
-  container.appendChild(countSpan);
 }
 
 // Crt.sh table rendering
@@ -684,10 +635,37 @@ function setupFilter(selector) {
 }
 
 function setupExportWayback() {
-  document.getElementById('saveHtml').onclick = () =>
+  const modal = document.getElementById('exportModal');
+  const exportLink = document.getElementById('exportLink');
+  const cancelBtn = document.getElementById('exportCancel');
+
+  // Show modal
+  exportLink.onclick = (e) => {
+    e.preventDefault();
+    modal.classList.remove('hidden');
+  };
+
+  // Hide modal
+  cancelBtn.onclick = (e) => {
+    e.preventDefault();
+    modal.classList.add('hidden');
+  };
+
+  // Close on overlay click
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  };
+
+  // Export HTML
+  document.getElementById('exportHtml').onclick = () => {
     saveHtml(domain, '-wayback');
-  document.getElementById('saveJson').onclick = () => {
-    // Export current filtered data as JSON
+    modal.classList.add('hidden');
+  };
+
+  // Export JSON
+  document.getElementById('exportJson').onclick = () => {
     const exportData = filteredData.map((r) => ({
       url: r.url,
       timestamp: r.timestamp,
@@ -696,12 +674,11 @@ function setupExportWayback() {
       archiveUrl: getArchiveUrl(r.url, r.timestamp)
     }));
     saveJson(domain, exportData, '-wayback');
+    modal.classList.add('hidden');
   };
 
-  const btn = document.getElementById('saveExtra');
-  btn.textContent = 'Save MD';
-  btn.classList.remove('hidden');
-  btn.onclick = () => {
+  // Export Markdown
+  document.getElementById('exportMd').onclick = () => {
     const lines = [
       `# ${domain} - Wayback Archive`,
       '',
@@ -715,14 +692,263 @@ function setupExportWayback() {
       );
     });
     download(lines.join('\n'), `${domain}-wayback.md`, 'text/markdown');
+    modal.classList.add('hidden');
   };
 }
 
 function setupExportCrtsh() {
-  document.getElementById('saveHtml').onclick = () =>
+  const modal = document.getElementById('exportModal');
+  const exportLink = document.getElementById('exportLink');
+  const cancelBtn = document.getElementById('exportCancel');
+  const mdBtn = document.getElementById('exportMd');
+
+  // Hide MD option for crtsh (not applicable)
+  mdBtn.classList.add('hidden');
+
+  // Show modal
+  exportLink.onclick = (e) => {
+    e.preventDefault();
+    modal.classList.remove('hidden');
+  };
+
+  // Hide modal
+  cancelBtn.onclick = (e) => {
+    e.preventDefault();
+    modal.classList.add('hidden');
+  };
+
+  // Close on overlay click
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  };
+
+  // Export HTML
+  document.getElementById('exportHtml').onclick = () => {
     saveHtml(domain, '-crtsh');
-  document.getElementById('saveJson').onclick = () =>
+    modal.classList.add('hidden');
+  };
+
+  // Export JSON
+  document.getElementById('exportJson').onclick = () => {
     saveJson(domain, rawData, '-crtsh');
+    modal.classList.add('hidden');
+  };
+}
+
+// Persist changes to IndexedDB (only in view mode)
+async function persistChanges() {
+  if (!viewMode) return;
+  
+  // Reconstruct CDX format: header + data rows
+  const header = ['url', 'timestamp', 'statuscode', 'mimetype', 'notes'];
+  const rows = [header, ...rawData.map(r => [r.url, r.timestamp, r.status, r.mime, r.notes || ''])];
+  
+  const cached = await getTimemap(domain);
+  await saveTimemap(domain, {
+    ...cached,
+    data: rows
+  });
+}
+
+// Notes Modal functions
+function openNotesModal(rowId) {
+  const row = rawData.find(r => r.id === rowId);
+  if (!row) return;
+  
+  currentEditRowId = rowId;
+  
+  const modal = document.getElementById('notesModal');
+  const urlPreview = document.getElementById('notesUrlPreview');
+  const textarea = document.getElementById('notesTextarea');
+  
+  // Truncate URL for display
+  const displayUrl = row.url.length > 80 ? row.url.slice(0, 80) + '...' : row.url;
+  urlPreview.textContent = displayUrl;
+  urlPreview.title = row.url;
+  textarea.value = row.notes || '';
+  
+  modal.classList.remove('hidden');
+  textarea.focus();
+}
+
+function closeNotesModal() {
+  document.getElementById('notesModal').classList.add('hidden');
+  currentEditRowId = null;
+}
+
+async function saveNotes() {
+  if (currentEditRowId === null) return;
+  
+  const textarea = document.getElementById('notesTextarea');
+  const notesText = textarea.value;
+  
+  // Update rawData
+  const row = rawData.find(r => r.id === currentEditRowId);
+  if (row) {
+    row.notes = notesText;
+  }
+  
+  // Update filteredData
+  const filteredRow = filteredData.find(r => r.id === currentEditRowId);
+  if (filteredRow) {
+    filteredRow.notes = notesText;
+  }
+  
+  // Persist and re-render
+  await persistChanges();
+  renderWaybackTable();
+  closeNotesModal();
+}
+
+function setupNotesModal() {
+  const modal = document.getElementById('notesModal');
+  const saveBtn = document.getElementById('notesSave');
+  const cancelBtn = document.getElementById('notesCancel');
+  
+  saveBtn.onclick = saveNotes;
+  
+  cancelBtn.onclick = (e) => {
+    e.preventDefault();
+    closeNotesModal();
+  };
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closeNotesModal();
+    }
+  };
+}
+
+// Edit Modal functions
+function openEditModal(rowId) {
+  const row = rawData.find(r => r.id === rowId);
+  if (!row) return;
+  
+  currentEditRowId = rowId;
+  
+  const modal = document.getElementById('editModal');
+  document.getElementById('editUrl').value = row.url;
+  document.getElementById('editTimestamp').value = row.timestamp;
+  document.getElementById('editStatus').value = row.status;
+  document.getElementById('editMime').value = row.mime;
+  
+  modal.classList.remove('hidden');
+  document.getElementById('editUrl').focus();
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+  currentEditRowId = null;
+}
+
+async function saveEdit() {
+  if (currentEditRowId === null) return;
+  
+  const newUrl = document.getElementById('editUrl').value;
+  const newTimestamp = document.getElementById('editTimestamp').value;
+  const newStatus = document.getElementById('editStatus').value;
+  const newMime = document.getElementById('editMime').value;
+  
+  // Update rawData
+  const row = rawData.find(r => r.id === currentEditRowId);
+  if (row) {
+    row.url = newUrl;
+    row.timestamp = newTimestamp;
+    row.status = newStatus;
+    row.mime = newMime;
+  }
+  
+  // Update filteredData
+  const filteredRow = filteredData.find(r => r.id === currentEditRowId);
+  if (filteredRow) {
+    filteredRow.url = newUrl;
+    filteredRow.timestamp = newTimestamp;
+    filteredRow.status = newStatus;
+    filteredRow.mime = newMime;
+  }
+  
+  // Persist and re-render
+  await persistChanges();
+  renderWaybackTable();
+  closeEditModal();
+}
+
+function setupEditModal() {
+  const modal = document.getElementById('editModal');
+  const saveBtn = document.getElementById('editSave');
+  const cancelBtn = document.getElementById('editCancel');
+  
+  saveBtn.onclick = saveEdit;
+  
+  cancelBtn.onclick = (e) => {
+    e.preventDefault();
+    closeEditModal();
+  };
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closeEditModal();
+    }
+  };
+}
+
+// Delete single row
+async function deleteRow(rowId) {
+  const row = rawData.find(r => r.id === rowId);
+  if (!row) return;
+  
+  const displayUrl = row.url.length > 50 ? row.url.slice(0, 50) + '...' : row.url;
+  if (!confirm(`Delete this row?\n${displayUrl}`)) return;
+  
+  // Remove from rawData
+  rawData = rawData.filter(r => r.id !== rowId);
+  
+  // Remove from selectedRows if present
+  selectedRows.delete(rowId);
+  
+  // Re-apply filters
+  const searchTerm = document.getElementById('search').value.toLowerCase();
+  const statusVal = document.getElementById('statusFilter').value;
+  const mimeVal = document.getElementById('mimeFilter').value;
+  
+  filteredData = rawData.filter((r) => {
+    if (searchTerm && !r.url.toLowerCase().includes(searchTerm)) return false;
+    if (statusVal && r.status !== statusVal) return false;
+    if (mimeVal && !r.mime.startsWith(mimeVal)) return false;
+    return true;
+  });
+  
+  // Persist and re-render
+  await persistChanges();
+  calculateTotalPages();
+  renderWaybackTable();
+  updateSelectionUI();
+}
+
+// Setup row action buttons (Edit, Notes, Delete)
+function setupRowActions() {
+  const tbody = document.getElementById('waybackBody');
+  
+  tbody.addEventListener('click', (e) => {
+    const target = e.target;
+    
+    if (target.classList.contains('btn-edit')) {
+      const rowId = parseInt(target.dataset.id, 10);
+      openEditModal(rowId);
+    } else if (target.classList.contains('btn-notes')) {
+      const rowId = parseInt(target.dataset.id, 10);
+      openNotesModal(rowId);
+    } else if (target.classList.contains('btn-delete-row')) {
+      const rowId = parseInt(target.dataset.id, 10);
+      deleteRow(rowId);
+    }
+  });
+  
+  // Setup modals once
+  setupNotesModal();
+  setupEditModal();
 }
 
 init();

@@ -1,18 +1,27 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'BurningChromeDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const dbPromise = openDB(DB_NAME, DB_VERSION, {
-  upgrade(db) {
-    if (!db.objectStoreNames.contains('timemap')) {
-      db.createObjectStore('timemap');
+  upgrade(db, oldVersion) {
+    // Version 1 stores
+    if (oldVersion < 1) {
+      if (!db.objectStoreNames.contains('timemap')) {
+        db.createObjectStore('timemap');
+      }
+      if (!db.objectStoreNames.contains('crtsh')) {
+        db.createObjectStore('crtsh');
+      }
+      if (!db.objectStoreNames.contains('meta')) {
+        db.createObjectStore('meta');
+      }
     }
-    if (!db.objectStoreNames.contains('crtsh')) {
-      db.createObjectStore('crtsh');
-    }
-    if (!db.objectStoreNames.contains('meta')) {
-      db.createObjectStore('meta');
+    // Version 2: Add buckets store
+    if (oldVersion < 2) {
+      if (!db.objectStoreNames.contains('buckets')) {
+        db.createObjectStore('buckets');
+      }
     }
   }
 });
@@ -63,5 +72,26 @@ export async function getMeta(key) {
 export async function deleteMeta(key) {
   const db = await dbPromise;
   return db.delete('meta', key);
+}
+
+// Bucket operations (keyed by URL)
+export async function saveBucket(url, data) {
+  const db = await dbPromise;
+  return db.put('buckets', data, url);
+}
+
+export async function getBucket(url) {
+  const db = await dbPromise;
+  return db.get('buckets', url);
+}
+
+export async function deleteBucket(url) {
+  const db = await dbPromise;
+  return db.delete('buckets', url);
+}
+
+export async function listBuckets() {
+  const db = await dbPromise;
+  return db.getAllKeys('buckets');
 }
 

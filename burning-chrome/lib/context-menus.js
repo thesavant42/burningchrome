@@ -2,6 +2,7 @@
 
 import { handleTimemapRequest } from './handlers/timemap.js';
 import { handleCrtshRequest } from './handlers/crtsh.js';
+import { handleBucketRequest } from './handlers/bucket.js';
 
 /**
  * Create context menus on extension install
@@ -18,6 +19,11 @@ export function setupContextMenus() {
       title: 'Crt.sh Domain',
       contexts: ['page']
     });
+    chrome.contextMenus.create({
+      id: 'parse-bucket',
+      title: 'Parse Bucket XML',
+      contexts: ['page']
+    });
   });
 
   chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -25,6 +31,8 @@ export function setupContextMenus() {
       await handleTimemapRequest(tab);
     } else if (info.menuItemId === 'crtsh-domain') {
       await handleCrtshRequest(tab);
+    } else if (info.menuItemId === 'parse-bucket') {
+      await handleBucketRequest(tab);
     }
   });
 }

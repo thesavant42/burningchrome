@@ -9,7 +9,7 @@
 <body>
   <div id="content">
     <div class="stats">
-      <span id="title" class="page-title">Project</span> |
+      <span id="title" class="page-title">Buckets</span> |
       <a href="landing.html">Back to Projects</a> |
       <a id="navDomains" href="domains.html">Domains</a> |
       <a id="navPoi" href="poi.html">POI</a> |
@@ -17,40 +17,46 @@
       <a id="navDockerhub" href="dockerhub.html">DockerHub</a> |
       <a href="#" class="nav-active">Buckets</a> |
       <a id="navCreds" href="creds.html">Creds</a>
+      <span id="bucketStats"></span>
     </div>
     
     <div class="toolbar">
-      <input type="text" id="bucketSearch" placeholder="Search bucket contents..." autocomplete="off" disabled>
-      <button disabled>Import XML</button>
+      <input type="text" id="bucketUrlInput" placeholder="Enter bucket URL (e.g. https://bucket.s3.amazonaws.com)..." autocomplete="off" style="width: 400px;">
+      <button id="fetchBucket">Fetch Bucket</button>
+      <span id="loadingStatus"></span>
+      <span id="savedReportsContainer" class="hidden" style="margin-left: 20px;">
+        <select id="savedReportsSelect">
+          <option value="">Saved Reports...</option>
+        </select>
+        <button id="deleteSavedReport" class="danger hidden">Delete</button>
+      </span>
     </div>
     
-    <table id="bucketTable">
+    <div class="toolbar secondary">
+      <input type="text" id="searchInput" placeholder="Filter keys..." autocomplete="off">
+      <span class="spacer"></span>
+      <span id="paginationTop" class="pagination-inline"></span>
+      <span class="spacer"></span>
+    </div>
+    
+    <div id="errorState" class="stats error hidden"></div>
+    <div id="emptyState" class="stats hidden">No bucket loaded. Enter a URL above or use the context menu on a bucket page.</div>
+    
+    <table id="bucketTable" class="hidden">
       <thead>
         <tr>
-          <th>Bucket</th>
-          <th>Key</th>
-          <th>Size</th>
-          <th>Last Modified</th>
+          <th class="col-url">Key</th>
+          <th style="width: 100px;">Size</th>
+          <th style="width: 120px;">Last Modified</th>
+          <th style="width: 80px;">Actions</th>
         </tr>
       </thead>
-      <tbody id="bucketBody">
-        <tr>
-          <td colspan="4" class="stats">TODO: S3 bucket listing parser coming soon.</td>
-        </tr>
-      </tbody>
+      <tbody id="bucketBody"></tbody>
     </table>
+    
+    <div id="paginationBottom" class="pagination"></div>
   </div>
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const projectName = params.get('project') || 'Project';
-    const projectParam = `?project=${encodeURIComponent(projectName)}`;
-    document.getElementById('title').textContent = projectName;
-    document.title = `${projectName} - Buckets - Burning Chrome by thesavant42`;
-    document.getElementById('navDomains').href = `domains.html${projectParam}`;
-    document.getElementById('navPoi').href = `poi.html${projectParam}`;
-    document.getElementById('navGithub').href = `github.html${projectParam}`;
-    document.getElementById('navDockerhub').href = `dockerhub.html${projectParam}`;
-    document.getElementById('navCreds').href = `creds.html${projectParam}`;
-  </script>
+  <script type="module" src="dist/buckets.js"></script>
 </body>
 </html>
+

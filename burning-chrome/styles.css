@@ -202,7 +202,7 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 .col-date { width: 110px; min-width: 110px; max-width: 110px; white-space: nowrap; }
 .col-status { width: 50px; min-width: 50px; max-width: 50px; text-align: center; }
 .col-mime { width: 64px; min-width: 64px; max-width: 64px; text-align: center; }
-.col-actions { width: 106px; min-width: 106px; max-width: 106px; white-space: nowrap; text-align: center; }
+.col-actions { width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; text-align: center; }
 
 /* Fixed-width badges */
 .badge-date {
@@ -517,46 +517,21 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 .wildcard { color: var(--orange); }
 .error { color: var(--red); }
 
-/* Debug log - max 5 rows visible, scrolls internally */
+/* Debug log - fixed 2 rows visible, always shown */
 .debug-log {
   background: #1a1a2e;
   color: #0f0;
-  padding: 12px;
-  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  margin: 0 0 8px 0;
   font-family: monospace;
   font-size: 11px;
   line-height: 1.4;
   border-radius: 4px;
-  max-height: calc(5 * 11px * 1.4 + 24px); /* 5 rows + padding */
+  height: calc(2 * 11px * 1.4 + 16px); /* Fixed 2 rows + padding */
   overflow-y: auto;
   overflow-x: hidden;
   white-space: pre-wrap;
   word-break: break-all;
-}
-
-.debug-toggle-container {
-  margin-bottom: 0.5rem;
-}
-
-.debug-toggle-btn {
-  padding: 0.3rem 0.6rem;
-  border: 1px solid var(--comment);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--comment);
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-
-.debug-toggle-btn:hover {
-  border-color: var(--green);
-  color: var(--green);
-}
-
-.debug-toggle-btn.active {
-  background: rgba(80, 250, 123, 0.1);
-  border-color: var(--green);
-  color: var(--green);
 }
 
 /* Inline select for table cells */
@@ -636,5 +611,192 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 .delete-btn:hover {
   background: var(--red);
   color: var(--bg);
+}
+
+/* Export link - uses default anchor styles, just ensure it's inline with toolbar */
+.export-link {
+  color: var(--cyan);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.export-link:hover {
+  color: var(--green);
+  text-decoration: underline;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(40, 42, 54, 0.9); /* var(--bg) with opacity */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-dialog {
+  background: var(--bg-alt);
+  border: 1px solid var(--purple);
+  border-radius: 4px; /* matches .toolbar button border-radius */
+  padding: 1.5rem;
+  min-width: 200px;
+  text-align: center;
+}
+
+.modal-header {
+  color: var(--pink); /* matches h1 and .page-title */
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Modal buttons - identical to .toolbar button (lines 59-68) */
+.modal-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--purple);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--purple);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.modal-btn:hover {
+  background: var(--purple);
+  color: var(--bg);
+}
+
+.modal-footer {
+  margin-top: 1rem;
+}
+
+/* Cancel link - matches .toolbar label color scheme */
+.modal-cancel {
+  color: var(--comment);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.modal-cancel:hover {
+  color: var(--red); /* matches .danger button hover */
+  text-decoration: underline;
+}
+
+/* Wide modal variant for edit/notes */
+.modal-wide {
+  min-width: 400px;
+  max-width: 600px;
+}
+
+/* Icon buttons in Actions column */
+.btn-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0 2px;
+  border: 1px solid var(--comment);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--fg);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  line-height: 22px;
+  vertical-align: middle;
+}
+
+.btn-icon:hover { background: var(--bg-alt); }
+
+.btn-edit { border-color: var(--purple); color: var(--purple); }
+.btn-edit:hover { background: var(--purple); color: var(--bg); }
+
+.btn-notes { border-color: var(--cyan); color: var(--cyan); }
+.btn-notes:hover { background: var(--cyan); color: var(--bg); }
+.btn-notes.has-notes { background: rgba(139, 233, 253, 0.2); }
+
+.btn-delete-row { border-color: var(--red); color: var(--red); }
+.btn-delete-row:hover { background: var(--red); color: var(--bg); }
+
+/* Toolbar delete button disabled state */
+.toolbar button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar button.danger:disabled {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Notes modal */
+.notes-url-preview {
+  color: var(--comment);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+#notesTextarea {
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+#notesTextarea:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+
+/* Edit modal form fields */
+.edit-form {
+  text-align: left;
+}
+
+.edit-form label {
+  display: block;
+  color: var(--cyan);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.edit-form label:first-child {
+  margin-top: 0;
+}
+
+.edit-form input {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.edit-form input:focus {
+  outline: none;
+  border-color: var(--purple);
 }
 

@@ -36,6 +36,17 @@ export function setupMessageRouter() {
       handleCdxScanFromMessage(msg.domain);
       sendResponse({ started: true });
     }
+
+    if (msg.type === 'fetch-bucket') {
+      fetch(msg.url)
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.text();
+        })
+        .then(xml => sendResponse({ xml }))
+        .catch(err => sendResponse({ error: err.message }));
+      return true; // Keep channel open for async response
+    }
   });
 }
 

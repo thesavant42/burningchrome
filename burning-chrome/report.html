@@ -8,16 +8,11 @@
 </head>
 <body>
   <div id="content">
-    <div class="debug-toggle-container">
-      <button id="debugToggle" class="debug-toggle-btn hidden">Debug Log</button>
-    </div>
-    <pre id="debugLog" class="debug-log hidden"></pre>
+    <pre id="debugLog" class="debug-log"></pre>
     
     <div class="stats">
       <span id="title" class="page-title"></span>
       <span id="rangeInfo" class="range-info-inline"></span>
-      <label class="select-all-inline"><input type="checkbox" id="selectAllTop" class="select-all-check"> Select All</label>
-      <span id="selectedCountInline" class="selected-count"></span>
     </div>
     
     <div class="toolbar">
@@ -40,11 +35,9 @@
         <option value="image/">Images</option>
       </select>
       <button id="cancelFetch" class="danger hidden" aria-label="Cancel fetch">Cancel</button>
-      <button id="deleteSelected" class="danger hidden" aria-label="Delete selected snapshots">Delete Selected</button>
+      <button id="deleteSelected" class="danger" disabled aria-label="Delete selected snapshots">Delete Selected</button>
       <span id="paginationTop" class="pagination-inline"></span>
-      <button id="saveHtml">Save HTML</button>
-      <button id="saveJson">Save JSON</button>
-      <button id="saveExtra" class="hidden" aria-label="Export data"></button>
+      <a href="#" id="exportLink" class="export-link">Export</a>
     </div>
 
     <!-- Wayback table view -->
@@ -70,6 +63,57 @@
       <thead id="tableHead"></thead>
       <tbody id="tableBody"></tbody>
     </table>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal-overlay hidden">
+      <div class="modal-dialog">
+        <div class="modal-header">Export Data</div>
+        <div class="modal-body">
+          <button id="exportHtml" class="modal-btn">HTML</button>
+          <button id="exportJson" class="modal-btn">JSON</button>
+          <button id="exportMd" class="modal-btn">Markdown</button>
+        </div>
+        <div class="modal-footer">
+          <a href="#" id="exportCancel" class="modal-cancel">Cancel</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div id="notesModal" class="modal-overlay hidden">
+      <div class="modal-dialog modal-wide">
+        <div class="modal-header">Notes</div>
+        <div class="modal-body">
+          <div id="notesUrlPreview" class="notes-url-preview"></div>
+          <textarea id="notesTextarea" rows="6" placeholder="Add notes..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button id="notesSave" class="modal-btn">Save</button>
+          <a href="#" id="notesCancel" class="modal-cancel">Cancel</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-overlay hidden">
+      <div class="modal-dialog modal-wide">
+        <div class="modal-header">Edit Row</div>
+        <div class="modal-body edit-form">
+          <label for="editUrl">URL:</label>
+          <input type="text" id="editUrl">
+          <label for="editTimestamp">Timestamp:</label>
+          <input type="text" id="editTimestamp">
+          <label for="editStatus">Status:</label>
+          <input type="text" id="editStatus">
+          <label for="editMime">MIME Type:</label>
+          <input type="text" id="editMime">
+        </div>
+        <div class="modal-footer">
+          <button id="editSave" class="modal-btn">Save</button>
+          <a href="#" id="editCancel" class="modal-cancel">Cancel</a>
+        </div>
+      </div>
+    </div>
   </div>
   <script type="module" src="dist/report.js"></script>
 </body>

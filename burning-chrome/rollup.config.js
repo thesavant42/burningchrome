@@ -11,5 +11,6 @@ export default [
   { input: 'background.js', output: { file: 'dist/background.js', format: 'es' }, ...sharedConfig },
   { input: 'landing.js', output: { file: 'dist/landing.js', format: 'es' }, ...sharedConfig },
   { input: 'config.js', output: { file: 'dist/config.js', format: 'es' }, ...sharedConfig },
-  { input: 'domains.js', output: { file: 'dist/domains.js', format: 'es' }, ...sharedConfig }
+  { input: 'domains.js', output: { file: 'dist/domains.js', format: 'es' }, ...sharedConfig },
+  { input: 'buckets.js', output: { file: 'dist/buckets.js', format: 'es' }, ...sharedConfig }
 ];
