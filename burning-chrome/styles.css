@@ -24,9 +24,10 @@
   --checkbox-size: 16px;
   --btn-icon-size: 24px;
   --btn-icon-margin: 2px;
+  --col-check-gap: 13px;
 
   /* Table column widths */
-  --col-check-width: calc(var(--checkbox-size) + var(--btn-icon-size) + 3 * var(--btn-icon-margin));
+  --col-check-width: calc(var(--checkbox-size) + var(--col-check-gap) + var(--btn-icon-size));
   --col-date-width: 110px;
   --col-status-width: 50px;
   --col-mime-width: 64px;
