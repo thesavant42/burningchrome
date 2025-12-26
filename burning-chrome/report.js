@@ -6,14 +6,6 @@ import mime from 'mime/lite';
 // Current row being edited/noted
 let currentEditRowId = null;
 
-// URL encode/decode toggle state: true = encode, false = decode
-let urlEncodeMode = true;
-
-// Base64 encode/decode toggle state: true = encode, false = decode
-let base64EncodeMode = true;
-
-// Active encoding mode: 'url' or 'base64'
-let activeEncodingMode = 'url';
 
 let _type = '';
 let domain = '';
@@ -327,6 +319,18 @@ function renderWaybackTable() {
   renderPaginationControls('paginationBottom');
 }
 
+// Classify status code into a category for filtering
+function getStatusClass(status) {
+  if (!status || status === '-') return 'xxx';
+  const code = parseInt(status, 10);
+  if (isNaN(code)) return 'xxx';
+  if (code >= 200 && code < 300) return '200';
+  if (code >= 300 && code < 400) return '3xx';
+  if (code >= 400 && code < 500) return '4xx';
+  if (code >= 500) return '5xx';
+  return 'xxx';
+}
+
 function formatStatus(status) {
   let label, className;
   if (!status || status === '-') {
@@ -363,23 +367,45 @@ function formatMime(mimeType) {
 
 function setupWaybackFilters() {
   const searchInput = document.getElementById('search');
-  const statusFilter = document.getElementById('statusFilter');
+  const searchInvert = document.getElementById('searchInvert');
+  const status200 = document.getElementById('status200');
+  const status3xx = document.getElementById('status3xx');
+  const status4xx = document.getElementById('status4xx');
+  const status5xx = document.getElementById('status5xx');
+  const statusXxx = document.getElementById('statusXxx');
   const mimeFilter = document.getElementById('mimeFilter');
 
   const applyFilters = () => {
     const searchTerm = searchInput.value.toLowerCase();
-    const statusVal = statusFilter.value;
+    const invert = searchInvert.checked;
     const mimeVal = mimeFilter.value;
 
+    // Build status visibility map
+    const statusVisible = {
+      '200': status200.checked,
+      '3xx': status3xx.checked,
+      '4xx': status4xx.checked,
+      '5xx': status5xx.checked,
+      'xxx': statusXxx.checked
+    };
+
     filteredData = rawData.filter((row) => {
-      // URL text filter
-      if (searchTerm && !row.url.toLowerCase().includes(searchTerm)) {
+      // Status class visibility toggle
+      const statusClass = getStatusClass(row.status);
+      if (!statusVisible[statusClass]) {
         return false;
       }
-      // Status filter
-      if (statusVal && row.status !== statusVal) {
-        return false;
+
+      // Text search (URL + notes)
+      if (searchTerm) {
+        const matches = row.url.toLowerCase().includes(searchTerm) ||
+                        (row.notes || '').toLowerCase().includes(searchTerm);
+        // Invert logic: if invert is checked, exclude matches; otherwise include only matches
+        if (invert ? matches : !matches) {
+          return false;
+        }
       }
+
       // MIME filter (prefix match for categories like "image/")
       if (mimeVal && !row.mime.startsWith(mimeVal)) {
         return false;
@@ -393,7 +419,12 @@ function setupWaybackFilters() {
   };
 
   searchInput.addEventListener('input', applyFilters);
-  statusFilter.addEventListener('change', applyFilters);
+  searchInvert.addEventListener('change', applyFilters);
+  status200.addEventListener('change', applyFilters);
+  status3xx.addEventListener('change', applyFilters);
+  status4xx.addEventListener('change', applyFilters);
+  status5xx.addEventListener('change', applyFilters);
+  statusXxx.addEventListener('change', applyFilters);
   mimeFilter.addEventListener('change', applyFilters);
 }
 
@@ -447,13 +478,24 @@ function setupSelection() {
 
     // Re-apply filters and render
     const searchTerm = document.getElementById('search').value.toLowerCase();
-    const statusVal = document.getElementById('statusFilter').value;
+    const invert = document.getElementById('searchInvert').checked;
     const mimeVal = document.getElementById('mimeFilter').value;
+    const statusVisible = {
+      '200': document.getElementById('status200').checked,
+      '3xx': document.getElementById('status3xx').checked,
+      '4xx': document.getElementById('status4xx').checked,
+      '5xx': document.getElementById('status5xx').checked,
+      'xxx': document.getElementById('statusXxx').checked
+    };
 
     filteredData = rawData.filter((row) => {
-      if (searchTerm && !row.url.toLowerCase().includes(searchTerm))
-        return false;
-      if (statusVal && row.status !== statusVal) return false;
+      const statusClass = getStatusClass(row.status);
+      if (!statusVisible[statusClass]) return false;
+      if (searchTerm) {
+        const matches = row.url.toLowerCase().includes(searchTerm) ||
+                        (row.notes || '').toLowerCase().includes(searchTerm);
+        if (invert ? matches : !matches) return false;
+      }
       if (mimeVal && !row.mime.startsWith(mimeVal)) return false;
       return true;
     });
@@ -811,10 +853,39 @@ async function saveNotes() {
   closeNotesModal();
 }
 
+// Helper to apply a transform function to selected text in a textarea
+function applyTransformToTextarea(textarea, transformFn) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  
+  // Only act if text is selected
+  if (start === end) return;
+  
+  const text = textarea.value;
+  const selected = text.substring(start, end);
+  
+  let transformed;
+  try {
+    transformed = transformFn(selected);
+  } catch (e) {
+    // URIError or DOMException: malformed input - leave unchanged
+    return;
+  }
+  
+  // Replace selection with transformed text
+  textarea.value = text.substring(0, start) + transformed + text.substring(end);
+  
+  // Restore selection around transformed text
+  textarea.selectionStart = start;
+  textarea.selectionEnd = start + transformed.length;
+  textarea.focus();
+}
+
 function setupNotesModal() {
   const modal = document.getElementById('notesModal');
   const saveBtn = document.getElementById('notesSave');
   const cancelBtn = document.getElementById('notesCancel');
+  const notesTextarea = document.getElementById('notesTextarea');
   
   saveBtn.onclick = saveNotes;
   
@@ -828,6 +899,12 @@ function setupNotesModal() {
       closeNotesModal();
     }
   };
+  
+  // Encoding/decoding buttons for notes
+  document.getElementById('notesUrlEncode').onclick = () => applyTransformToTextarea(notesTextarea, encodeURIComponent);
+  document.getElementById('notesUrlDecode').onclick = () => applyTransformToTextarea(notesTextarea, decodeURIComponent);
+  document.getElementById('notesB64Encode').onclick = () => applyTransformToTextarea(notesTextarea, btoa);
+  document.getElementById('notesB64Decode').onclick = () => applyTransformToTextarea(notesTextarea, atob);
 }
 
 // Edit Modal functions
@@ -902,66 +979,12 @@ function setupEditModal() {
     }
   };
   
-  // URL encode/decode toggle and apply buttons
-  const urlToggleBtn = document.getElementById('editUrlToggle');
-  const b64ToggleBtn = document.getElementById('editB64Toggle');
-  const applyBtn = document.getElementById('editUrlApply');
+  // Encoding/decoding buttons for edit URL
   const urlTextarea = document.getElementById('editUrl');
-
-  // URL Toggle button - switches URL encode/decode mode
-  urlToggleBtn.onclick = () => {
-    urlEncodeMode = !urlEncodeMode;
-    urlToggleBtn.textContent = urlEncodeMode ? 'ENC' : 'DEC';
-    urlToggleBtn.classList.toggle('active', !urlEncodeMode);
-    urlToggleBtn.title = urlEncodeMode ? 'URL Encode mode' : 'URL Decode mode';
-    activeEncodingMode = 'url';
-  };
-
-  // Base64 Toggle button - switches Base64 encode/decode mode
-  b64ToggleBtn.onclick = () => {
-    base64EncodeMode = !base64EncodeMode;
-    b64ToggleBtn.textContent = base64EncodeMode ? 'B64' : '64D';
-    b64ToggleBtn.classList.toggle('active', !base64EncodeMode);
-    b64ToggleBtn.title = base64EncodeMode ? 'Base64 Encode mode' : 'Base64 Decode mode';
-    activeEncodingMode = 'base64';
-  };
-
-  // Apply button - encodes/decodes selection based on active mode
-  applyBtn.onclick = () => {
-    const start = urlTextarea.selectionStart;
-    const end = urlTextarea.selectionEnd;
-    
-    // Only act if text is selected
-    if (start === end) return;
-    
-    const text = urlTextarea.value;
-    const selected = text.substring(start, end);
-    
-    let transformed;
-    try {
-      if (activeEncodingMode === 'url') {
-        transformed = urlEncodeMode 
-          ? encodeURIComponent(selected)
-          : decodeURIComponent(selected);
-      } else {
-        // Base64 mode
-        transformed = base64EncodeMode 
-          ? btoa(selected)
-          : atob(selected);
-      }
-    } catch (e) {
-      // URIError or DOMException: malformed input - leave unchanged
-      return;
-    }
-    
-    // Replace selection with transformed text
-    urlTextarea.value = text.substring(0, start) + transformed + text.substring(end);
-    
-    // Restore selection around transformed text
-    urlTextarea.selectionStart = start;
-    urlTextarea.selectionEnd = start + transformed.length;
-    urlTextarea.focus();
-  };
+  document.getElementById('editUrlEncode').onclick = () => applyTransformToTextarea(urlTextarea, encodeURIComponent);
+  document.getElementById('editUrlDecode').onclick = () => applyTransformToTextarea(urlTextarea, decodeURIComponent);
+  document.getElementById('editB64Encode').onclick = () => applyTransformToTextarea(urlTextarea, btoa);
+  document.getElementById('editB64Decode').onclick = () => applyTransformToTextarea(urlTextarea, atob);
 }
 
 // Setup row action buttons (Edit, Notes)

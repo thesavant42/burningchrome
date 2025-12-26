@@ -891,3 +891,43 @@ th.col-check button {
   color: var(--bg);
 }
 
+/* Status toggles - inline checkbox group */
+.status-toggles {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  background: var(--bg-alt);
+}
+
+.status-toggles label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--fg);
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.status-toggles input[type="checkbox"] {
+  accent-color: var(--purple);
+  cursor: pointer;
+}
+
+/* Invert label styling */
+.invert-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--orange);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.invert-label input[type="checkbox"] {
+  accent-color: var(--orange);
+}
+

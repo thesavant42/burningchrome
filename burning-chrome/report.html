@@ -17,15 +17,14 @@
     
     <div class="toolbar">
       <input type="text" id="search" placeholder="Filter URLs..." autocomplete="off">
-      <select id="statusFilter" aria-label="Filter by HTTP status code">
-        <option value="">All Status</option>
-        <option value="200">200 OK</option>
-        <option value="301">301 Redirect</option>
-        <option value="302">302 Redirect</option>
-        <option value="404">404 Not Found</option>
-        <option value="500">500 Error</option>
-        <option value="DEV">DEV</option>
-      </select>
+      <label class="invert-label"><input type="checkbox" id="searchInvert"> Invert</label>
+      <div class="status-toggles">
+        <label><input type="checkbox" id="status200" checked> 200</label>
+        <label><input type="checkbox" id="status3xx" checked> 3XX</label>
+        <label><input type="checkbox" id="status4xx" checked> 4XX</label>
+        <label><input type="checkbox" id="status5xx" checked> 5XX</label>
+        <label><input type="checkbox" id="statusXxx" checked> XXX</label>
+      </div>
       <select id="mimeFilter" aria-label="Filter by content type">
         <option value="">All Types</option>
         <option value="text/html">HTML</option>
@@ -93,6 +92,10 @@
           <span>Notes</span>
           <div class="modal-header-actions">
             <span id="notesUrlPreview" class="notes-url-preview"></span>
+            <button type="button" id="notesUrlEncode" class="btn-icon btn-icon-wide" title="URL encode selection">U+</button>
+            <button type="button" id="notesUrlDecode" class="btn-icon btn-icon-wide" title="URL decode selection">U-</button>
+            <button type="button" id="notesB64Encode" class="btn-icon btn-icon-wide" title="Base64 encode selection">B+</button>
+            <button type="button" id="notesB64Decode" class="btn-icon btn-icon-wide" title="Base64 decode selection">B-</button>
             <button id="notesSave" class="modal-btn">Save</button>
             <a href="#" id="notesCancel" class="modal-cancel">Cancel</a>
           </div>
@@ -109,9 +112,10 @@
         <div class="modal-header">
           <span>Edit Row</span>
           <div class="modal-header-actions">
-            <button type="button" id="editUrlToggle" class="btn-icon btn-icon-wide" title="URL Encode mode">ENC</button>
-            <button type="button" id="editB64Toggle" class="btn-icon btn-icon-wide" title="Base64 Encode mode">B64</button>
-            <button type="button" id="editUrlApply" class="btn-icon btn-icon-wide" title="Apply to selection">GO</button>
+            <button type="button" id="editUrlEncode" class="btn-icon btn-icon-wide" title="URL encode selection">U+</button>
+            <button type="button" id="editUrlDecode" class="btn-icon btn-icon-wide" title="URL decode selection">U-</button>
+            <button type="button" id="editB64Encode" class="btn-icon btn-icon-wide" title="Base64 encode selection">B+</button>
+            <button type="button" id="editB64Decode" class="btn-icon btn-icon-wide" title="Base64 decode selection">B-</button>
             <button id="editSave" class="modal-btn">Save</button>
             <a href="#" id="editCancel" class="modal-cancel">Cancel</a>
           </div>
