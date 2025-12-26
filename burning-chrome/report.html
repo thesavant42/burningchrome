@@ -35,7 +35,6 @@
         <option value="image/">Images</option>
       </select>
       <button id="cancelFetch" class="danger hidden" aria-label="Cancel fetch">Cancel</button>
-      <button id="deleteSelected" class="danger" disabled aria-label="Delete selected snapshots">Delete Selected</button>
       <span id="paginationTop" class="pagination-inline"></span>
       <a href="#" id="exportLink" class="export-link">Export</a>
     </div>
@@ -44,7 +43,7 @@
     <table id="waybackTable" class="hidden">
       <thead>
         <tr>
-          <th class="col-check"><input type="checkbox" id="headerCheck" aria-label="Select all visible snapshots"></th>
+          <th class="col-check"><input type="checkbox" id="headerCheck" aria-label="Select all visible snapshots"><button id="headerDelete" class="btn-icon btn-delete-row" disabled title="Delete selected rows">X</button></th>
           <th class="col-url">URL</th>
           <th class="col-date">Date</th>
           <th class="col-status">Status</th>

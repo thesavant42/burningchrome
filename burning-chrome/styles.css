@@ -7,6 +7,7 @@
 }
 
 :root {
+  /* Dracula color palette */
   --bg: #282a36;
   --bg-alt: #44475a; 
   --fg: #f8f8f2;
@@ -18,6 +19,13 @@
   --purple: #bd93f9;
   --red: #ff5555;
   --yellow: #f1fa8c;
+
+  /* Table column widths */
+  --col-check-width: 72px;
+  --col-date-width: 110px;
+  --col-status-width: 50px;
+  --col-mime-width: 64px;
+  --col-actions-width: 170px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -188,7 +196,7 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 }
 
 /* Fixed-width columns stay in viewport, URL wraps */
-.col-check { width: 32px; min-width: 32px; max-width: 32px; text-align: center; }
+.col-check { width: var(--col-check-width); min-width: var(--col-check-width); max-width: var(--col-check-width); text-align: center; }
 .col-url { 
   text-align: left;
   word-break: break-all;
@@ -199,10 +207,18 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
   overflow-wrap: anywhere;
   white-space: normal;
 }
-.col-date { width: 110px; min-width: 110px; max-width: 110px; white-space: nowrap; }
-.col-status { width: 50px; min-width: 50px; max-width: 50px; text-align: center; }
-.col-mime { width: 64px; min-width: 64px; max-width: 64px; text-align: center; }
-.col-actions { width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; text-align: center; }
+.col-date { width: var(--col-date-width); min-width: var(--col-date-width); max-width: var(--col-date-width); white-space: nowrap; }
+.col-status { width: var(--col-status-width); min-width: var(--col-status-width); max-width: var(--col-status-width); text-align: center; }
+.col-mime { width: var(--col-mime-width); min-width: var(--col-mime-width); max-width: var(--col-mime-width); text-align: center; }
+.col-actions { width: var(--col-actions-width); min-width: var(--col-actions-width); max-width: var(--col-actions-width); white-space: nowrap; text-align: center; }
+
+/* Header check cell: flexbox keeps checkbox + delete button on same row */
+th.col-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
 
 /* Fixed-width badges */
 .badge-date {
@@ -729,7 +745,14 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 .btn-notes.has-notes { background: rgba(139, 233, 253, 0.2); }
 
 .btn-delete-row { border-color: var(--red); color: var(--red); }
-.btn-delete-row:hover { background: var(--red); color: var(--bg); }
+.btn-delete-row:hover:not(:disabled) { background: var(--red); color: var(--bg); }
+.btn-delete-row:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Header delete button positioning */
+#headerDelete {
+  margin-left: 4px;
+  vertical-align: middle;
+}
 
 /* Toolbar delete button disabled state */
 .toolbar button:disabled {

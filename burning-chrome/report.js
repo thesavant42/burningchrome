@@ -306,7 +306,6 @@ function renderWaybackTable() {
       <td class="col-actions">
         <button class="btn-icon btn-edit" data-id="${row.id}" title="Edit row">E</button>
         <button class="btn-icon btn-notes${row.notes ? ' has-notes' : ''}" data-id="${row.id}" title="Add/view notes">N</button>
-        <button class="btn-icon btn-delete-row" data-id="${row.id}" title="Delete row">X</button>
         <a href="${archiveUrl}" target="_blank" class="badge-action badge-action-archive" title="View archived snapshot">WARC</a>
         <a href="${row.url}" target="_blank" class="badge-action badge-action-live" title="View live page">LIVE</a>
       </td>
@@ -391,7 +390,7 @@ function setupWaybackFilters() {
 
 function setupSelection() {
   const headerCheck = document.getElementById('headerCheck');
-  const deleteBtn = document.getElementById('deleteSelected');
+  const headerDelete = document.getElementById('headerDelete');
   const tbody = document.getElementById('waybackBody');
 
   // Individual row checkbox
@@ -426,8 +425,8 @@ function setupSelection() {
     updateSelectionUI();
   });
 
-  // Delete selected
-  deleteBtn.addEventListener('click', () => {
+  // Delete selected (header delete button)
+  headerDelete.addEventListener('click', async () => {
     if (selectedRows.size === 0) return;
 
     const confirmMsg = `Delete ${selectedRows.size} selected row(s)?`;
@@ -450,7 +449,8 @@ function setupSelection() {
       return true;
     });
 
-    // Recalculate pagination after deletion
+    // Persist changes, recalculate pagination and re-render
+    await persistChanges();
     calculateTotalPages();
     renderWaybackTable();
     updateSelectionUI();
@@ -458,11 +458,11 @@ function setupSelection() {
 }
 
 function updateSelectionUI() {
-  const deleteBtn = document.getElementById('deleteSelected');
+  const headerDelete = document.getElementById('headerDelete');
   const headerCheck = document.getElementById('headerCheck');
 
-  // Toggle disabled state instead of hidden
-  deleteBtn.disabled = selectedRows.size === 0;
+  // Toggle disabled state on header delete button
+  headerDelete.disabled = selectedRows.size === 0;
 
   // Sync header checkbox with row selections
   const allVisible = document.querySelectorAll('.row-check');
@@ -894,40 +894,7 @@ function setupEditModal() {
   };
 }
 
-// Delete single row
-async function deleteRow(rowId) {
-  const row = rawData.find(r => r.id === rowId);
-  if (!row) return;
-  
-  const displayUrl = row.url.length > 50 ? row.url.slice(0, 50) + '...' : row.url;
-  if (!confirm(`Delete this row?\n${displayUrl}`)) return;
-  
-  // Remove from rawData
-  rawData = rawData.filter(r => r.id !== rowId);
-  
-  // Remove from selectedRows if present
-  selectedRows.delete(rowId);
-  
-  // Re-apply filters
-  const searchTerm = document.getElementById('search').value.toLowerCase();
-  const statusVal = document.getElementById('statusFilter').value;
-  const mimeVal = document.getElementById('mimeFilter').value;
-  
-  filteredData = rawData.filter((r) => {
-    if (searchTerm && !r.url.toLowerCase().includes(searchTerm)) return false;
-    if (statusVal && r.status !== statusVal) return false;
-    if (mimeVal && !r.mime.startsWith(mimeVal)) return false;
-    return true;
-  });
-  
-  // Persist and re-render
-  await persistChanges();
-  calculateTotalPages();
-  renderWaybackTable();
-  updateSelectionUI();
-}
-
-// Setup row action buttons (Edit, Notes, Delete)
+// Setup row action buttons (Edit, Notes)
 function setupRowActions() {
   const tbody = document.getElementById('waybackBody');
   
@@ -940,9 +907,6 @@ function setupRowActions() {
     } else if (target.classList.contains('btn-notes')) {
       const rowId = parseInt(target.dataset.id, 10);
       openNotesModal(rowId);
-    } else if (target.classList.contains('btn-delete-row')) {
-      const rowId = parseInt(target.dataset.id, 10);
-      deleteRow(rowId);
     }
   });
   
