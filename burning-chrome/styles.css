@@ -20,7 +20,13 @@
   --red: #ff5555;
   --yellow: #f1fa8c;
 
+  /* Component sizes */
+  --checkbox-size: 16px;
+  --btn-icon-size: 24px;
+  --btn-icon-margin: 2px;
+
   /* Table column widths */
+  --col-check-width: calc(var(--checkbox-size) + var(--btn-icon-size) + 3 * var(--btn-icon-margin));
   --col-date-width: 110px;
   --col-status-width: 50px;
   --col-mime-width: 64px;
@@ -716,10 +722,10 @@ th.col-check button {
 /* Icon buttons in Actions column */
 .btn-icon {
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: var(--btn-icon-size);
+  height: var(--btn-icon-size);
   padding: 0;
-  margin: 0 2px;
+  margin: 0 var(--btn-icon-margin);
   border: 1px solid var(--comment);
   border-radius: 3px;
   background: transparent;
@@ -747,7 +753,7 @@ th.col-check button {
 
 /* Header delete button positioning */
 #headerDelete {
-  margin-left: 4px;
+  margin-left: calc(2 * var(--btn-icon-margin));
   vertical-align: middle;
 }
 
