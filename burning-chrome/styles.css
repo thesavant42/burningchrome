@@ -21,7 +21,6 @@
   --yellow: #f1fa8c;
 
   /* Table column widths */
-  --col-check-width: 80px;
   --col-date-width: 110px;
   --col-status-width: 50px;
   --col-mime-width: 64px;
@@ -196,35 +195,22 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
   box-shadow: inset 3px 0 0 var(--pink);
 }
 
-/* Column widths via colgroup > col (table-layout: fixed uses these) */
-col.col-check { width: var(--col-check-width); }
-col.col-url { /* No width - takes remaining space */ }
-col.col-date { width: var(--col-date-width); }
-col.col-status { width: var(--col-status-width); }
-col.col-mime { width: var(--col-mime-width); }
-col.col-actions { width: var(--col-actions-width); }
-
-/* Cell styling (alignment, text handling) */
-td.col-check, th.col-check { text-align: center; }
-td.col-url, th.col-url { 
+/* Cell styling (alignment, text handling) - widths set via inline style on <col> */
+.col-check { text-align: center; white-space: nowrap; }
+.col-url { 
   text-align: left;
   word-break: break-all;
   overflow-wrap: anywhere;
 }
-td.col-url a, th.col-url a {
+.col-url a {
   word-break: break-all;
   overflow-wrap: anywhere;
   white-space: normal;
 }
-td.col-date, th.col-date { white-space: nowrap; }
-td.col-status, th.col-status { text-align: center; }
-td.col-mime, th.col-mime { text-align: center; }
-td.col-actions, th.col-actions { white-space: nowrap; text-align: center; }
-
-/* Header check cell elements alignment */
-th.col-check {
-  white-space: nowrap;
-}
+.col-date { white-space: nowrap; }
+.col-status { text-align: center; }
+.col-mime { text-align: center; }
+.col-actions { white-space: nowrap; text-align: center; }
 
 th.col-check input,
 th.col-check button {
