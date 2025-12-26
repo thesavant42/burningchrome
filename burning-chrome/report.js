@@ -6,6 +6,9 @@ import mime from 'mime/lite';
 // Current row being edited/noted
 let currentEditRowId = null;
 
+// URL encode/decode toggle state: true = encode, false = decode
+let urlEncodeMode = true;
+
 let _type = '';
 let domain = '';
 let rawData = [];
@@ -891,6 +894,41 @@ function setupEditModal() {
     if (e.target === modal) {
       closeEditModal();
     }
+  };
+  
+  // URL encode/decode toggle
+  const encodeBtn = document.getElementById('editUrlEncode');
+  const urlTextarea = document.getElementById('editUrl');
+
+  encodeBtn.onclick = () => {
+    const start = urlTextarea.selectionStart;
+    const end = urlTextarea.selectionEnd;
+    
+    // Only act if text is selected
+    if (start === end) return;
+    
+    const text = urlTextarea.value;
+    const selected = text.substring(start, end);
+    
+    let transformed;
+    if (urlEncodeMode) {
+      transformed = encodeURIComponent(selected);
+      encodeBtn.title = 'Decode selection';
+    } else {
+      transformed = decodeURIComponent(selected);
+      encodeBtn.title = 'Encode selection';
+    }
+    
+    // Replace selection with transformed text
+    urlTextarea.value = text.substring(0, start) + transformed + text.substring(end);
+    
+    // Restore cursor position after the transformed text
+    urlTextarea.selectionStart = start;
+    urlTextarea.selectionEnd = start + transformed.length;
+    urlTextarea.focus();
+    
+    // Toggle mode for next click
+    urlEncodeMode = !urlEncodeMode;
   };
 }
 

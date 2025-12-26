@@ -32,6 +32,10 @@
   --col-status-width: 50px;
   --col-mime-width: 64px;
   --col-actions-width: 170px;
+
+  /* Edit modal sizing */
+  --modal-wide-max-width: 90vw;
+  --btn-icon-wide-width: 40px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -716,8 +720,9 @@ th.col-check button {
 
 /* Wide modal variant for edit/notes */
 .modal-wide {
+  width: var(--modal-wide-max-width);
   min-width: 400px;
-  max-width: 600px;
+  max-width: var(--modal-wide-max-width);
 }
 
 /* Icon buttons in Actions column */
@@ -825,5 +830,30 @@ th.col-check button {
 .edit-form input:focus {
   outline: none;
   border-color: var(--purple);
+}
+
+/* Edit URL textarea */
+#editUrl {
+  width: 100%;
+  height: var(--edit-url-height);
+  padding: 0.4rem 0.5rem;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: monospace;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+#editUrl:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+
+/* Wider btn-icon variant for multi-char labels */
+.btn-icon-wide {
+  width: var(--btn-icon-wide-width);
 }
 

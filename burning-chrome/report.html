@@ -106,14 +106,11 @@
       <div class="modal-dialog modal-wide">
         <div class="modal-header">Edit Row</div>
         <div class="modal-body edit-form">
-          <label for="editUrl">URL:</label>
-          <input type="text" id="editUrl">
-          <label for="editTimestamp">Timestamp:</label>
-          <input type="text" id="editTimestamp">
-          <label for="editStatus">Status:</label>
-          <input type="text" id="editStatus">
-          <label for="editMime">MIME Type:</label>
-          <input type="text" id="editMime">
+          <label for="editUrl">URL: <button type="button" id="editUrlEncode" class="btn-icon btn-icon-wide" title="Encode selection">URL</button></label>
+          <textarea id="editUrl"></textarea>
+          <input type="hidden" id="editTimestamp">
+          <input type="hidden" id="editStatus">
+          <input type="hidden" id="editMime">
         </div>
         <div class="modal-footer">
           <button id="editSave" class="modal-btn">Save</button>
