@@ -4,7 +4,12 @@
 import { storage } from '../storage.js';
 import { saveTimemap } from '../db.js';
 import { startKeepAlive, stopKeepAlive } from '../keep-alive.js';
-import { fetchAllCDXData, getDebugLog, clearDebugLog, CDX_BATCH_SIZE } from '../data-sources/cdx.js';
+import {
+  fetchAllCDXData,
+  getDebugLog,
+  clearDebugLog,
+  CDX_BATCH_SIZE
+} from '../data-sources/cdx.js';
 
 /**
  * Handle timemap request from context menu click
@@ -44,20 +49,23 @@ async function executeCdxScan(domain) {
 
   startKeepAlive();
   try {
-    const allData = await fetchAllCDXData(domain, async (partialData, recordCount, page, totalPages) => {
-      await storage.set('timemapData', {
-        domain,
-        data: partialData,
-        loading: true,
-        error: null,
-        page,
-        totalPages,
-        recordCount,
-        startTime,
-        debugLog: getDebugLog(),
-        timestamp: Date.now()
-      });
-    });
+    const allData = await fetchAllCDXData(
+      domain,
+      async (partialData, recordCount, page, totalPages) => {
+        await storage.set('timemapData', {
+          domain,
+          data: partialData,
+          loading: true,
+          error: null,
+          page,
+          totalPages,
+          recordCount,
+          startTime,
+          debugLog: getDebugLog(),
+          timestamp: Date.now()
+        });
+      }
+    );
 
     await storage.set('timemapData', {
       domain,
@@ -84,11 +92,14 @@ async function executeCdxScan(domain) {
     });
 
     if (error.cancelled && current?.data) {
-      await saveTimemap(domain, { data: current.data, fetchedAt: Date.now(), partial: true });
+      await saveTimemap(domain, {
+        data: current.data,
+        fetchedAt: Date.now(),
+        partial: true
+      });
     }
   } finally {
     clearDebugLog();
     stopKeepAlive();
   }
 }
-

@@ -9,13 +9,13 @@
 export function renderPaginationControls(containerId, state, onPageChange) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  
+
   container.innerHTML = '';
-  
+
   const { currentPage, totalPages, filteredCount, rowsPerPage } = state;
-  
+
   if (totalPages <= 1) return;
-  
+
   // First button
   const firstBtn = document.createElement('button');
   firstBtn.textContent = '<<';
@@ -23,7 +23,7 @@ export function renderPaginationControls(containerId, state, onPageChange) {
   firstBtn.disabled = currentPage === 1;
   firstBtn.onclick = () => onPageChange(1);
   container.appendChild(firstBtn);
-  
+
   // Prev button
   const prevBtn = document.createElement('button');
   prevBtn.textContent = '<';
@@ -31,13 +31,13 @@ export function renderPaginationControls(containerId, state, onPageChange) {
   prevBtn.disabled = currentPage === 1;
   prevBtn.onclick = () => onPageChange(currentPage - 1);
   container.appendChild(prevBtn);
-  
+
   // Page info
   const pageInfo = document.createElement('span');
   pageInfo.className = 'page-info';
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
   container.appendChild(pageInfo);
-  
+
   // Jump input
   const jumpInput = document.createElement('input');
   jumpInput.type = 'number';
@@ -55,7 +55,7 @@ export function renderPaginationControls(containerId, state, onPageChange) {
     }
   };
   container.appendChild(jumpInput);
-  
+
   // Go button
   const goBtn = document.createElement('button');
   goBtn.textContent = 'Go';
@@ -67,7 +67,7 @@ export function renderPaginationControls(containerId, state, onPageChange) {
     }
   };
   container.appendChild(goBtn);
-  
+
   // Next button
   const nextBtn = document.createElement('button');
   nextBtn.textContent = '>';
@@ -75,7 +75,7 @@ export function renderPaginationControls(containerId, state, onPageChange) {
   nextBtn.disabled = currentPage === totalPages;
   nextBtn.onclick = () => onPageChange(currentPage + 1);
   container.appendChild(nextBtn);
-  
+
   // Last button
   const lastBtn = document.createElement('button');
   lastBtn.textContent = '>>';
@@ -83,7 +83,7 @@ export function renderPaginationControls(containerId, state, onPageChange) {
   lastBtn.disabled = currentPage === totalPages;
   lastBtn.onclick = () => onPageChange(totalPages);
   container.appendChild(lastBtn);
-  
+
   // Range info
   const start = (currentPage - 1) * rowsPerPage + 1;
   const end = Math.min(currentPage * rowsPerPage, filteredCount);
@@ -92,4 +92,3 @@ export function renderPaginationControls(containerId, state, onPageChange) {
   rangeInfo.textContent = `(${start}-${end} of ${filteredCount})`;
   container.appendChild(rangeInfo);
 }
-

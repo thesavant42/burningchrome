@@ -61,13 +61,20 @@ export async function fetchCDXPage(domain, resumeKey = '', retryCount = 0) {
     }
 
     const json = await response.json();
-    addDebug(`SUCCESS: received ${Array.isArray(json) ? json.length : 0} rows in ${Date.now() - start}ms`);
+    addDebug(
+      `SUCCESS: received ${Array.isArray(json) ? json.length : 0} rows in ${Date.now() - start}ms`
+    );
     return parseCDXResponse(json);
-
   } catch (error) {
     clearInterval(cancelCheckId);
     clearTimeout(timeoutId);
-    return handleFetchError(error, retryFn, retryCount, Date.now() - start, wasCancelled);
+    return handleFetchError(
+      error,
+      retryFn,
+      retryCount,
+      Date.now() - start,
+      wasCancelled
+    );
   }
 }
 

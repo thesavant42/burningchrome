@@ -16,4 +16,3 @@ export function getDebugLog() {
 export function clearDebugLog() {
   cdxDebugLog = [];
 }
-

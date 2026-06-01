@@ -34,6 +34,9 @@
     
     <div class="toolbar secondary">
       <input type="text" id="searchInput" placeholder="Filter keys..." autocomplete="off">
+      <button id="exportJson" class="btn-action hidden" style="margin-left: 10px;">Export JSON</button>
+      <button id="exportCsv" class="btn-action hidden" style="margin-left: 10px;">Export CSV</button>
+      <button id="exportWget" class="btn-action hidden" style="margin-left: 10px;">Export Wget URLs</button>
       <span class="spacer"></span>
       <span id="paginationTop" class="pagination-inline"></span>
       <span class="spacer"></span>
@@ -55,6 +58,9 @@
     </table>
     
     <div id="paginationBottom" class="pagination"></div>
+    <div class="footer" style="margin-top: 40px; font-size: 11px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 10px;">
+      Burning Chrome v<span id="extVersion"></span>
+    </div>
   </div>
   <script type="module" src="dist/buckets.js"></script>
 </body>

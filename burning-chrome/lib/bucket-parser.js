@@ -8,15 +8,23 @@
 export function parseBucketXml(xmlText) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xmlText, 'text/xml');
-  
+
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    return { bucketName: '', items: [], error: 'Invalid XML format' };
+    return {
+      bucketName: '',
+      items: [],
+      isTruncated: false,
+      nextContinuationToken: null,
+      nextMarker: null,
+      error: 'Invalid XML format'
+    };
   }
-  
+
   // Extract bucket name from <Name> element (use getElementsByTagName for namespace support)
-  const bucketName = doc.getElementsByTagName('Name')[0]?.textContent || 'Unknown Bucket';
-  
+  const bucketName =
+    doc.getElementsByTagName('Name')[0]?.textContent || 'Unknown Bucket';
+
   // Extract all <Contents> elements (getElementsByTagName ignores namespaces)
   const contents = doc.getElementsByTagName('Contents');
   const items = Array.from(contents).map((c, idx) => ({
@@ -25,8 +33,26 @@ export function parseBucketXml(xmlText) {
     size: parseInt(c.getElementsByTagName('Size')[0]?.textContent || '0', 10),
     lastModified: c.getElementsByTagName('LastModified')[0]?.textContent || ''
   }));
-  
-  return { bucketName, items, error: null };
+
+  // Extract pagination info
+  const isTruncatedNode = doc.getElementsByTagName('IsTruncated')[0];
+  const isTruncated = isTruncatedNode
+    ? isTruncatedNode.textContent.trim().toLowerCase() === 'true'
+    : false;
+
+  const nextContinuationToken =
+    doc.getElementsByTagName('NextContinuationToken')[0]?.textContent || null;
+  const nextMarker =
+    doc.getElementsByTagName('NextMarker')[0]?.textContent || null;
+
+  return {
+    bucketName,
+    items,
+    isTruncated,
+    nextContinuationToken,
+    nextMarker,
+    error: null
+  };
 }
 
 /**
@@ -39,7 +65,10 @@ export function buildDownloadUrl(baseUrl, key) {
   if (!baseUrl) return '#';
   const base = baseUrl.replace(/\?.*$/, '').replace(/\/$/, '');
   // Encode each path segment individually to preserve forward slashes
-  const encodedKey = key.split('/').map(segment => encodeURIComponent(segment)).join('/');
+  const encodedKey = key
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
   return `${base}/${encodedKey}`;
 }
 
@@ -76,4 +105,3 @@ export function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
-

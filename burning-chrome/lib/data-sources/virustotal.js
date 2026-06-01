@@ -21,7 +21,7 @@ export async function fetchVirusTotalSubdomains(domain, apiKey) {
     const response = await fetch(url, {
       headers: {
         'x-apikey': apiKey,
-        'Accept': 'application/json'
+        Accept: 'application/json'
       }
     });
 
@@ -54,14 +54,16 @@ export async function fetchVirusTotalSubdomains(domain, apiKey) {
     previousCursor = cursor;
 
     // Rate limiting: wait before next request
-    await new Promise(resolve => setTimeout(resolve, REQUEST_INTERVAL));
+    await new Promise((resolve) => setTimeout(resolve, REQUEST_INTERVAL));
   }
 
   return results;
 }
 
 function buildUrl(domain, cursor) {
-  const url = new URL(`https://www.virustotal.com/api/v3/domains/${domain}/subdomains`);
+  const url = new URL(
+    `https://www.virustotal.com/api/v3/domains/${domain}/subdomains`
+  );
   url.searchParams.set('limit', PAGE_LIMIT);
   if (cursor) {
     url.searchParams.set('cursor', cursor);
@@ -75,4 +77,3 @@ async function handleError(response) {
   }
   throw new Error(`VirusTotal API error: ${response.status}`);
 }
-

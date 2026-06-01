@@ -53,7 +53,6 @@ export function parseCDXResponse(rawRows) {
 export function formatRecordsForDisplay(records) {
   return [
     ['original', 'timestamp', 'statuscode', 'mimetype'],
-    ...records.map(r => [r.url, r.timestamp, r.statuscode, r.mimetype])
+    ...records.map((r) => [r.url, r.timestamp, r.statuscode, r.mimetype])
   ];
 }
-

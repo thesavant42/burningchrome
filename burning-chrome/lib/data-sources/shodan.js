@@ -17,7 +17,7 @@ export async function fetchShodanSubdomains(domain, apiKey) {
     const url = buildUrl(domain, apiKey, page);
     const response = await fetch(url, {
       headers: {
-        'Accept': 'application/json'
+        Accept: 'application/json'
       }
     });
 
@@ -89,4 +89,3 @@ async function handleError(response) {
   }
   throw new Error(`Shodan API error: ${response.status}`);
 }
-

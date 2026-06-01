@@ -9,7 +9,7 @@
 export async function fetchCrtshSubdomains(domain) {
   const response = await fetch(
     `https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`,
-    { headers: { 'Accept': 'application/json' } }
+    { headers: { Accept: 'application/json' } }
   );
 
   if (!response.ok) {
@@ -30,7 +30,7 @@ export async function fetchCrtshData(domain) {
   console.log(`Fetching crt.sh data for ${domain}...`);
 
   const response = await fetch(url, {
-    headers: { 'Accept': 'application/json' }
+    headers: { Accept: 'application/json' }
   });
 
   if (!response.ok) {
@@ -63,4 +63,3 @@ function extractUniqueSubdomains(certRecords) {
 
   return results;
 }
-

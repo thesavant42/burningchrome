@@ -14,21 +14,21 @@ export function setupMessageRouter() {
     if (msg.type === 'vt-subdomains') {
       fetchVirusTotalSubdomains(msg.domain, msg.apiKey)
         .then(sendResponse)
-        .catch(err => sendResponse({ error: err.message }));
+        .catch((err) => sendResponse({ error: err.message }));
       return true; // Keep channel open for async response
     }
 
     if (msg.type === 'crtsh-subdomains') {
       fetchCrtshSubdomains(msg.domain)
         .then(sendResponse)
-        .catch(err => sendResponse({ error: err.message }));
+        .catch((err) => sendResponse({ error: err.message }));
       return true;
     }
 
     if (msg.type === 'shodan-subdomains') {
       fetchShodanSubdomains(msg.domain, msg.apiKey)
         .then(sendResponse)
-        .catch(err => sendResponse({ error: err.message }));
+        .catch((err) => sendResponse({ error: err.message }));
       return true;
     }
 
@@ -39,14 +39,13 @@ export function setupMessageRouter() {
 
     if (msg.type === 'fetch-bucket') {
       fetch(msg.url)
-        .then(response => {
+        .then((response) => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           return response.text();
         })
-        .then(xml => sendResponse({ xml }))
-        .catch(err => sendResponse({ error: err.message }));
+        .then((xml) => sendResponse({ xml }))
+        .catch((err) => sendResponse({ error: err.message }));
       return true; // Keep channel open for async response
     }
   });
 }
-

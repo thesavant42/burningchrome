@@ -9,3 +9,4 @@
 **/.env
 **/*.zip
 docs/fixtures/
+**/fixtures/

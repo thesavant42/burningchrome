@@ -6,7 +6,6 @@ import mime from 'mime/lite';
 // Current row being edited/noted
 let currentEditRowId = null;
 
-
 let _type = '';
 let domain = '';
 let rawData = [];
@@ -32,13 +31,13 @@ async function init() {
   // Check for view mode (loading cached data from IndexedDB)
   const params = new URLSearchParams(window.location.search);
   const viewDomain = params.get('view');
-  
+
   if (viewDomain) {
     viewMode = true;
     await loadCachedWayback(viewDomain);
     return;
   }
-  
+
   const timemapData = await storage.get('timemapData');
   const crtshData = await storage.get('crtshData');
 
@@ -60,21 +59,21 @@ async function loadCachedWayback(domainName) {
   _type = 'wayback';
   domain = domainName;
   setTitle(`${domain} - Wayback (cached)`);
-  
+
   const cached = await getTimemap(domain);
-  
+
   if (!cached || !cached.data) {
     showError(`No cached data found for ${domain}`);
     return;
   }
-  
+
   // Parse CDX data: skip header row, each row is [url, timestamp, statuscode, mimetype]
   const rows = cached.data || [];
   if (rows.length <= 1) {
     showError(`No archived URLs found for ${domain}`);
     return;
   }
-  
+
   // Convert to objects for easier handling
   rawData = rows.slice(1).map((r, idx) => ({
     id: idx,
@@ -87,9 +86,14 @@ async function loadCachedWayback(domainName) {
 
   filteredData = [...rawData];
 
-  const fetchedDate = cached.fetchedAt ? new Date(cached.fetchedAt).toLocaleDateString() : 'unknown';
+  const fetchedDate = cached.fetchedAt
+    ? new Date(cached.fetchedAt).toLocaleDateString()
+    : 'unknown';
   const partialNote = cached.partial ? ' (partial)' : '';
-  show(`${domain} - Wayback (cached)`, `${rawData.length} snapshots${partialNote} - cached ${fetchedDate}`);
+  show(
+    `${domain} - Wayback (cached)`,
+    `${rawData.length} snapshots${partialNote} - cached ${fetchedDate}`
+  );
   renderWaybackTable();
   setupWaybackFilters();
   setupSelection();
@@ -203,10 +207,10 @@ function showLoadingProgress(data) {
     msg = `Fetching: ${url} (${elapsed}s)`;
   }
   showDebugLog(msg + (data.debugLog ? '\n' + data.debugLog : ''));
-  
+
   // Show cancel button during loading
   showCancelButton(true);
-  
+
   // Clear any existing timer before setting a new one
   if (loadingPollTimer) {
     clearTimeout(loadingPollTimer);
@@ -229,14 +233,14 @@ async function cancelFetch() {
     clearTimeout(loadingPollTimer);
     loadingPollTimer = null;
   }
-  
+
   const timemapData = await storage.get('timemapData');
   if (!timemapData) {
     // Storage already cleared, nothing to cancel
     showCancelButton(false);
     return;
   }
-  
+
   if (timemapData.loading) {
     await storage.set('timemapData', {
       ...timemapData,
@@ -259,7 +263,7 @@ function showDebugLog(debugLog) {
   debugEl.textContent = debugLog || '';
 }
 
-function show(title, stats) {
+function show(title, _stats) {
   setTitle(title);
 }
 
@@ -339,23 +343,18 @@ function formatStatus(status) {
   } else {
     const code = parseInt(status, 10);
     label = status;
-    if (code >= 200 && code < 300)
-      className = 'badge-status-ok';
-    else if (code >= 300 && code < 400)
-      className = 'badge-status-redirect';
-    else if (code >= 400 && code < 500)
-      className = 'badge-status-client';
-    else if (code >= 500)
-      className = 'badge-status-server';
-    else
-      className = 'badge-status-other';
+    if (code >= 200 && code < 300) className = 'badge-status-ok';
+    else if (code >= 300 && code < 400) className = 'badge-status-redirect';
+    else if (code >= 400 && code < 500) className = 'badge-status-client';
+    else if (code >= 500) className = 'badge-status-server';
+    else className = 'badge-status-other';
   }
   return `<span class="badge-status ${className}" title="HTTP ${status || 'unknown'}">${label}</span>`;
 }
 
 function getShortLabel(mimeType) {
   if (!mimeType) return '???';
-  
+
   const extension = mime.getExtension(mimeType);
   return extension ? extension.toUpperCase() : '???';
 }
@@ -382,11 +381,11 @@ function setupWaybackFilters() {
 
     // Build status visibility map
     const statusVisible = {
-      '200': status200.checked,
+      200: status200.checked,
       '3xx': status3xx.checked,
       '4xx': status4xx.checked,
       '5xx': status5xx.checked,
-      'xxx': statusXxx.checked
+      xxx: statusXxx.checked
     };
 
     filteredData = rawData.filter((row) => {
@@ -398,8 +397,9 @@ function setupWaybackFilters() {
 
       // Text search (URL + notes)
       if (searchTerm) {
-        const matches = row.url.toLowerCase().includes(searchTerm) ||
-                        (row.notes || '').toLowerCase().includes(searchTerm);
+        const matches =
+          row.url.toLowerCase().includes(searchTerm) ||
+          (row.notes || '').toLowerCase().includes(searchTerm);
         // Invert logic: if invert is checked, exclude matches; otherwise include only matches
         if (invert ? matches : !matches) {
           return false;
@@ -481,19 +481,20 @@ function setupSelection() {
     const invert = document.getElementById('searchInvert').checked;
     const mimeVal = document.getElementById('mimeFilter').value;
     const statusVisible = {
-      '200': document.getElementById('status200').checked,
+      200: document.getElementById('status200').checked,
       '3xx': document.getElementById('status3xx').checked,
       '4xx': document.getElementById('status4xx').checked,
       '5xx': document.getElementById('status5xx').checked,
-      'xxx': document.getElementById('statusXxx').checked
+      xxx: document.getElementById('statusXxx').checked
     };
 
     filteredData = rawData.filter((row) => {
       const statusClass = getStatusClass(row.status);
       if (!statusVisible[statusClass]) return false;
       if (searchTerm) {
-        const matches = row.url.toLowerCase().includes(searchTerm) ||
-                        (row.notes || '').toLowerCase().includes(searchTerm);
+        const matches =
+          row.url.toLowerCase().includes(searchTerm) ||
+          (row.notes || '').toLowerCase().includes(searchTerm);
         if (invert ? matches : !matches) return false;
       }
       if (mimeVal && !row.mime.startsWith(mimeVal)) return false;
@@ -517,10 +518,10 @@ function updateSelectionUI() {
 
   // Sync header checkbox with row selections
   const allVisible = document.querySelectorAll('.row-check');
-  const allChecked = allVisible.length > 0 && [...allVisible].every((cb) => cb.checked);
+  const allChecked =
+    allVisible.length > 0 && [...allVisible].every((cb) => cb.checked);
   headerCheck.checked = allChecked;
 }
-
 
 // Pagination functions
 function calculateTotalPages() {
@@ -542,20 +543,22 @@ function goToPage(page) {
     currentPage = newPage;
     renderWaybackTable();
     // Scroll to top of table
-    document.getElementById('waybackTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document
+      .getElementById('waybackTable')
+      .scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
 function renderPaginationControls(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  
+
   container.innerHTML = '';
-  
+
   if (totalPages <= 1) {
     return;
   }
-  
+
   // First/Prev buttons
   const firstBtn = document.createElement('button');
   firstBtn.textContent = '<<';
@@ -563,20 +566,20 @@ function renderPaginationControls(containerId) {
   firstBtn.disabled = currentPage === 1;
   firstBtn.onclick = () => goToPage(1);
   container.appendChild(firstBtn);
-  
+
   const prevBtn = document.createElement('button');
   prevBtn.textContent = '<';
   prevBtn.title = 'Previous page';
   prevBtn.disabled = currentPage === 1;
   prevBtn.onclick = () => goToPage(currentPage - 1);
   container.appendChild(prevBtn);
-  
+
   // Page info
   const pageInfo = document.createElement('span');
   pageInfo.className = 'page-info';
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
   container.appendChild(pageInfo);
-  
+
   // Jump to page input
   const jumpInput = document.createElement('input');
   jumpInput.type = 'number';
@@ -595,7 +598,7 @@ function renderPaginationControls(containerId) {
     }
   };
   container.appendChild(jumpInput);
-  
+
   const goBtn = document.createElement('button');
   goBtn.textContent = 'Go';
   goBtn.title = 'Jump to page';
@@ -607,7 +610,7 @@ function renderPaginationControls(containerId) {
     }
   };
   container.appendChild(goBtn);
-  
+
   // Next/Last buttons
   const nextBtn = document.createElement('button');
   nextBtn.textContent = '>';
@@ -615,14 +618,14 @@ function renderPaginationControls(containerId) {
   nextBtn.disabled = currentPage === totalPages;
   nextBtn.onclick = () => goToPage(currentPage + 1);
   container.appendChild(nextBtn);
-  
+
   const lastBtn = document.createElement('button');
   lastBtn.textContent = '>>';
   lastBtn.title = 'Last page';
   lastBtn.disabled = currentPage === totalPages;
   lastBtn.onclick = () => goToPage(totalPages);
   container.appendChild(lastBtn);
-  
+
   // Row range info
   const start = (currentPage - 1) * ROWS_PER_PAGE + 1;
   const end = Math.min(currentPage * ROWS_PER_PAGE, filteredData.length);
@@ -791,11 +794,14 @@ function setupExportCrtsh() {
 // Persist changes to IndexedDB (only in view mode)
 async function persistChanges() {
   if (!viewMode) return;
-  
+
   // Reconstruct CDX format: header + data rows
   const header = ['url', 'timestamp', 'statuscode', 'mimetype', 'notes'];
-  const rows = [header, ...rawData.map(r => [r.url, r.timestamp, r.status, r.mime, r.notes || ''])];
-  
+  const rows = [
+    header,
+    ...rawData.map((r) => [r.url, r.timestamp, r.status, r.mime, r.notes || ''])
+  ];
+
   const cached = await getTimemap(domain);
   await saveTimemap(domain, {
     ...cached,
@@ -805,21 +811,22 @@ async function persistChanges() {
 
 // Notes Modal functions
 function openNotesModal(rowId) {
-  const row = rawData.find(r => r.id === rowId);
+  const row = rawData.find((r) => r.id === rowId);
   if (!row) return;
-  
+
   currentEditRowId = rowId;
-  
+
   const modal = document.getElementById('notesModal');
   const urlPreview = document.getElementById('notesUrlPreview');
   const textarea = document.getElementById('notesTextarea');
-  
+
   // Truncate URL for display
-  const displayUrl = row.url.length > 80 ? row.url.slice(0, 80) + '...' : row.url;
+  const displayUrl =
+    row.url.length > 80 ? row.url.slice(0, 80) + '...' : row.url;
   urlPreview.textContent = displayUrl;
   urlPreview.title = row.url;
   textarea.value = row.notes || '';
-  
+
   modal.classList.remove('hidden');
   textarea.focus();
 }
@@ -831,22 +838,22 @@ function closeNotesModal() {
 
 async function saveNotes() {
   if (currentEditRowId === null) return;
-  
+
   const textarea = document.getElementById('notesTextarea');
   const notesText = textarea.value;
-  
+
   // Update rawData
-  const row = rawData.find(r => r.id === currentEditRowId);
+  const row = rawData.find((r) => r.id === currentEditRowId);
   if (row) {
     row.notes = notesText;
   }
-  
+
   // Update filteredData
-  const filteredRow = filteredData.find(r => r.id === currentEditRowId);
+  const filteredRow = filteredData.find((r) => r.id === currentEditRowId);
   if (filteredRow) {
     filteredRow.notes = notesText;
   }
-  
+
   // Persist and re-render
   await persistChanges();
   renderWaybackTable();
@@ -857,24 +864,24 @@ async function saveNotes() {
 function applyTransformToTextarea(textarea, transformFn) {
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
-  
+
   // Only act if text is selected
   if (start === end) return;
-  
+
   const text = textarea.value;
   const selected = text.substring(start, end);
-  
+
   let transformed;
   try {
     transformed = transformFn(selected);
-  } catch (e) {
+  } catch {
     // URIError or DOMException: malformed input - leave unchanged
     return;
   }
-  
+
   // Replace selection with transformed text
   textarea.value = text.substring(0, start) + transformed + text.substring(end);
-  
+
   // Restore selection around transformed text
   textarea.selectionStart = start;
   textarea.selectionEnd = start + transformed.length;
@@ -886,40 +893,44 @@ function setupNotesModal() {
   const saveBtn = document.getElementById('notesSave');
   const cancelBtn = document.getElementById('notesCancel');
   const notesTextarea = document.getElementById('notesTextarea');
-  
+
   saveBtn.onclick = saveNotes;
-  
+
   cancelBtn.onclick = (e) => {
     e.preventDefault();
     closeNotesModal();
   };
-  
+
   modal.onclick = (e) => {
     if (e.target === modal) {
       closeNotesModal();
     }
   };
-  
+
   // Encoding/decoding buttons for notes
-  document.getElementById('notesUrlEncode').onclick = () => applyTransformToTextarea(notesTextarea, encodeURIComponent);
-  document.getElementById('notesUrlDecode').onclick = () => applyTransformToTextarea(notesTextarea, decodeURIComponent);
-  document.getElementById('notesB64Encode').onclick = () => applyTransformToTextarea(notesTextarea, btoa);
-  document.getElementById('notesB64Decode').onclick = () => applyTransformToTextarea(notesTextarea, atob);
+  document.getElementById('notesUrlEncode').onclick = () =>
+    applyTransformToTextarea(notesTextarea, encodeURIComponent);
+  document.getElementById('notesUrlDecode').onclick = () =>
+    applyTransformToTextarea(notesTextarea, decodeURIComponent);
+  document.getElementById('notesB64Encode').onclick = () =>
+    applyTransformToTextarea(notesTextarea, btoa);
+  document.getElementById('notesB64Decode').onclick = () =>
+    applyTransformToTextarea(notesTextarea, atob);
 }
 
 // Edit Modal functions
 function openEditModal(rowId) {
-  const row = rawData.find(r => r.id === rowId);
+  const row = rawData.find((r) => r.id === rowId);
   if (!row) return;
-  
+
   currentEditRowId = rowId;
-  
+
   const modal = document.getElementById('editModal');
   document.getElementById('editUrl').value = row.url;
   document.getElementById('editTimestamp').value = row.timestamp;
   document.getElementById('editStatus').value = row.status;
   document.getElementById('editMime').value = row.mime;
-  
+
   modal.classList.remove('hidden');
   document.getElementById('editUrl').focus();
 }
@@ -931,30 +942,30 @@ function closeEditModal() {
 
 async function saveEdit() {
   if (currentEditRowId === null) return;
-  
+
   const newUrl = document.getElementById('editUrl').value;
   const newTimestamp = document.getElementById('editTimestamp').value;
   const newStatus = document.getElementById('editStatus').value;
   const newMime = document.getElementById('editMime').value;
-  
+
   // Update rawData
-  const row = rawData.find(r => r.id === currentEditRowId);
+  const row = rawData.find((r) => r.id === currentEditRowId);
   if (row) {
     row.url = newUrl;
     row.timestamp = newTimestamp;
     row.status = newStatus;
     row.mime = newMime;
   }
-  
+
   // Update filteredData
-  const filteredRow = filteredData.find(r => r.id === currentEditRowId);
+  const filteredRow = filteredData.find((r) => r.id === currentEditRowId);
   if (filteredRow) {
     filteredRow.url = newUrl;
     filteredRow.timestamp = newTimestamp;
     filteredRow.status = newStatus;
     filteredRow.mime = newMime;
   }
-  
+
   // Persist and re-render
   await persistChanges();
   renderWaybackTable();
@@ -965,35 +976,39 @@ function setupEditModal() {
   const modal = document.getElementById('editModal');
   const saveBtn = document.getElementById('editSave');
   const cancelBtn = document.getElementById('editCancel');
-  
+
   saveBtn.onclick = saveEdit;
-  
+
   cancelBtn.onclick = (e) => {
     e.preventDefault();
     closeEditModal();
   };
-  
+
   modal.onclick = (e) => {
     if (e.target === modal) {
       closeEditModal();
     }
   };
-  
+
   // Encoding/decoding buttons for edit URL
   const urlTextarea = document.getElementById('editUrl');
-  document.getElementById('editUrlEncode').onclick = () => applyTransformToTextarea(urlTextarea, encodeURIComponent);
-  document.getElementById('editUrlDecode').onclick = () => applyTransformToTextarea(urlTextarea, decodeURIComponent);
-  document.getElementById('editB64Encode').onclick = () => applyTransformToTextarea(urlTextarea, btoa);
-  document.getElementById('editB64Decode').onclick = () => applyTransformToTextarea(urlTextarea, atob);
+  document.getElementById('editUrlEncode').onclick = () =>
+    applyTransformToTextarea(urlTextarea, encodeURIComponent);
+  document.getElementById('editUrlDecode').onclick = () =>
+    applyTransformToTextarea(urlTextarea, decodeURIComponent);
+  document.getElementById('editB64Encode').onclick = () =>
+    applyTransformToTextarea(urlTextarea, btoa);
+  document.getElementById('editB64Decode').onclick = () =>
+    applyTransformToTextarea(urlTextarea, atob);
 }
 
 // Setup row action buttons (Edit, Notes)
 function setupRowActions() {
   const tbody = document.getElementById('waybackBody');
-  
+
   tbody.addEventListener('click', (e) => {
     const target = e.target;
-    
+
     if (target.classList.contains('btn-edit')) {
       const rowId = parseInt(target.dataset.id, 10);
       openEditModal(rowId);
@@ -1002,7 +1017,7 @@ function setupRowActions() {
       openNotesModal(rowId);
     }
   });
-  
+
   // Setup modals once
   setupNotesModal();
   setupEditModal();

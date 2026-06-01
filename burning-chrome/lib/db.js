@@ -94,4 +94,3 @@ export async function listBuckets() {
   const db = await dbPromise;
   return db.getAllKeys('buckets');
 }
-

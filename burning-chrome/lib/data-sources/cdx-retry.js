@@ -30,7 +30,13 @@ export async function handleRateLimit(retryFn, retryCount, status) {
  * @param {number} elapsed - Time elapsed in ms
  * @param {boolean} wasCancelled - Whether user cancelled
  */
-export async function handleFetchError(error, retryFn, retryCount, elapsed, wasCancelled) {
+export async function handleFetchError(
+  error,
+  retryFn,
+  retryCount,
+  elapsed,
+  wasCancelled
+) {
   if (error.name === 'AbortError') {
     if (wasCancelled) {
       addDebug(`Cancelled by user after ${elapsed}ms`);
@@ -43,12 +49,16 @@ export async function handleFetchError(error, retryFn, retryCount, elapsed, wasC
     addDebug(`TIMEOUT after ${elapsed}ms (limit: ${CDX_TIMEOUT_MS}ms)`);
     if (retryCount < MAX_RETRIES) {
       const backoff = Math.pow(2, retryCount) * 5000;
-      addDebug(`Will retry in ${backoff}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+      addDebug(
+        `Will retry in ${backoff}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`
+      );
       await cancellableSleep(backoff);
       return retryFn(retryCount + 1);
     }
     addDebug(`FAILED - exhausted all ${MAX_RETRIES} retries`);
-    const err = new Error(`Request timed out after ${MAX_RETRIES} retries (${CDX_TIMEOUT_MS / 1000}s timeout each)`);
+    const err = new Error(
+      `Request timed out after ${MAX_RETRIES} retries (${CDX_TIMEOUT_MS / 1000}s timeout each)`
+    );
     err.debugLog = getDebugLog();
     throw err;
   }
@@ -56,7 +66,9 @@ export async function handleFetchError(error, retryFn, retryCount, elapsed, wasC
   if (retryCount < MAX_RETRIES && error.name === 'TypeError') {
     addDebug(`Network error after ${elapsed}ms: ${error.message}`);
     const backoff = Math.pow(2, retryCount) * 5000;
-    addDebug(`Will retry in ${backoff}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+    addDebug(
+      `Will retry in ${backoff}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`
+    );
     await cancellableSleep(backoff);
     return retryFn(retryCount + 1);
   }
@@ -75,7 +87,9 @@ export async function cancellableSleep(ms) {
   const checkInterval = 250;
   const iterations = Math.ceil(ms / checkInterval);
   for (let i = 0; i < iterations; i++) {
-    await new Promise(resolve => setTimeout(resolve, Math.min(checkInterval, ms - i * checkInterval)));
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.min(checkInterval, ms - i * checkInterval))
+    );
     const data = await storage.get('timemapData');
     if (data?.cancelled) {
       addDebug('Cancelled during backoff wait');
@@ -86,4 +100,3 @@ export async function cancellableSleep(ms) {
     }
   }
 }
-

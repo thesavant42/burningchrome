@@ -37,7 +37,7 @@ export async function fetchAllCDXData(domain, progressCallback) {
 
     page++;
     const result = await fetchCDXPage(domain, resumeKey);
-    
+
     // Check for cancel after fetch completes
     if (await isCancelled()) {
       addDebug('Fetch cancelled by user after page completed');
@@ -46,14 +46,21 @@ export async function fetchAllCDXData(domain, progressCallback) {
       err.debugLog = getDebugLog();
       throw err;
     }
-    
+
     allRecords.push(...result.records);
-    console.log(`Page ${page}: ${result.records.length} records, total: ${allRecords.length}, hasMore: ${result.hasMore}`);
+    console.log(
+      `Page ${page}: ${result.records.length} records, total: ${allRecords.length}, hasMore: ${result.hasMore}`
+    );
 
     // Send partial data to UI immediately
     if (progressCallback) {
       const partialData = formatRecordsForDisplay(allRecords);
-      await progressCallback(partialData, allRecords.length, page, result.hasMore ? 0 : page);
+      await progressCallback(
+        partialData,
+        allRecords.length,
+        page,
+        result.hasMore ? 0 : page
+      );
     }
 
     if (!result.hasMore || !result.resumeKey) {
@@ -70,4 +77,3 @@ export async function fetchAllCDXData(domain, progressCallback) {
 // Re-export debug utilities for handlers
 export { getDebugLog, clearDebugLog } from './cdx-debug.js';
 export { CDX_BATCH_SIZE } from './cdx-constants.js';
-

@@ -8,7 +8,35 @@ import { storage } from '../storage.js';
  * @param {chrome.tabs.Tab} tab - The tab where context menu was clicked
  */
 export async function handleBucketRequest(tab) {
-  const bucketUrl = tab.url;
+  let bucketUrl = tab.url;
+
+  // Clean URL: strip subresources (like ?acl)
+  try {
+    const urlObj = new URL(bucketUrl);
+    const subresources = [
+      'acl',
+      'cors',
+      'lifecycle',
+      'policy',
+      'location',
+      'logging',
+      'notification',
+      'tagging',
+      'encryption',
+      'website',
+      'versioning',
+      'requestPayment',
+      'object-lock',
+      'uploads'
+    ];
+    subresources.forEach((sub) => urlObj.searchParams.delete(sub));
+    if (!urlObj.hostname.includes('googleapis.com')) {
+      urlObj.searchParams.set('list-type', '2');
+    }
+    bucketUrl = urlObj.toString();
+  } catch (e) {
+    console.warn('Failed to parse and clean bucketUrl:', bucketUrl, e);
+  }
 
   await storage.set('bucketData', {
     url: bucketUrl,
@@ -46,4 +74,3 @@ export async function handleBucketRequest(tab) {
     });
   }
 }
-

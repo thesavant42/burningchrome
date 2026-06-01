@@ -6,10 +6,17 @@ export function download(content, filename, type) {
 }
 
 export function saveHtml(domain, suffix = '') {
-  download(document.documentElement.outerHTML, `${domain}${suffix}.html`, 'text/html');
+  download(
+    document.documentElement.outerHTML,
+    `${domain}${suffix}.html`,
+    'text/html'
+  );
 }
 
 export function saveJson(domain, data, suffix = '') {
-  download(JSON.stringify(data, null, 2), `${domain}${suffix}.json`, 'application/json');
+  download(
+    JSON.stringify(data, null, 2),
+    `${domain}${suffix}.json`,
+    'application/json'
+  );
 }
-

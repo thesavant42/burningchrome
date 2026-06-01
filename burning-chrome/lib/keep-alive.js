@@ -5,7 +5,10 @@ let keepAliveInterval = null;
 
 export function startKeepAlive() {
   if (!keepAliveInterval) {
-    keepAliveInterval = setInterval(() => chrome.runtime.getPlatformInfo(), 25000);
+    keepAliveInterval = setInterval(
+      () => chrome.runtime.getPlatformInfo(),
+      25000
+    );
   }
 }
 
@@ -15,4 +18,3 @@ export function stopKeepAlive() {
     keepAliveInterval = null;
   }
 }
-
