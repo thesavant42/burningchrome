@@ -10,6 +10,7 @@ Never use hardcoded numeric values (magic numbers) in CSS or JavaScript. Always 
 - **JavaScript**: Use named constants at module scope (e.g., `const PAGE_SIZE = 50;`).
 
 This ensures:
+
 1. Single source of truth for related values
 2. Self-documenting code (the name explains the purpose)
 3. Easy maintenance (change in one place updates everywhere)

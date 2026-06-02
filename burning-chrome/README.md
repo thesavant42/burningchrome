@@ -18,13 +18,13 @@ A Chrome extension for generating Wayback Machine Timemap and Crt.sh SSL certifi
 
 ### Component Overview
 
-| Component | File | Purpose |
-|-----------|------|---------|
+| Component      | File            | Purpose                                                              |
+| -------------- | --------------- | -------------------------------------------------------------------- |
 | Service Worker | `background.js` | Handles context menu events, fetches data from APIs, manages storage |
-| Report UI | `report.js` | Renders tables, handles filtering/selection, manages exports |
-| Export Library | `lib/export.js` | Download helpers for HTML, JSON, and raw file exports |
-| Styles | `styles.css` | Dracula-themed dark mode styling |
-| Entry Point | `report.html` | HTML shell that loads the bundled report script |
+| Report UI      | `report.js`     | Renders tables, handles filtering/selection, manages exports         |
+| Export Library | `lib/export.js` | Download helpers for HTML, JSON, and raw file exports                |
+| Styles         | `styles.css`    | Dracula-themed dark mode styling                                     |
+| Entry Point    | `report.html`   | HTML shell that loads the bundled report script                      |
 
 ### Data Flow
 
@@ -70,6 +70,7 @@ This uses [Rollup](https://rollupjs.org/) to bundle `report.js` with its depende
 ### Build Configuration
 
 The Rollup config (`rollup.config.js`) uses:
+
 - `@rollup/plugin-node-resolve` - Resolves npm packages
 - `@rollup/plugin-commonjs` - Converts CommonJS modules to ES modules
 
@@ -113,19 +114,18 @@ burning-chrome/
 
 ## Export Formats
 
-| Format | Extension | Description |
-|--------|-----------|-------------|
-| HTML | `.html` | Full styled report (same as displayed) |
-| JSON | `.json` | Structured data array |
-| Markdown | `.md` | Clickable link list with timestamps |
-| CSV | `.csv` | Comma-separated values (Crt.sh only) |
+| Format   | Extension | Description                            |
+| -------- | --------- | -------------------------------------- |
+| HTML     | `.html`   | Full styled report (same as displayed) |
+| JSON     | `.json`   | Structured data array                  |
+| Markdown | `.md`     | Clickable link list with timestamps    |
+| CSV      | `.csv`    | Comma-separated values (Crt.sh only)   |
 
 ## API Sources
 
 - **Wayback Machine CDX API**: `https://web.archive.org/cdx/search/cdx`
   - Uses `showResumeKey=true` for paginated fetching of large result sets
   - Automatic retry with exponential backoff on rate limits (429/503)
-  
 - **Crt.sh API**: `https://crt.sh/json?q={domain}`
   - Returns certificate transparency log entries
 

@@ -462,15 +462,40 @@ async function saveBucketToCache() {
 }
 
 function applyFilter(preservePage = false) {
-  const searchTerm = document
-    .getElementById('searchInput')
-    .value.trim()
-    .toLowerCase();
+  const query = document.getElementById('searchInput').value.trim();
 
-  if (searchTerm) {
-    filteredItems = allItems.filter((item) =>
-      item.key.toLowerCase().includes(searchTerm)
-    );
+  if (query) {
+    const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+    const inclusions = [];
+    const exclusions = [];
+
+    for (const term of terms) {
+      if ((term.startsWith('-') || term.startsWith('!')) && term.length > 1) {
+        exclusions.push(term.slice(1));
+      } else {
+        inclusions.push(term);
+      }
+    }
+
+    filteredItems = allItems.filter((item) => {
+      const keyLower = item.key.toLowerCase();
+
+      // Exclude if any exclusion term matches
+      for (const exc of exclusions) {
+        if (keyLower.includes(exc)) {
+          return false;
+        }
+      }
+
+      // Include only if all inclusion terms match
+      for (const inc of inclusions) {
+        if (!keyLower.includes(inc)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
   } else {
     filteredItems = [...allItems];
   }
@@ -615,9 +640,13 @@ function setupEventListeners() {
     .addEventListener('click', handleDeleteSavedReport);
 
   // Export buttons
-  document.getElementById('exportJson').addEventListener('click', exportJsonData);
+  document
+    .getElementById('exportJson')
+    .addEventListener('click', exportJsonData);
   document.getElementById('exportCsv').addEventListener('click', exportCsvData);
-  document.getElementById('exportWget').addEventListener('click', exportWgetData);
+  document
+    .getElementById('exportWget')
+    .addEventListener('click', exportWgetData);
 }
 
 function exportJsonData() {

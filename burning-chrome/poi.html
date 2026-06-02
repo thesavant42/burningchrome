@@ -1,56 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>People of Interest - Burning Chrome by thesavant42</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div id="content">
-    <div class="stats">
-      <span id="title" class="page-title">Project</span> |
-      <a href="landing.html">Back to Projects</a> |
-      <a id="navDomains" href="domains.html">Domains</a> |
-      <a href="#" class="nav-active">POI</a> |
-      <a id="navGithub" href="github.html">GitHub</a> |
-      <a id="navDockerhub" href="dockerhub.html">DockerHub</a> |
-      <a id="navBuckets" href="buckets.html">Buckets</a> |
-      <a id="navCreds" href="creds.html">Creds</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>People of Interest - Burning Chrome by thesavant42</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="content">
+      <div class="stats">
+        <span id="title" class="page-title">Project</span> |
+        <a href="landing.html">Back to Projects</a> |
+        <a id="navDomains" href="domains.html">Domains</a> |
+        <a href="#" class="nav-active">POI</a> |
+        <a id="navGithub" href="github.html">GitHub</a> |
+        <a id="navDockerhub" href="dockerhub.html">DockerHub</a> |
+        <a id="navBuckets" href="buckets.html">Buckets</a> |
+        <a id="navCreds" href="creds.html">Creds</a>
+      </div>
+
+      <div class="toolbar">
+        <input
+          type="text"
+          id="poiSearch"
+          placeholder="Search people..."
+          autocomplete="off"
+          disabled
+        />
+        <button disabled>Add Person</button>
+      </div>
+
+      <table id="poiTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Emails</th>
+            <th>Organizations</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="poiBody">
+          <tr>
+            <td colspan="4" class="stats">
+              TODO: People of Interest functionality coming soon.
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    
-    <div class="toolbar">
-      <input type="text" id="poiSearch" placeholder="Search people..." autocomplete="off" disabled>
-      <button disabled>Add Person</button>
-    </div>
-    
-    <table id="poiTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Emails</th>
-          <th>Organizations</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="poiBody">
-        <tr>
-          <td colspan="4" class="stats">TODO: People of Interest functionality coming soon.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const projectName = params.get('project') || 'Project';
-    const projectParam = `?project=${encodeURIComponent(projectName)}`;
-    document.getElementById('title').textContent = projectName;
-    document.title = `${projectName} - POI - Burning Chrome by thesavant42`;
-    document.getElementById('navDomains').href = `domains.html${projectParam}`;
-    document.getElementById('navGithub').href = `github.html${projectParam}`;
-    document.getElementById('navDockerhub').href = `dockerhub.html${projectParam}`;
-    document.getElementById('navBuckets').href = `buckets.html${projectParam}`;
-    document.getElementById('navCreds').href = `creds.html${projectParam}`;
-  </script>
-</body>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const projectName = params.get('project') || 'Project';
+      const projectParam = `?project=${encodeURIComponent(projectName)}`;
+      document.getElementById('title').textContent = projectName;
+      document.title = `${projectName} - POI - Burning Chrome by thesavant42`;
+      document.getElementById('navDomains').href =
+        `domains.html${projectParam}`;
+      document.getElementById('navGithub').href = `github.html${projectParam}`;
+      document.getElementById('navDockerhub').href =
+        `dockerhub.html${projectParam}`;
+      document.getElementById('navBuckets').href =
+        `buckets.html${projectParam}`;
+      document.getElementById('navCreds').href = `creds.html${projectParam}`;
+    </script>
+  </body>
 </html>

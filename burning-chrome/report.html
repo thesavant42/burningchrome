@@ -1,134 +1,216 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Report - Burning Chrome by thesavant42</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div id="content">
-    <pre id="debugLog" class="debug-log"></pre>
-    
-    <div class="stats">
-      <span id="title" class="page-title"></span>
-      <span id="rangeInfo" class="range-info-inline"></span>
-    </div>
-    
-    <div class="toolbar">
-      <input type="text" id="search" placeholder="Filter URLs..." autocomplete="off">
-      <label class="invert-label"><input type="checkbox" id="searchInvert"> Invert</label>
-      <div class="status-toggles">
-        <label><input type="checkbox" id="status200" checked> 200</label>
-        <label><input type="checkbox" id="status3xx" checked> 3XX</label>
-        <label><input type="checkbox" id="status4xx" checked> 4XX</label>
-        <label><input type="checkbox" id="status5xx" checked> 5XX</label>
-        <label><input type="checkbox" id="statusXxx" checked> XXX</label>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report - Burning Chrome by thesavant42</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="content">
+      <pre id="debugLog" class="debug-log"></pre>
+
+      <div class="stats">
+        <span id="title" class="page-title"></span>
+        <span id="rangeInfo" class="range-info-inline"></span>
       </div>
-      <select id="mimeFilter" aria-label="Filter by content type">
-        <option value="">All Types</option>
-        <option value="text/html">HTML</option>
-        <option value="application/javascript">JavaScript</option>
-        <option value="text/css">CSS</option>
-        <option value="application/json">JSON</option>
-        <option value="image/">Images</option>
-      </select>
-      <button id="cancelFetch" class="danger hidden" aria-label="Cancel fetch">Cancel</button>
-      <span id="paginationTop" class="pagination-inline"></span>
-      <a href="#" id="exportLink" class="export-link">Export</a>
-    </div>
 
-    <!-- Wayback table view -->
-    <table id="waybackTable" class="hidden">
-      <colgroup>
-        <col style="width: var(--col-check-width);">
-        <col>
-        <col style="width: 110px;">
-        <col style="width: 50px;">
-        <col style="width: 64px;">
-        <col style="width: 170px;">
-      </colgroup>
-      <thead>
-        <tr>
-          <th class="col-check"><input type="checkbox" id="headerCheck" aria-label="Select all visible snapshots"><button id="headerDelete" class="btn-icon btn-delete-row" disabled title="Delete selected rows">X</button></th>
-          <th class="col-url">URL</th>
-          <th class="col-date">Date</th>
-          <th class="col-status">Status</th>
-          <th class="col-mime">Type</th>
-          <th class="col-actions">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="waybackBody"></tbody>
-    </table>
-
-    <!-- Pagination controls (bottom) -->
-    <div id="paginationBottom" class="pagination"></div>
-
-    <!-- Crt.sh table view -->
-    <table id="dataTable" class="hidden">
-      <thead id="tableHead"></thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-
-    <!-- Export Modal -->
-    <div id="exportModal" class="modal-overlay hidden">
-      <div class="modal-dialog">
-        <div class="modal-header">Export Data</div>
-        <div class="modal-body">
-          <button id="exportHtml" class="modal-btn">HTML</button>
-          <button id="exportJson" class="modal-btn">JSON</button>
-          <button id="exportMd" class="modal-btn">Markdown</button>
+      <div class="toolbar">
+        <input
+          type="text"
+          id="search"
+          placeholder="Filter URLs..."
+          autocomplete="off"
+        />
+        <label class="invert-label"
+          ><input type="checkbox" id="searchInvert" /> Invert</label
+        >
+        <div class="status-toggles">
+          <label><input type="checkbox" id="status200" checked /> 200</label>
+          <label><input type="checkbox" id="status3xx" checked /> 3XX</label>
+          <label><input type="checkbox" id="status4xx" checked /> 4XX</label>
+          <label><input type="checkbox" id="status5xx" checked /> 5XX</label>
+          <label><input type="checkbox" id="statusXxx" checked /> XXX</label>
         </div>
-        <div class="modal-footer">
-          <a href="#" id="exportCancel" class="modal-cancel">Cancel</a>
-        </div>
+        <select id="mimeFilter" aria-label="Filter by content type">
+          <option value="">All Types</option>
+          <option value="text/html">HTML</option>
+          <option value="application/javascript">JavaScript</option>
+          <option value="text/css">CSS</option>
+          <option value="application/json">JSON</option>
+          <option value="image/">Images</option>
+        </select>
+        <button
+          id="cancelFetch"
+          class="danger hidden"
+          aria-label="Cancel fetch"
+        >
+          Cancel
+        </button>
+        <span id="paginationTop" class="pagination-inline"></span>
+        <a href="#" id="exportLink" class="export-link">Export</a>
       </div>
-    </div>
 
-    <!-- Notes Modal -->
-    <div id="notesModal" class="modal-overlay hidden">
-      <div class="modal-dialog modal-wide">
-        <div class="modal-header">
-          <span>Notes</span>
-          <div class="modal-header-actions">
-            <span id="notesUrlPreview" class="notes-url-preview"></span>
-            <button type="button" id="notesUrlEncode" class="btn-icon btn-icon-wide" title="URL encode selection">U+</button>
-            <button type="button" id="notesUrlDecode" class="btn-icon btn-icon-wide" title="URL decode selection">U-</button>
-            <button type="button" id="notesB64Encode" class="btn-icon btn-icon-wide" title="Base64 encode selection">B+</button>
-            <button type="button" id="notesB64Decode" class="btn-icon btn-icon-wide" title="Base64 decode selection">B-</button>
-            <button id="notesSave" class="modal-btn">Save</button>
-            <a href="#" id="notesCancel" class="modal-cancel">Cancel</a>
+      <!-- Wayback table view -->
+      <table id="waybackTable" class="hidden">
+        <colgroup>
+          <col style="width: var(--col-check-width)" />
+          <col />
+          <col style="width: 110px" />
+          <col style="width: 50px" />
+          <col style="width: 64px" />
+          <col style="width: 170px" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="col-check">
+              <input
+                type="checkbox"
+                id="headerCheck"
+                aria-label="Select all visible snapshots"
+              /><button
+                id="headerDelete"
+                class="btn-icon btn-delete-row"
+                disabled
+                title="Delete selected rows"
+              >
+                X
+              </button>
+            </th>
+            <th class="col-url">URL</th>
+            <th class="col-date">Date</th>
+            <th class="col-status">Status</th>
+            <th class="col-mime">Type</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="waybackBody"></tbody>
+      </table>
+
+      <!-- Pagination controls (bottom) -->
+      <div id="paginationBottom" class="pagination"></div>
+
+      <!-- Crt.sh table view -->
+      <table id="dataTable" class="hidden">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+
+      <!-- Export Modal -->
+      <div id="exportModal" class="modal-overlay hidden">
+        <div class="modal-dialog">
+          <div class="modal-header">Export Data</div>
+          <div class="modal-body">
+            <button id="exportHtml" class="modal-btn">HTML</button>
+            <button id="exportJson" class="modal-btn">JSON</button>
+            <button id="exportMd" class="modal-btn">Markdown</button>
+          </div>
+          <div class="modal-footer">
+            <a href="#" id="exportCancel" class="modal-cancel">Cancel</a>
           </div>
         </div>
-        <div class="modal-body">
-          <textarea id="notesTextarea" placeholder="Add notes..."></textarea>
-        </div>
       </div>
-    </div>
 
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal-overlay hidden">
-      <div class="modal-dialog modal-wide">
-        <div class="modal-header">
-          <span>Edit Row</span>
-          <div class="modal-header-actions">
-            <button type="button" id="editUrlEncode" class="btn-icon btn-icon-wide" title="URL encode selection">U+</button>
-            <button type="button" id="editUrlDecode" class="btn-icon btn-icon-wide" title="URL decode selection">U-</button>
-            <button type="button" id="editB64Encode" class="btn-icon btn-icon-wide" title="Base64 encode selection">B+</button>
-            <button type="button" id="editB64Decode" class="btn-icon btn-icon-wide" title="Base64 decode selection">B-</button>
-            <button id="editSave" class="modal-btn">Save</button>
-            <a href="#" id="editCancel" class="modal-cancel">Cancel</a>
+      <!-- Notes Modal -->
+      <div id="notesModal" class="modal-overlay hidden">
+        <div class="modal-dialog modal-wide">
+          <div class="modal-header">
+            <span>Notes</span>
+            <div class="modal-header-actions">
+              <span id="notesUrlPreview" class="notes-url-preview"></span>
+              <button
+                type="button"
+                id="notesUrlEncode"
+                class="btn-icon btn-icon-wide"
+                title="URL encode selection"
+              >
+                U+
+              </button>
+              <button
+                type="button"
+                id="notesUrlDecode"
+                class="btn-icon btn-icon-wide"
+                title="URL decode selection"
+              >
+                U-
+              </button>
+              <button
+                type="button"
+                id="notesB64Encode"
+                class="btn-icon btn-icon-wide"
+                title="Base64 encode selection"
+              >
+                B+
+              </button>
+              <button
+                type="button"
+                id="notesB64Decode"
+                class="btn-icon btn-icon-wide"
+                title="Base64 decode selection"
+              >
+                B-
+              </button>
+              <button id="notesSave" class="modal-btn">Save</button>
+              <a href="#" id="notesCancel" class="modal-cancel">Cancel</a>
+            </div>
+          </div>
+          <div class="modal-body">
+            <textarea id="notesTextarea" placeholder="Add notes..."></textarea>
           </div>
         </div>
-        <div class="modal-body edit-form">
-          <textarea id="editUrl"></textarea>
-          <input type="hidden" id="editTimestamp">
-          <input type="hidden" id="editStatus">
-          <input type="hidden" id="editMime">
+      </div>
+
+      <!-- Edit Modal -->
+      <div id="editModal" class="modal-overlay hidden">
+        <div class="modal-dialog modal-wide">
+          <div class="modal-header">
+            <span>Edit Row</span>
+            <div class="modal-header-actions">
+              <button
+                type="button"
+                id="editUrlEncode"
+                class="btn-icon btn-icon-wide"
+                title="URL encode selection"
+              >
+                U+
+              </button>
+              <button
+                type="button"
+                id="editUrlDecode"
+                class="btn-icon btn-icon-wide"
+                title="URL decode selection"
+              >
+                U-
+              </button>
+              <button
+                type="button"
+                id="editB64Encode"
+                class="btn-icon btn-icon-wide"
+                title="Base64 encode selection"
+              >
+                B+
+              </button>
+              <button
+                type="button"
+                id="editB64Decode"
+                class="btn-icon btn-icon-wide"
+                title="Base64 decode selection"
+              >
+                B-
+              </button>
+              <button id="editSave" class="modal-btn">Save</button>
+              <a href="#" id="editCancel" class="modal-cancel">Cancel</a>
+            </div>
+          </div>
+          <div class="modal-body edit-form">
+            <textarea id="editUrl"></textarea>
+            <input type="hidden" id="editTimestamp" />
+            <input type="hidden" id="editStatus" />
+            <input type="hidden" id="editMime" />
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <script type="module" src="dist/report.js"></script>
-</body>
+    <script type="module" src="dist/report.js"></script>
+  </body>
 </html>
