@@ -70,6 +70,13 @@
         >
           Export Wget URLs
         </button>
+        <button
+          id="exportZip"
+          class="btn-action hidden"
+          style="margin-left: 10px"
+        >
+          Export ZIP
+        </button>
         <span class="spacer"></span>
         <span id="paginationTop" class="pagination-inline"></span>
         <span class="spacer"></span>
@@ -84,9 +91,23 @@
       <table id="bucketTable" class="hidden">
         <thead>
           <tr>
-            <th class="col-url">Key</th>
-            <th style="width: 100px">Size</th>
-            <th style="width: 120px">Last Modified</th>
+            <th id="thKey" class="col-url sortable" data-sort="key">Key</th>
+            <th
+              id="thSize"
+              class="sortable"
+              style="width: 110px"
+              data-sort="size"
+            >
+              Size
+            </th>
+            <th
+              id="thLastModified"
+              class="sortable"
+              style="width: 140px"
+              data-sort="lastModified"
+            >
+              Last Modified
+            </th>
             <th style="width: 80px">Actions</th>
           </tr>
         </thead>

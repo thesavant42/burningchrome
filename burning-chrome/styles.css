@@ -931,3 +931,28 @@ th.col-check button {
   accent-color: var(--orange);
 }
 
+/* Sortable table headers */
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+th.sortable:hover {
+  background: var(--purple) !important;
+  color: var(--bg) !important;
+}
+
+th.sort-asc::after {
+  content: ' ▲';
+  font-size: 0.7rem;
+  color: var(--pink);
+}
+
+th.sort-desc::after {
+  content: ' ▼';
+  font-size: 0.7rem;
+  color: var(--pink);
+}
+
+

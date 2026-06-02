@@ -1,3 +1,4 @@
+import JSZip from 'jszip/dist/jszip.min.js';
 import { storage } from './lib/storage.js';
 import {
   parseBucketXml,
@@ -15,6 +16,9 @@ let allItems = []; // All parsed items from XML
 let filteredItems = []; // Items after search filter
 let currentPage = 1;
 const ROWS_PER_PAGE = 50;
+
+let sortField = 'key';
+let sortAsc = true;
 
 // View mode: when true, we're viewing cached data
 let _viewMode = false;
@@ -500,10 +504,185 @@ function applyFilter(preservePage = false) {
     filteredItems = [...allItems];
   }
 
+  sortItems();
+
   if (!preservePage) {
     currentPage = 1;
   }
   renderTable();
+}
+
+function sortItems() {
+  if (!sortField) return;
+
+  filteredItems.sort((a, b) => {
+    let valA, valB;
+
+    if (sortField === 'key') {
+      valA = a.key.toLowerCase();
+      valB = b.key.toLowerCase();
+    } else if (sortField === 'size') {
+      valA = a.size;
+      valB = b.size;
+    } else if (sortField === 'lastModified') {
+      valA = a.lastModified ? new Date(a.lastModified).getTime() : 0;
+      valB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
+    }
+
+    if (valA < valB) return sortAsc ? -1 : 1;
+    if (valA > valB) return sortAsc ? 1 : -1;
+    return 0;
+  });
+}
+
+function handleSort(field) {
+  if (sortField === field) {
+    sortAsc = !sortAsc;
+  } else {
+    sortField = field;
+    sortAsc = true;
+  }
+  applyFilter(true);
+}
+
+function updateSortHeadersUI() {
+  const headers = {
+    key: document.getElementById('thKey'),
+    size: document.getElementById('thSize'),
+    lastModified: document.getElementById('thLastModified')
+  };
+
+  for (const [field, el] of Object.entries(headers)) {
+    if (!el) continue;
+    el.classList.remove('sort-asc', 'sort-desc');
+    if (field === sortField) {
+      el.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+    }
+  }
+}
+
+async function base64ToUint8Array(base64) {
+  const res = await fetch(`data:application/octet-stream;base64,${base64}`);
+  const buf = await res.arrayBuffer();
+  return new Uint8Array(buf);
+}
+
+async function downloadDirectory(dirKey) {
+  const loadingStatusEl = document.getElementById('loadingStatus');
+  loadingStatusEl.textContent = 'Scanning directory...';
+
+  // Find all subfiles
+  const subFiles = allItems.filter(
+    (item) => item.key.startsWith(dirKey) && item.key !== dirKey
+  );
+
+  if (subFiles.length === 0) {
+    alert('This directory contains no files.');
+    loadingStatusEl.textContent = '';
+    return;
+  }
+
+  const segments = dirKey.split('/').filter(Boolean);
+  const folderName =
+    segments.length > 0 ? segments[segments.length - 1] : 'archive';
+  const zipFilename = `${folderName}.zip`;
+
+  const limit = 5;
+  const results = [];
+  const queue = [...subFiles];
+
+  let completedCount = 0;
+  const totalCount = subFiles.length;
+  let isCancelled = false;
+
+  loadingStatusEl.innerHTML = `Downloading <span id="zipProgress">0/${totalCount}</span> files... <button id="stopZipBtn" class="btn-action" style="margin-left: 10px; padding: 2px 6px; font-size: 11px;">Cancel</button>`;
+
+  const stopBtn = document.getElementById('stopZipBtn');
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      isCancelled = true;
+      loadingStatusEl.textContent = 'Zip download cancelled.';
+      setTimeout(() => {
+        if (loadingStatusEl.textContent === 'Zip download cancelled.') {
+          loadingStatusEl.textContent = '';
+        }
+      }, 3000);
+    });
+  }
+
+  async function downloadWorker() {
+    while (queue.length > 0 && !isCancelled) {
+      const item = queue.shift();
+      try {
+        const url = buildDownloadUrl(window.bucketBaseUrl, item.key);
+        const response = await chrome.runtime.sendMessage({
+          type: 'fetch-file-base64',
+          url: url
+        });
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        const data = await base64ToUint8Array(response.base64);
+        results.push({ key: item.key, data });
+      } catch (err) {
+        console.error(`Failed to download ${item.key}:`, err);
+      } finally {
+        completedCount++;
+        if (!isCancelled) {
+          const progressSpan = document.getElementById('zipProgress');
+          if (progressSpan) {
+            progressSpan.textContent = `${completedCount}/${totalCount}`;
+          }
+        }
+      }
+    }
+  }
+
+  const workers = [];
+  for (let i = 0; i < Math.min(limit, subFiles.length); i++) {
+    workers.push(downloadWorker());
+  }
+  await Promise.all(workers);
+
+  if (isCancelled) {
+    return;
+  }
+
+  loadingStatusEl.textContent = 'Generating ZIP archive...';
+
+  try {
+    const zip = new JSZip();
+    const parentPathLength = dirKey.lastIndexOf('/', dirKey.length - 2) + 1;
+
+    for (const result of results) {
+      const relativePath = result.key.substring(parentPathLength);
+      zip.file(relativePath, result.data);
+    }
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    loadingStatusEl.textContent = 'Downloading...';
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(content);
+    a.download = zipFilename;
+    a.click();
+
+    loadingStatusEl.textContent = 'Download complete.';
+  } catch (err) {
+    console.error('Failed to create ZIP:', err);
+    loadingStatusEl.textContent = 'Failed to create ZIP archive.';
+  }
+
+  setTimeout(() => {
+    if (
+      loadingStatusEl.textContent === 'Download complete.' ||
+      loadingStatusEl.textContent === 'Failed to create ZIP archive.'
+    ) {
+      loadingStatusEl.textContent = '';
+    }
+  }, 3000);
 }
 
 function renderTable() {
@@ -537,14 +716,17 @@ function renderTable() {
   const exportJsonBtn = document.getElementById('exportJson');
   const exportCsvBtn = document.getElementById('exportCsv');
   const exportWgetBtn = document.getElementById('exportWget');
+  const exportZipBtn = document.getElementById('exportZip');
   if (allItems.length > 0) {
     exportJsonBtn.classList.remove('hidden');
     exportCsvBtn.classList.remove('hidden');
     exportWgetBtn.classList.remove('hidden');
+    exportZipBtn.classList.remove('hidden');
   } else {
     exportJsonBtn.classList.add('hidden');
     exportCsvBtn.classList.add('hidden');
     exportWgetBtn.classList.add('hidden');
+    exportZipBtn.classList.add('hidden');
   }
 
   // Build table rows
@@ -553,12 +735,25 @@ function renderTable() {
 
   pageItems.forEach((item) => {
     const tr = document.createElement('tr');
+    const isDir = item.key.endsWith('/');
     const downloadUrl = buildDownloadUrl(window.bucketBaseUrl, item.key);
+
+    let keyHtml;
+    let actionHtml;
+
+    if (isDir) {
+      keyHtml = `<a href="#" class="directory-link" data-key="${escapeHtml(item.key)}">📁 ${escapeHtml(item.key)}</a>`;
+      actionHtml = `<a href="#" class="btn-action directory-zip-btn" data-key="${escapeHtml(item.key)}">ZIP</a>`;
+    } else {
+      keyHtml = `<a href="${downloadUrl}" target="_blank">${escapeHtml(item.key)}</a>`;
+      actionHtml = `<a href="${downloadUrl}" target="_blank" class="btn-action">Open</a>`;
+    }
+
     tr.innerHTML = `
-      <td class="col-url"><a href="${downloadUrl}" target="_blank">${escapeHtml(item.key)}</a></td>
-      <td>${formatSize(item.size)}</td>
+      <td class="col-url">${keyHtml}</td>
+      <td>${isDir ? '-' : formatSize(item.size)}</td>
       <td>${formatDate(item.lastModified)}</td>
-      <td><a href="${downloadUrl}" target="_blank" class="btn-action">Open</a></td>
+      <td>${actionHtml}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -585,6 +780,8 @@ function renderTable() {
     },
     handlePageChange
   );
+
+  updateSortHeadersUI();
 }
 
 function handlePageChange(newPage) {
@@ -647,6 +844,34 @@ function setupEventListeners() {
   document
     .getElementById('exportWget')
     .addEventListener('click', exportWgetData);
+  document.getElementById('exportZip').addEventListener('click', exportZipData);
+
+  // Sorting header click events
+  ['thKey', 'thSize', 'thLastModified'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => {
+        const field = el.dataset.sort;
+        handleSort(field);
+      });
+    }
+  });
+
+  // Directory download delegation
+  const tbody = document.getElementById('bucketBody');
+  if (tbody) {
+    tbody.addEventListener('click', (e) => {
+      const target = e.target;
+      if (
+        target.classList.contains('directory-link') ||
+        target.classList.contains('directory-zip-btn')
+      ) {
+        e.preventDefault();
+        const key = target.dataset.key;
+        downloadDirectory(key);
+      }
+    });
+  }
 }
 
 function exportJsonData() {
@@ -707,6 +932,122 @@ function exportWgetData() {
   a.href = URL.createObjectURL(blob);
   a.download = filename;
   a.click();
+}
+
+async function exportZipData() {
+  if (filteredItems.length === 0) return;
+
+  const loadingStatusEl = document.getElementById('loadingStatus');
+  loadingStatusEl.textContent = 'Preparing ZIP download...';
+
+  // Determine zip filename based on search term or fallback to bucketName
+  const searchTerm = document.getElementById('searchInput').value.trim();
+  const zipFilename = searchTerm
+    ? `${bucketName || 'bucket'}-${searchTerm.replace(/[^a-zA-Z0-9_-]/g, '_')}.zip`
+    : `${bucketName || 'bucket'}-export.zip`;
+
+  const filesToZip = filteredItems.filter((item) => !item.key.endsWith('/'));
+
+  if (filesToZip.length === 0) {
+    alert('No files available to ZIP (directory placeholders are ignored).');
+    loadingStatusEl.textContent = '';
+    return;
+  }
+
+  const limit = 5;
+  const results = [];
+  const queue = [...filesToZip];
+
+  let completedCount = 0;
+  const totalCount = filesToZip.length;
+  let isCancelled = false;
+
+  loadingStatusEl.innerHTML = `Downloading <span id="zipProgress">0/${totalCount}</span> files... <button id="stopZipBtn" class="btn-action" style="margin-left: 10px; padding: 2px 6px; font-size: 11px;">Cancel</button>`;
+
+  const stopBtn = document.getElementById('stopZipBtn');
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      isCancelled = true;
+      loadingStatusEl.textContent = 'Zip download cancelled.';
+      setTimeout(() => {
+        if (loadingStatusEl.textContent === 'Zip download cancelled.') {
+          loadingStatusEl.textContent = '';
+        }
+      }, 3000);
+    });
+  }
+
+  async function downloadWorker() {
+    while (queue.length > 0 && !isCancelled) {
+      const item = queue.shift();
+      try {
+        const url = buildDownloadUrl(window.bucketBaseUrl, item.key);
+        const response = await chrome.runtime.sendMessage({
+          type: 'fetch-file-base64',
+          url: url
+        });
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        const data = await base64ToUint8Array(response.base64);
+        results.push({ key: item.key, data });
+      } catch (err) {
+        console.error(`Failed to download ${item.key}:`, err);
+      } finally {
+        completedCount++;
+        if (!isCancelled) {
+          const progressSpan = document.getElementById('zipProgress');
+          if (progressSpan) {
+            progressSpan.textContent = `${completedCount}/${totalCount}`;
+          }
+        }
+      }
+    }
+  }
+
+  const workers = [];
+  for (let i = 0; i < Math.min(limit, filesToZip.length); i++) {
+    workers.push(downloadWorker());
+  }
+  await Promise.all(workers);
+
+  if (isCancelled) {
+    return;
+  }
+
+  loadingStatusEl.textContent = 'Generating ZIP archive...';
+
+  try {
+    const zip = new JSZip();
+
+    for (const result of results) {
+      zip.file(result.key, result.data);
+    }
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    loadingStatusEl.textContent = 'Downloading...';
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(content);
+    a.download = zipFilename;
+    a.click();
+
+    loadingStatusEl.textContent = 'Download complete.';
+  } catch (err) {
+    console.error('Failed to create ZIP:', err);
+    loadingStatusEl.textContent = 'Failed to create ZIP archive.';
+  }
+
+  setTimeout(() => {
+    if (
+      loadingStatusEl.textContent === 'Download complete.' ||
+      loadingStatusEl.textContent === 'Failed to create ZIP archive.'
+    ) {
+      loadingStatusEl.textContent = '';
+    }
+  }, 3000);
 }
 
 // Load saved reports list from IndexedDB

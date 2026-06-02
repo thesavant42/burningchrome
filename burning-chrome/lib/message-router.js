@@ -47,5 +47,28 @@ export function setupMessageRouter() {
         .catch((err) => sendResponse({ error: err.message }));
       return true; // Keep channel open for async response
     }
+
+    if (msg.type === 'fetch-file-base64') {
+      fetch(msg.url)
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.arrayBuffer();
+        })
+        .then((buffer) => {
+          const bytes = new Uint8Array(buffer);
+          let binary = '';
+          const chunk = 8192;
+          for (let i = 0; i < bytes.length; i += chunk) {
+            binary += String.fromCharCode.apply(
+              null,
+              bytes.subarray(i, i + chunk)
+            );
+          }
+          const base64 = btoa(binary);
+          sendResponse({ base64 });
+        })
+        .catch((err) => sendResponse({ error: err.message }));
+      return true; // Keep channel open for async response
+    }
   });
 }
