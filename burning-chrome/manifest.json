@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Burning Chrome",
   "description": "Wayback Machine Timemap and Crt.sh subdomain report generator",
-  "version": "1.0.117",
+  "version": "1.0.121",
   "permissions": ["contextMenus", "storage"],
   "host_permissions": [
     "https://web.archive.org/*",
@@ -32,6 +32,15 @@
       "48": "icons/icon48.png"
     },
     "default_title": "Burning Chrome"
+  },
+  "commands": {
+    "index-bucket": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Parse and index current Bucket XML page"
+    }
   },
   "web_accessible_resources": []
 }

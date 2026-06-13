@@ -7,19 +7,6 @@
 }
 
 :root {
-  /* Dracula color palette */
-  --bg: #282a36;
-  --bg-alt: #44475a; 
-  --fg: #f8f8f2;
-  --comment: #ff79c6;
-  --cyan: #8be9fd;
-  --green: #50fa7b;
-  --orange: #ffb86c;
-  --pink: #ff79c6;
-  --purple: #bd93f9;
-  --red: #ff5555;
-  --yellow: #f1fa8c;
-
   /* Component sizes */
   --checkbox-size: 16px;
   --btn-icon-size: 24px;
@@ -37,6 +24,51 @@
   --modal-wide-max-width: 90vw;
   --btn-icon-wide-width: 40px;
   --edit-url-height: 180px;
+}
+
+:root, :root.theme-dracula {
+  /* Dracula color palette */
+  --bg: #282a36;
+  --bg-alt: #44475a; 
+  --fg: #f8f8f2;
+  --comment: #ff79c6;
+  --cyan: #8be9fd;
+  --green: #50fa7b;
+  --orange: #ffb86c;
+  --pink: #ff79c6;
+  --purple: #bd93f9;
+  --red: #ff5555;
+  --yellow: #f1fa8c;
+}
+
+:root.theme-tokyonight {
+  /* Tokyo Night color palette */
+  --bg: #1a1b26;
+  --bg-alt: #24283c;
+  --fg: #c0caf5;
+  --comment: #565f89;
+  --cyan: #7dcfff;
+  --green: #9ece6a;
+  --orange: #ff9e64;
+  --pink: #bb9af3;
+  --purple: #9d7cd8;
+  --red: #f7768e;
+  --yellow: #e0af68;
+}
+
+:root.theme-darkpro {
+  /* Dark Pro color palette */
+  --bg: #282c34;
+  --bg-alt: #21252b;
+  --fg: #abb2bf;
+  --comment: #5c6370;
+  --cyan: #56b6c2;
+  --green: #98c379;
+  --orange: #d19a66;
+  --pink: #c678dd;
+  --purple: #61afef;
+  --red: #e06c75;
+  --yellow: #e5c07b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -344,6 +376,12 @@ th.col-check button {
   font-size: 0.7rem;
   color: var(--purple);
   text-decoration: none;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: normal;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .btn-action:hover {
@@ -954,5 +992,143 @@ th.sort-desc::after {
   font-size: 0.7rem;
   color: var(--pink);
 }
+
+/* Stats Dashboard Styles */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.stats-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stats-card {
+  background: var(--bg-alt);
+  border: 1px solid rgba(189, 147, 249, 0.2);
+  border-radius: 6px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--purple);
+}
+
+.stats-card h3 {
+  color: var(--pink);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  border-bottom: 1px solid rgba(248, 248, 242, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.stats-card.summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.stats-card.summary h4 {
+  color: var(--comment);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats-card.summary .value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--cyan);
+  font-family: 'Courier New', monospace;
+}
+
+.stats-card.summary .sub-value {
+  font-size: 0.8rem;
+  color: var(--fg);
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.stats-table th, .stats-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid rgba(248, 248, 242, 0.1);
+}
+
+.stats-table th {
+  background: transparent;
+  color: var(--cyan);
+  font-weight: 600;
+  position: static;
+}
+
+.stats-table tr:hover {
+  background: rgba(139, 233, 253, 0.05);
+  box-shadow: none;
+}
+
+/* Progress bar inside table cells */
+.stats-bar-container {
+  background: rgba(248, 248, 242, 0.1);
+  border-radius: 3px;
+  height: 6px;
+  width: 100%;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.stats-bar-fill {
+  background: var(--purple);
+  height: 100%;
+  border-radius: 3px;
+}
+
+.stats-bar-fill.size {
+  background: var(--orange);
+}
+
+.stats-bar-fill.count {
+  background: var(--purple);
+}
+
+.stats-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.clickable-stat {
+  cursor: pointer;
+  color: var(--cyan);
+  transition: color 0.15s;
+}
+
+.clickable-stat:hover {
+  color: var(--green);
+  text-decoration: underline;
+}
+
+.locate-btn {
+  padding: 1px 4px;
+  font-size: 0.75rem;
+  margin-left: 5px;
+}
+
+
 
 

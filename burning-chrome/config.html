@@ -5,11 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>API Configuration - Burning Chrome by thesavant42</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js"></script>
   </head>
   <body>
     <div id="content">
       <h1 id="title">API Configuration</h1>
-      <div class="stats"><a href="landing.html">Back to Projects</a></div>
+            <div class="stats">
+        <span style="float: right;">
+          Theme: 
+          <select id="themeSelect" style="padding: 2px 5px; font-size: 11px; background: var(--bg-alt); color: var(--fg); border: 1px solid var(--comment); border-radius: 3px; cursor: pointer;">
+            <option value="dracula">Dracula</option>
+            <option value="tokyonight">Tokyo Night</option>
+            <option value="darkpro">Dark Pro</option>
+          </select>
+        </span><a href="landing.html">Back to Projects</a></div>
 
       <div class="toolbar">
         <label>VirusTotal API Key</label>
@@ -53,5 +62,5 @@
       </div>
     </div>
     <script type="module" src="dist/config.js"></script>
-  </body>
+      </body>
 </html>

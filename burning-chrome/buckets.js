@@ -22,6 +22,7 @@ let sortAsc = true;
 
 // View mode: when true, we're viewing cached data
 let _viewMode = false;
+let currentTab = 'table';
 
 async function init() {
   // Set version number from manifest
@@ -112,10 +113,9 @@ async function checkForStoredBucket() {
   await storage.remove('bucketData');
 }
 
-async function fetchBucketFromUrl(url) {
+async function fetchBucketFromUrl(url, forceFetch = false) {
   // Clear previous state
   hideError();
-  document.getElementById('loadingStatus').textContent = 'Fetching...';
 
   // Ensure URL has a protocol - default to https:// if missing
   if (!/^https?:\/\//i.test(url)) {
@@ -154,6 +154,29 @@ async function fetchBucketFromUrl(url) {
     );
   }
 
+  // Check cache first if not forced
+  if (!forceFetch) {
+    const cached = await getBucket(url);
+    if (cached && cached.items && cached.items.length > 0) {
+      console.log(`[DEBUG] Found cached bucket data for: ${url}`);
+      await loadCachedBucket(url);
+
+      const loadingStatus = document.getElementById('loadingStatus');
+      if (loadingStatus) {
+        loadingStatus.innerHTML = `Loaded from cache. <button id="forceRefetchBtn" class="btn-action" style="cursor: pointer; padding: 2px 6px; font-size: 11px; margin-left: 10px;">Refetch</button>`;
+        const refetchBtn = document.getElementById('forceRefetchBtn');
+        if (refetchBtn) {
+          refetchBtn.addEventListener('click', () => {
+            fetchBucketFromUrl(url, true);
+          });
+        }
+      }
+      return;
+    }
+  }
+
+  document.getElementById('loadingStatus').textContent = 'Fetching...';
+
   try {
     const response = await chrome.runtime.sendMessage({
       type: 'fetch-bucket',
@@ -168,7 +191,7 @@ async function fetchBucketFromUrl(url) {
     }
 
     if (response.xml) {
-      loadBucketXml(url, response.xml);
+      await loadBucketXml(url, response.xml);
     }
   } catch (err) {
     document.getElementById('loadingStatus').textContent = '';
@@ -221,6 +244,14 @@ function getNextPageUrl(
 }
 
 async function loadBucketXml(url, xmlText) {
+  currentTab = 'table';
+  const tableBtn = document.getElementById('viewTableBtn');
+  const statsBtn = document.getElementById('viewStatsBtn');
+  const statsContainer = document.getElementById('statsContainer');
+  if (tableBtn) tableBtn.classList.add('active');
+  if (statsBtn) statsBtn.classList.remove('active');
+  if (statsContainer) statsContainer.classList.add('hidden');
+
   // Clean initial URL by stripping non-listing query parameters like ?acl
   try {
     const cleanUrlObj = new URL(url);
@@ -413,6 +444,14 @@ async function loadBucketXml(url, xmlText) {
 
 // Load cached bucket data from IndexedDB (view mode)
 async function loadCachedBucket(url) {
+  currentTab = 'table';
+  const tableBtn = document.getElementById('viewTableBtn');
+  const statsBtn = document.getElementById('viewStatsBtn');
+  const statsContainer = document.getElementById('statsContainer');
+  if (tableBtn) tableBtn.classList.add('active');
+  if (statsBtn) statsBtn.classList.remove('active');
+  if (statsContainer) statsContainer.classList.add('hidden');
+
   const cached = await getBucket(url);
 
   if (!cached) {
@@ -505,6 +544,32 @@ function applyFilter(preservePage = false) {
   }
 
   sortItems();
+
+  // Dynamically inject virtual folder row if search query represents a folder prefix
+  const trimmedQuery = query.trim();
+  if (trimmedQuery && filteredItems.length > 0) {
+    let dirPrefix = trimmedQuery;
+    if (!dirPrefix.endsWith('/')) {
+      dirPrefix += '/';
+    }
+
+    const firstMatch = filteredItems[0].key;
+    const idx = firstMatch.toLowerCase().indexOf(dirPrefix.toLowerCase());
+    if (idx === 0) {
+      const actualPrefix = firstMatch.substring(0, dirPrefix.length);
+      const hasExplicitDir = filteredItems.some(
+        (item) => item.key === actualPrefix
+      );
+      if (!hasExplicitDir) {
+        filteredItems.unshift({
+          id: 'virtual-dir',
+          key: actualPrefix,
+          size: 0,
+          lastModified: ''
+        });
+      }
+    }
+  }
 
   if (!preservePage) {
     currentPage = 1;
@@ -700,17 +765,25 @@ function renderTable() {
 
   const table = document.getElementById('bucketTable');
   const emptyState = document.getElementById('emptyState');
+  const viewTabs = document.getElementById('viewTabs');
 
-  if (filteredItems.length === 0) {
+  if (allItems.length === 0) {
     table.classList.add('hidden');
-    if (allItems.length === 0) {
-      emptyState.classList.remove('hidden');
-    } else {
-      emptyState.classList.add('hidden');
-    }
+    emptyState.classList.remove('hidden');
+    if (viewTabs) viewTabs.classList.add('hidden');
   } else {
-    table.classList.remove('hidden');
     emptyState.classList.add('hidden');
+    if (viewTabs) viewTabs.classList.remove('hidden');
+
+    if (currentTab === 'table') {
+      if (filteredItems.length === 0) {
+        table.classList.add('hidden');
+      } else {
+        table.classList.remove('hidden');
+      }
+    } else {
+      table.classList.add('hidden');
+    }
   }
 
   const exportJsonBtn = document.getElementById('exportJson');
@@ -733,55 +806,496 @@ function renderTable() {
   const tbody = document.getElementById('bucketBody');
   tbody.innerHTML = '';
 
-  pageItems.forEach((item) => {
-    const tr = document.createElement('tr');
-    const isDir = item.key.endsWith('/');
-    const downloadUrl = buildDownloadUrl(window.bucketBaseUrl, item.key);
+  if (currentTab === 'stats') {
+    renderStats();
+    // clear pagination controls when viewing stats
+    const pagTop = document.getElementById('paginationTop');
+    const pagBot = document.getElementById('paginationBottom');
+    if (pagTop) pagTop.innerHTML = '';
+    if (pagBot) pagBot.innerHTML = '';
+  } else {
+    pageItems.forEach((item) => {
+      const tr = document.createElement('tr');
+      const isDir = item.key.endsWith('/');
+      const downloadUrl = buildDownloadUrl(window.bucketBaseUrl, item.key);
 
-    let keyHtml;
-    let actionHtml;
+      let keyHtml;
+      let actionHtml;
 
-    if (isDir) {
-      keyHtml = `<a href="#" class="directory-link" data-key="${escapeHtml(item.key)}">📁 ${escapeHtml(item.key)}</a>`;
-      actionHtml = `<a href="#" class="btn-action directory-zip-btn" data-key="${escapeHtml(item.key)}">ZIP</a>`;
-    } else {
-      keyHtml = `<a href="${downloadUrl}" target="_blank">${escapeHtml(item.key)}</a>`;
-      actionHtml = `<a href="${downloadUrl}" target="_blank" class="btn-action">Open</a>`;
-    }
+      if (isDir) {
+        keyHtml = `<a href="#" class="directory-link" data-key="${escapeHtml(item.key)}">📁 ${escapeHtml(item.key)}</a>`;
+        actionHtml = `<a href="#" class="btn-action directory-zip-btn" data-key="${escapeHtml(item.key)}">ZIP</a>`;
+      } else {
+        keyHtml = `<a href="${downloadUrl}" target="_blank">${escapeHtml(item.key)}</a>`;
+        actionHtml = `<a href="${downloadUrl}" target="_blank" class="btn-action">Open</a>`;
+      }
 
-    tr.innerHTML = `
-      <td class="col-url">${keyHtml}</td>
-      <td>${isDir ? '-' : formatSize(item.size)}</td>
-      <td>${formatDate(item.lastModified)}</td>
-      <td>${actionHtml}</td>
-    `;
-    tbody.appendChild(tr);
+      tr.innerHTML = `
+        <td class="col-url">${keyHtml}</td>
+        <td>${isDir ? '-' : formatSize(item.size)}</td>
+        <td>${formatDate(item.lastModified)}</td>
+        <td>${actionHtml}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Render pagination controls
+    renderPaginationControls(
+      'paginationTop',
+      {
+        currentPage,
+        totalPages,
+        filteredCount: filteredItems.length,
+        rowsPerPage: ROWS_PER_PAGE
+      },
+      handlePageChange
+    );
+
+    renderPaginationControls(
+      'paginationBottom',
+      {
+        currentPage,
+        totalPages,
+        filteredCount: filteredItems.length,
+        rowsPerPage: ROWS_PER_PAGE
+      },
+      handlePageChange
+    );
+
+    updateSortHeadersUI();
+  }
+}
+
+function calculateStats(items) {
+  const files = items.filter(
+    (item) => item.id !== 'virtual-dir' && !item.key.endsWith('/')
+  );
+
+  let totalSize = 0;
+  files.forEach((f) => {
+    totalSize += f.size || 0;
   });
 
-  // Render pagination controls
-  renderPaginationControls(
-    'paginationTop',
-    {
-      currentPage,
-      totalPages,
-      filteredCount: filteredItems.length,
-      rowsPerPage: ROWS_PER_PAGE
-    },
-    handlePageChange
-  );
+  const totalFiles = files.length;
 
-  renderPaginationControls(
-    'paginationBottom',
-    {
-      currentPage,
-      totalPages,
-      filteredCount: filteredItems.length,
-      rowsPerPage: ROWS_PER_PAGE
-    },
-    handlePageChange
-  );
+  if (totalFiles === 0) {
+    return {
+      totalFiles: 0,
+      totalSize: 0,
+      bySize: [],
+      byExtension: [],
+      bySizeRange: [],
+      byModifiedDate: [],
+      byDirectoryCount: [],
+      byDirectorySize: [],
+      earliestDate: 'N/A',
+      latestDate: 'N/A'
+    };
+  }
 
-  updateSortHeadersUI();
+  // Largest Files
+  const bySize = [...files].sort((a, b) => b.size - a.size).slice(0, 10);
+
+  // Extensions
+  const extMap = {};
+  files.forEach((file) => {
+    const parts = file.key.split('/');
+    const filename = parts[parts.length - 1];
+    const lastDot = filename.lastIndexOf('.');
+    let ext = '(no extension)';
+    if (lastDot > 0 && lastDot < filename.length - 1) {
+      ext = filename.substring(lastDot + 1).toLowerCase();
+    }
+    if (!extMap[ext]) {
+      extMap[ext] = { count: 0, size: 0 };
+    }
+    extMap[ext].count++;
+    extMap[ext].size += file.size || 0;
+  });
+
+  const byExtension = Object.entries(extMap)
+    .map(([ext, data]) => ({
+      ext,
+      count: data.count,
+      countPercent: (data.count / totalFiles) * 100,
+      size: data.size,
+      sizePercent: totalSize > 0 ? (data.size / totalSize) * 100 : 0
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Size Ranges
+  const ranges = [
+    { name: 'Tiny (< 10 KB)', min: 0, max: 10240 },
+    { name: 'Small (10 KB - 100 KB)', min: 10240, max: 102400 },
+    { name: 'Medium (100 KB - 1 MB)', min: 102400, max: 1048576 },
+    { name: 'Large (1 MB - 10 MB)', min: 1048576, max: 10485760 },
+    { name: 'Very Large (10 MB - 100 MB)', min: 10485760, max: 104857600 },
+    { name: 'Huge (> 100 MB)', min: 104857600, max: Infinity }
+  ];
+
+  const rangeMap = ranges.map((r) => ({
+    name: r.name,
+    min: r.min,
+    max: r.max,
+    count: 0,
+    size: 0
+  }));
+
+  files.forEach((file) => {
+    const size = file.size || 0;
+    for (const r of rangeMap) {
+      if (size >= r.min && size < r.max) {
+        r.count++;
+        r.size += size;
+        break;
+      }
+    }
+  });
+
+  const bySizeRange = rangeMap.map((r) => ({
+    range: r.name,
+    count: r.count,
+    countPercent: (r.count / totalFiles) * 100,
+    size: r.size,
+    sizePercent: totalSize > 0 ? (r.size / totalSize) * 100 : 0
+  }));
+
+  // Modified Dates
+  const dateMap = {};
+  let earliest = null;
+  let latest = null;
+
+  files.forEach((file) => {
+    if (!file.lastModified) return;
+    const d = new Date(file.lastModified);
+    if (isNaN(d.getTime())) return;
+
+    const time = d.getTime();
+    if (earliest === null || time < earliest) earliest = time;
+    if (latest === null || time > latest) latest = time;
+
+    const yyyymm = file.lastModified.substring(0, 7); // "YYYY-MM"
+    if (!dateMap[yyyymm]) {
+      dateMap[yyyymm] = 0;
+    }
+    dateMap[yyyymm]++;
+  });
+
+  const byModifiedDate = Object.entries(dateMap)
+    .map(([dateStr, count]) => ({
+      dateStr,
+      count
+    }))
+    .sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+
+  // Directories footprint
+  const dirMap = {};
+  files.forEach((file) => {
+    const lastSlash = file.key.lastIndexOf('/');
+    let dir = '/ (root)';
+    if (lastSlash > 0) {
+      dir = file.key.substring(0, lastSlash + 1);
+    } else if (lastSlash === 0) {
+      dir = '/';
+    }
+    if (!dirMap[dir]) {
+      dirMap[dir] = { count: 0, size: 0 };
+    }
+    dirMap[dir].count++;
+    dirMap[dir].size += file.size || 0;
+  });
+
+  const byDirectoryCount = Object.entries(dirMap)
+    .map(([dir, data]) => ({
+      dir,
+      count: data.count,
+      countPercent: (data.count / totalFiles) * 100
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const byDirectorySize = Object.entries(dirMap)
+    .map(([dir, data]) => ({
+      dir,
+      size: data.size,
+      sizePercent: totalSize > 0 ? (data.size / totalSize) * 100 : 0
+    }))
+    .sort((a, b) => b.size - a.size);
+
+  return {
+    totalFiles,
+    totalSize,
+    bySize,
+    byExtension,
+    bySizeRange,
+    byModifiedDate,
+    byDirectoryCount,
+    byDirectorySize,
+    earliestDate: earliest
+      ? formatDate(new Date(earliest).toISOString())
+      : 'N/A',
+    latestDate: latest ? formatDate(new Date(latest).toISOString()) : 'N/A'
+  };
+}
+
+function renderStats() {
+  const container = document.getElementById('statsContainer');
+  if (!container) return;
+
+  if (filteredItems.length === 0) {
+    container.innerHTML =
+      '<div class="stats" style="text-align: center; padding: 2rem;">No data available matching your filters.</div>';
+    return;
+  }
+
+  const stats = calculateStats(filteredItems);
+
+  let extRowsHtml = stats.byExtension
+    .map(
+      (item) => `
+    <tr>
+      <td><code class="clickable-stat clickable-ext" data-ext="${escapeHtml(item.ext)}">.${escapeHtml(item.ext)}</code></td>
+      <td>${item.count.toLocaleString()} (${item.countPercent.toFixed(1)}%)
+        <div class="stats-bar-container"><div class="stats-bar-fill count" style="width: ${item.countPercent}%"></div></div>
+      </td>
+      <td>${formatSize(item.size)} (${item.sizePercent.toFixed(1)}%)
+        <div class="stats-bar-container"><div class="stats-bar-fill size" style="width: ${item.sizePercent}%"></div></div>
+      </td>
+    </tr>
+  `
+    )
+    .join('');
+
+  const rangeRowsHtml = stats.bySizeRange
+    .map(
+      (item) => `
+    <tr>
+      <td>${escapeHtml(item.range)}</td>
+      <td>${item.count.toLocaleString()} (${item.countPercent.toFixed(1)}%)
+        <div class="stats-bar-container"><div class="stats-bar-fill count" style="width: ${item.countPercent}%"></div></div>
+      </td>
+      <td>${formatSize(item.size)} (${item.sizePercent.toFixed(1)}%)
+        <div class="stats-bar-container"><div class="stats-bar-fill size" style="width: ${item.sizePercent}%"></div></div>
+      </td>
+    </tr>
+  `
+    )
+    .join('');
+
+  const timelineRowsHtml = stats.byModifiedDate
+    .map((item) => {
+      const percent =
+        stats.totalFiles > 0 ? (item.count / stats.totalFiles) * 100 : 0;
+      return `
+      <tr>
+        <td><code>${escapeHtml(item.dateStr)}</code></td>
+        <td>${item.count.toLocaleString()} (${percent.toFixed(1)}%)
+          <div class="stats-bar-container"><div class="stats-bar-fill count" style="width: ${percent}%"></div></div>
+        </td>
+      </tr>
+    `;
+    })
+    .join('');
+
+  const dirCountRowsHtml = stats.byDirectoryCount
+    .map(
+      (item) => `
+    <tr>
+      <td class="clickable-stat clickable-dir" style="word-break: break-all;" data-dir="${escapeHtml(item.dir)}"><code>${escapeHtml(item.dir)}</code></td>
+      <td>${item.count.toLocaleString()} (${item.countPercent.toFixed(1)}%)
+        <div class="stats-bar-container"><div class="stats-bar-fill count" style="width: ${item.countPercent}%"></div></div>
+      </td>
+    </tr>
+  `
+    )
+    .join('');
+
+  const dirSizeRowsHtml = stats.byDirectorySize
+    .map(
+      (item) => `
+    <tr>
+      <td class="clickable-stat clickable-dir" style="word-break: break-all;" data-dir="${escapeHtml(item.dir)}"><code>${escapeHtml(item.dir)}</code></td>
+      <td>${formatSize(item.size)} (${item.sizePercent.toFixed(1)}%)
+        <div class="stats-bar-container"><div class="stats-bar-fill size" style="width: ${item.sizePercent}%"></div></div>
+      </td>
+    </tr>
+  `
+    )
+    .join('');
+
+  const largestFilesRowsHtml = stats.bySize
+    .map((item) => {
+      const downloadUrl = buildDownloadUrl(window.bucketBaseUrl, item.key);
+      return `
+      <tr>
+        <td style="word-break: break-all;"><a href="${downloadUrl}" target="_blank">${escapeHtml(item.key)}</a></td>
+        <td>${formatSize(item.size)}</td>
+        <td>${formatDate(item.lastModified)}</td>
+        <td>
+          <a href="${downloadUrl}" target="_blank" class="btn-action" style="margin-right: 5px;">Open</a>
+          <button class="btn-action locate-btn" data-key="${escapeHtml(item.key)}">Show in List</button>
+        </td>
+      </tr>
+    `;
+    })
+    .join('');
+
+  container.innerHTML = `
+    <div class="stats-summary-grid">
+      <div class="stats-card summary">
+        <h4>Files Observed</h4>
+        <div class="value">${stats.totalFiles.toLocaleString()}</div>
+        <div class="sub-value">Real file objects</div>
+      </div>
+      <div class="stats-card summary">
+        <h4>Total Footprint</h4>
+        <div class="value">${formatSize(stats.totalSize)}</div>
+        <div class="sub-value">${stats.totalSize.toLocaleString()} bytes</div>
+      </div>
+      <div class="stats-card summary">
+        <h4>Oldest Modification</h4>
+        <div class="value" style="font-size: 1.3rem; margin-top: 5px;">${stats.earliestDate}</div>
+        <div class="sub-value">Earliest file timestamp</div>
+      </div>
+      <div class="stats-card summary">
+        <h4>Latest Modification</h4>
+        <div class="value" style="font-size: 1.3rem; margin-top: 5px;">${stats.latestDate}</div>
+        <div class="sub-value">Most recent update</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stats-card full-width">
+        <h3>Top 10 Largest Files</h3>
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th style="width: 50%;">Key</th>
+              <th style="width: 15%;">Size</th>
+              <th style="width: 20%;">Last Modified</th>
+              <th style="width: 15%;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${largestFilesRowsHtml || '<tr><td colspan="4">No files found</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stats-card">
+        <h3>By Extension <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click ext to filter)</span></h3>
+        <div style="max-height: 300px; overflow-y: auto;">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Ext</th>
+                <th style="width: 37%;">Count</th>
+                <th style="width: 38%;">Total Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${extRowsHtml || '<tr><td colspan="3">No files found</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <h3>By Size Range</h3>
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Range</th>
+              <th style="width: 32%;">Count</th>
+              <th style="width: 33%;">Total Size</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rangeRowsHtml || '<tr><td colspan="3">No files found</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stats-card">
+        <h3>Modification Timeline</h3>
+        <div style="max-height: 300px; overflow-y: auto;">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">Year-Month</th>
+                <th style="width: 60%;">Files Modified</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${timelineRowsHtml || '<tr><td colspan="2">No dates found</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <h3>All Directories (File Count) <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click path to filter)</span></h3>
+        <div style="max-height: 300px; overflow-y: auto;">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th style="width: 60%;">Directory</th>
+                <th style="width: 40%;">Files</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${dirCountRowsHtml || '<tr><td colspan="2">No directories found</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <h3>All Directories (Size Footprint) <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click path to filter)</span></h3>
+        <div style="max-height: 300px; overflow-y: auto;">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th style="width: 60%;">Directory</th>
+                <th style="width: 40%;">Total Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${dirSizeRowsHtml || '<tr><td colspan="2">No directories found</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function filterAndShow(queryText) {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.value = queryText;
+  }
+  switchTab('table');
+  applyFilter();
+}
+
+function switchTab(tabName) {
+  currentTab = tabName;
+
+  const tableBtn = document.getElementById('viewTableBtn');
+  const statsBtn = document.getElementById('viewStatsBtn');
+  const statsContainer = document.getElementById('statsContainer');
+
+  if (tabName === 'table') {
+    if (tableBtn) tableBtn.classList.add('active');
+    if (statsBtn) statsBtn.classList.remove('active');
+    if (statsContainer) statsContainer.classList.add('hidden');
+  } else if (tabName === 'stats') {
+    if (tableBtn) tableBtn.classList.remove('active');
+    if (statsBtn) statsBtn.classList.add('active');
+    if (statsContainer) statsContainer.classList.remove('hidden');
+  }
+
+  renderTable();
 }
 
 function handlePageChange(newPage) {
@@ -872,14 +1386,73 @@ function setupEventListeners() {
       }
     });
   }
+
+  // View tabs click events
+  const tableBtn = document.getElementById('viewTableBtn');
+  const statsBtn = document.getElementById('viewStatsBtn');
+  if (tableBtn && statsBtn) {
+    tableBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchTab('table');
+    });
+    statsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchTab('stats');
+    });
+  }
+
+  // Stats container click events for interactive stats filtering
+  const statsContainer = document.getElementById('statsContainer');
+  if (statsContainer) {
+    statsContainer.addEventListener('click', (e) => {
+      const target = e.target;
+
+      // Click on Locate file button
+      if (target.classList.contains('locate-btn')) {
+        const key = target.dataset.key;
+        if (key) {
+          filterAndShow(key);
+        }
+      }
+
+      // Click on clickable extension
+      const clickableExt = target.closest('.clickable-ext');
+      if (clickableExt) {
+        const ext = clickableExt.dataset.ext;
+        if (ext) {
+          if (ext === '(no extension)') {
+            filterAndShow('');
+          } else {
+            filterAndShow(`.${ext}`);
+          }
+        }
+      }
+
+      // Click on clickable directory
+      const clickableDir = target.closest('.clickable-dir');
+      if (clickableDir) {
+        const dir = clickableDir.dataset.dir;
+        if (dir) {
+          if (dir === '/ (root)' || dir === '/') {
+            filterAndShow('');
+          } else {
+            filterAndShow(dir);
+          }
+        }
+      }
+    });
+  }
 }
 
 function exportJsonData() {
-  if (filteredItems.length === 0) return;
+  const itemsToExport = filteredItems.filter(
+    (item) => item.id !== 'virtual-dir'
+  );
+  if (itemsToExport.length === 0) return;
   const data = {
     url: bucketUrl,
     bucketName: bucketName,
-    items: filteredItems.map((item) => ({
+    items: itemsToExport.map((item) => ({
       key: item.key,
       size: item.size,
       lastModified: item.lastModified
@@ -897,9 +1470,12 @@ function exportJsonData() {
 }
 
 function exportCsvData() {
-  if (filteredItems.length === 0) return;
+  const itemsToExport = filteredItems.filter(
+    (item) => item.id !== 'virtual-dir'
+  );
+  if (itemsToExport.length === 0) return;
   const headers = ['Key', 'Size (Bytes)', 'Last Modified'];
-  const rows = filteredItems.map((item) => [
+  const rows = itemsToExport.map((item) => [
     item.key,
     item.size,
     item.lastModified
@@ -921,8 +1497,11 @@ function exportCsvData() {
 }
 
 function exportWgetData() {
-  if (filteredItems.length === 0) return;
-  const urls = filteredItems.map((item) =>
+  const itemsToExport = filteredItems.filter(
+    (item) => item.id !== 'virtual-dir'
+  );
+  if (itemsToExport.length === 0) return;
+  const urls = itemsToExport.map((item) =>
     buildDownloadUrl(window.bucketBaseUrl, item.key)
   );
   const textContent = urls.join('\n');

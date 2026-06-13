@@ -5,10 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Burning Chrome by thesavant42</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js"></script>
   </head>
   <body>
     <div id="content">
-      <div class="stats">
+            <div class="stats">
+        <span style="float: right;">
+          Theme: 
+          <select id="themeSelect" style="padding: 2px 5px; font-size: 11px; background: var(--bg-alt); color: var(--fg); border: 1px solid var(--comment); border-radius: 3px; cursor: pointer;">
+            <option value="dracula">Dracula</option>
+            <option value="tokyonight">Tokyo Night</option>
+            <option value="darkpro">Dark Pro</option>
+          </select>
+        </span>
         <span class="page-title">Burning Chrome by thesavant42</span> |
         <a href="config.html">Configure API Keys</a>
       </div>
@@ -40,5 +49,5 @@
       </div>
     </div>
     <script type="module" src="dist/landing.js"></script>
-  </body>
+      </body>
 </html>
