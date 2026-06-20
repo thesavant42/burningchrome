@@ -11,15 +11,16 @@
     <div id="content">
             <div class="stats">
         <span class="page-header-spacer">
-          Theme: 
           <select id="themeSelect" class="theme-select" title="Select theme">
             <option value="dracula">Dracula</option>
             <option value="tokyonight">Tokyo Night</option>
             <option value="darkpro">Dark Pro</option>
+            <option value="vsdark">VS Dark</option>
+            <option value="vscodbg">VS Code BG</option>
           </select>
         </span>
         <span id="title" class="page-title">Buckets</span>
-        <span id="bucketStats"></span>
+        <span id="bucketStats" class="bucket-name-display"></span>
         <span class="nav-sep">|</span>
         <a href="landing.html" class="nav-link">Back to Projects</a>
         <span class="nav-sep">|</span>
@@ -30,7 +31,7 @@
         <a href="#" class="nav-active">Buckets</a>
       </div>
 
-      <div class="toolbar">
+      <div class="toolbar toolbar-row-1">
         <input
           type="text"
           id="bucketUrlInput"
@@ -38,7 +39,7 @@
           autocomplete="off"
           class="toolbar-input toolbar-input-lg"
         />
-        <button id="fetchBucket">Fetch Bucket</button>
+        <button id="fetchBucket">Fetch</button>
         <span id="loadingStatus"></span>
         <span
           id="savedReportsContainer"
@@ -48,13 +49,13 @@
             <option value="">Saved Reports...</option>
           </select>
           <button id="deleteSavedReport" class="danger hidden">Delete</button>
-          <button id="exportAllReports" class="btn-action hidden">Export All</button>
-          <button id="importXmlBtn" class="btn-action hidden">Import XML</button>
+          <button id="exportAllReports" class="btn-action hidden">Backup All</button>
+          <button id="importXmlBtn" class="btn-action hidden">Import</button>
           <input type="file" id="importXmlFile" accept=".xml" style="display: none;" />
         </span>
       </div>
 
-      <div class="toolbar secondary">
+      <div class="toolbar secondary toolbar-row-2">
         <input
           type="text"
           id="searchInput"
@@ -70,10 +71,10 @@
         <div class="export-dropdown-container hidden">
           <select id="exportFormatSelect" title="Export format">
             <option value="">Export...</option>
-            <option value="json">Export JSON</option>
-            <option value="csv">Export CSV</option>
-            <option value="wget">Export Wget URLs</option>
-            <option value="zip">Export ZIP</option>
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+            <option value="wget">Wget URLs</option>
+            <option value="zip">ZIP</option>
           </select>
         </div>
       </div>

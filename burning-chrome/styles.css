@@ -71,6 +71,36 @@
   --yellow: #e5c07b;
 }
 
+:root.theme-vsdark {
+  /* VS Dark color palette */
+  --bg: #1e1e1e;
+  --bg-alt: #2d2d2d;
+  --fg: #d4d4d4;
+  --comment: #6a9955;
+  --cyan: #4ec9b0;
+  --green: #6a9955;
+  --orange: #d7ba7d;
+  --pink: #c586c0;
+  --purple: #d4d4d4;
+  --red: #f44747;
+  --yellow: #dcdcaa;
+}
+
+:root.theme-vscodbg {
+  /* VS Code default dark background */
+  --bg: #0d0d0d;
+  --bg-alt: #1e1e1e;
+  --fg: #cccccc;
+  --comment: #6a9955;
+  --cyan: #4ec9b0;
+  --green: #6a9955;
+  --orange: #d19a66;
+  --pink: #c678dd;
+  --purple: #56b6c2;
+  --red: #f44747;
+  --yellow: #dcdcaa;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -168,6 +198,7 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 .toolbar.secondary {
   border-top: 1px solid var(--bg-alt);
   padding-top: 0.75rem;
+  margin-top: 0.75rem;
 }
 
 .toolbar .spacer {
@@ -569,17 +600,17 @@ th.col-check button {
 
 /* Toolbar input sizes */
 .toolbar-input-lg {
-  width: 400px;
+  width: 450px;
   padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
-  height: 38px;
+  font-size: 0.95rem;
+  height: 42px;
 }
 
 .toolbar-input-sm {
   width: 280px;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.85rem;
-  height: 34px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  height: 42px;
 }
 
 /* Inline view tabs (secondary toolbar) */
@@ -591,13 +622,13 @@ th.col-check button {
 
 .view-tabs-inline button {
   padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   border: 1px solid var(--comment);
   background: transparent;
   color: var(--comment);
   cursor: pointer;
   border-radius: 0;
-  height: 40px;
+  height: 42px;
   line-height: normal;
 }
 
@@ -625,7 +656,7 @@ th.col-check button {
   color: var(--fg);
   font-size: 0.95rem;
   cursor: pointer;
-  height: 40px;
+  height: 42px;
   min-width: 150px;
 }
 
@@ -1335,15 +1366,15 @@ th.sort-desc::after {
 
 /* --- Theme Select (used across all pages) --- */
 .theme-select {
-  padding: 0.4rem 0.5rem;
-  font-size: 0.9rem;
+  padding: 0.5rem 0.5rem;
+  font-size: 0.95rem;
   background: var(--bg-alt);
   color: var(--fg);
   border: 1px solid var(--comment);
   border-radius: 4px;
   cursor: pointer;
   line-height: normal;
-  height: 40px;
+  height: 42px;
 }
 
 .theme-select:focus {
