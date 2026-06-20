@@ -5,7 +5,8 @@ import {
   buildDownloadUrl,
   formatSize,
   formatDate,
-  escapeHtml
+  escapeHtml,
+  cleanBucketUrl
 } from './lib/bucket-parser.js';
 import { renderPaginationControls } from './lib/bucket-pagination.js';
 import { saveBucket, getBucket, deleteBucket, listBuckets } from './lib/db.js';
@@ -19,6 +20,9 @@ const ROWS_PER_PAGE = 50;
 
 let sortField = 'key';
 let sortAsc = true;
+
+// Directory stats sort mode: 'count', 'size', or 'alpha'
+let dirSortMode = 'count';
 
 // View mode: when true, we're viewing cached data
 let _viewMode = false;
@@ -117,42 +121,7 @@ async function fetchBucketFromUrl(url, forceFetch = false) {
   // Clear previous state
   hideError();
 
-  // Ensure URL has a protocol - default to https:// if missing
-  if (!/^https?:\/\//i.test(url)) {
-    url = 'https://' + url;
-  }
-
-  // Clean URL: strip subresources (like ?acl)
-  try {
-    const urlObj = new URL(url);
-    const subresources = [
-      'acl',
-      'cors',
-      'lifecycle',
-      'policy',
-      'location',
-      'logging',
-      'notification',
-      'tagging',
-      'encryption',
-      'website',
-      'versioning',
-      'requestPayment',
-      'object-lock',
-      'uploads'
-    ];
-    subresources.forEach((sub) => urlObj.searchParams.delete(sub));
-    if (!urlObj.hostname.includes('googleapis.com')) {
-      urlObj.searchParams.set('list-type', '2');
-    }
-    url = urlObj.toString();
-  } catch (e) {
-    console.warn(
-      '[DEBUG] Failed to parse/clean URL in fetchBucketFromUrl:',
-      url,
-      e
-    );
-  }
+  url = cleanBucketUrl(url);
 
   // Check cache first if not forced
   if (!forceFetch) {
@@ -243,39 +212,21 @@ function getNextPageUrl(
   return urlObj.toString();
 }
 
-async function loadBucketXml(url, xmlText) {
+async function loadBucketXml(url, xmlText, isImported = false) {
   currentTab = 'table';
   const tableBtn = document.getElementById('viewTableBtn');
+  const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
   const statsContainer = document.getElementById('statsContainer');
+  const treeContainer = document.getElementById('treeContainer');
   if (tableBtn) tableBtn.classList.add('active');
+  if (treeBtn) treeBtn.classList.remove('active');
   if (statsBtn) statsBtn.classList.remove('active');
   if (statsContainer) statsContainer.classList.add('hidden');
+  if (treeContainer) treeContainer.classList.add('hidden');
 
-  // Clean initial URL by stripping non-listing query parameters like ?acl
-  try {
-    const cleanUrlObj = new URL(url);
-    const subresources = [
-      'acl',
-      'cors',
-      'lifecycle',
-      'policy',
-      'location',
-      'logging',
-      'notification',
-      'tagging',
-      'encryption',
-      'website',
-      'versioning',
-      'requestPayment',
-      'object-lock',
-      'uploads'
-    ];
-    subresources.forEach((sub) => cleanUrlObj.searchParams.delete(sub));
-    url = cleanUrlObj.toString();
-  } catch (e) {
-    console.warn('[DEBUG] Failed to parse URL for cleaning:', url, e);
-  }
+  // Clean initial URL
+  url = cleanBucketUrl(url);
 
   let currentXmlText = xmlText;
   let currentUrl = url;
@@ -340,12 +291,21 @@ async function loadBucketXml(url, xmlText) {
 
     allItemsList.push(...items);
 
-    // Update global state and render table incrementally (preserving current page)
+    // Update global state and item count without re-rendering the table
+    // (rendering during fetch causes scroll to reset)
     allItems = allItemsList;
-    applyFilter(true);
+    filteredItems = [...allItems];
+    sortItems();
+    currentPage = 1;
 
     document.getElementById('bucketStats').textContent =
       ` | ${allItemsList.length} items fetched`;
+
+    if (isImported) {
+      console.log('[DEBUG] XML was imported locally, stopping next page fetch.');
+      hasMore = false;
+      break;
+    }
 
     if (!result.isTruncated) {
       console.log(
@@ -438,6 +398,9 @@ async function loadBucketXml(url, xmlText) {
   document.getElementById('bucketStats').textContent =
     ` | ${allItems.length} items`;
 
+  // Now render the complete table with all fetched items
+  applyFilter();
+
   // Auto-save to IndexedDB on fetch
   await saveBucketToCache();
 }
@@ -446,11 +409,15 @@ async function loadBucketXml(url, xmlText) {
 async function loadCachedBucket(url) {
   currentTab = 'table';
   const tableBtn = document.getElementById('viewTableBtn');
+  const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
   const statsContainer = document.getElementById('statsContainer');
+  const treeContainer = document.getElementById('treeContainer');
   if (tableBtn) tableBtn.classList.add('active');
+  if (treeBtn) treeBtn.classList.remove('active');
   if (statsBtn) statsBtn.classList.remove('active');
   if (statsContainer) statsContainer.classList.add('hidden');
+  if (treeContainer) treeContainer.classList.add('hidden');
 
   const cached = await getBucket(url);
 
@@ -782,6 +749,7 @@ function renderTable() {
         table.classList.remove('hidden');
       }
     } else {
+      // Hide table for tree and stats views
       table.classList.add('hidden');
     }
   }
@@ -1011,7 +979,10 @@ function calculateStats(items) {
       count: data.count,
       countPercent: (data.count / totalFiles) * 100
     }))
-    .sort((a, b) => b.count - a.count);
+    .sort((a, b) => {
+      if (dirSortMode === 'alpha') return a.dir.localeCompare(b.dir);
+      return b.count - a.count;
+    });
 
   const byDirectorySize = Object.entries(dirMap)
     .map(([dir, data]) => ({
@@ -1019,7 +990,10 @@ function calculateStats(items) {
       size: data.size,
       sizePercent: totalSize > 0 ? (data.size / totalSize) * 100 : 0
     }))
-    .sort((a, b) => b.size - a.size);
+    .sort((a, b) => {
+      if (dirSortMode === 'alpha') return a.dir.localeCompare(b.dir);
+      return b.size - a.size;
+    });
 
   return {
     totalFiles,
@@ -1048,6 +1022,18 @@ function renderStats() {
   }
 
   const stats = calculateStats(filteredItems);
+
+  // Build sort mode toggle buttons
+  const buildDirSortButtons = (currentMode, sectionId) => {
+    const modes = [
+      { key: 'alpha', label: 'A-Z' },
+      { key: 'count', label: 'Count' },
+      { key: 'size', label: 'Size' }
+    ];
+    return modes.map(m => 
+      `<button class="dir-sort-btn${m.key === currentMode ? ' active' : ''}" data-mode="${m.key}" data-section="${sectionId}" style="padding: 2px 8px; font-size: 11px; margin-left: 4px; border: 1px solid var(--comment); background: transparent; color: var(--fg); cursor: pointer; border-radius: 3px;">${m.label}</button>`
+    ).join('');
+  };
 
   let extRowsHtml = stats.byExtension
     .map(
@@ -1233,7 +1219,7 @@ function renderStats() {
       </div>
 
       <div class="stats-card">
-        <h3>All Directories (File Count) <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click path to filter)</span></h3>
+        <h3>All Directories (File Count) <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirCount">${buildDirSortButtons(dirSortMode, 'dirCount')}</span></h3>
         <div style="max-height: 300px; overflow-y: auto;">
           <table class="stats-table">
             <thead>
@@ -1250,7 +1236,7 @@ function renderStats() {
       </div>
 
       <div class="stats-card">
-        <h3>All Directories (Size Footprint) <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click path to filter)</span></h3>
+        <h3>All Directories (Size Footprint) <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirSize">${buildDirSortButtons(dirSortMode, 'dirSize')}</span></h3>
         <div style="max-height: 300px; overflow-y: auto;">
           <table class="stats-table">
             <thead>
@@ -1282,17 +1268,30 @@ function switchTab(tabName) {
   currentTab = tabName;
 
   const tableBtn = document.getElementById('viewTableBtn');
+  const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
   const statsContainer = document.getElementById('statsContainer');
+  const treeContainer = document.getElementById('treeContainer');
 
   if (tabName === 'table') {
     if (tableBtn) tableBtn.classList.add('active');
+    if (treeBtn) treeBtn.classList.remove('active');
     if (statsBtn) statsBtn.classList.remove('active');
     if (statsContainer) statsContainer.classList.add('hidden');
+    if (treeContainer) treeContainer.classList.add('hidden');
+  } else if (tabName === 'tree') {
+    if (tableBtn) tableBtn.classList.remove('active');
+    if (treeBtn) treeBtn.classList.add('active');
+    if (statsBtn) statsBtn.classList.remove('active');
+    if (statsContainer) statsContainer.classList.add('hidden');
+    if (treeContainer) treeContainer.classList.remove('hidden');
+    renderTreeView();
   } else if (tabName === 'stats') {
     if (tableBtn) tableBtn.classList.remove('active');
+    if (treeBtn) treeBtn.classList.remove('active');
     if (statsBtn) statsBtn.classList.add('active');
     if (statsContainer) statsContainer.classList.remove('hidden');
+    if (treeContainer) treeContainer.classList.add('hidden');
   }
 
   renderTable();
@@ -1324,6 +1323,47 @@ function hideError() {
 }
 
 function setupEventListeners() {
+  const importXmlBtn = document.getElementById('importXmlBtn');
+  const importXmlFile = document.getElementById('importXmlFile');
+  if (importXmlBtn && importXmlFile) {
+    importXmlBtn.addEventListener('click', () => {
+      importXmlFile.click();
+    });
+
+    importXmlFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const xmlText = event.target.result;
+        const parsed = parseBucketXml(xmlText);
+        if (parsed.error) {
+          showError(`Failed to parse XML: ${parsed.error}`);
+          return;
+        }
+
+        let url = document.getElementById('bucketUrlInput').value.trim();
+        if (!url) {
+          const promptVal = prompt(
+            `Enter the base URL for bucket "${parsed.bucketName || 'imported'}" (optional, used for file download links):`,
+            `https://${parsed.bucketName || 'bucket.s3.amazonaws.com'}`
+          );
+          if (promptVal === null) return; // User cancelled
+          url = promptVal.trim();
+        }
+
+        if (!url) {
+          url = `https://${parsed.bucketName || 'imported-bucket'}`;
+        }
+
+        e.target.value = ''; // Clear input
+        await loadBucketXml(url, xmlText, true);
+      };
+      reader.readAsText(file);
+    });
+  }
+
   document.getElementById('fetchBucket').addEventListener('click', () => {
     const url = document.getElementById('bucketUrlInput').value.trim();
     if (url) fetchBucketFromUrl(url);
@@ -1389,12 +1429,19 @@ function setupEventListeners() {
 
   // View tabs click events
   const tableBtn = document.getElementById('viewTableBtn');
+  const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
   if (tableBtn && statsBtn) {
     tableBtn.addEventListener('click', (e) => {
       e.preventDefault();
       switchTab('table');
     });
+    if (treeBtn) {
+      treeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab('tree');
+      });
+    }
     statsBtn.addEventListener('click', (e) => {
       e.preventDefault();
       switchTab('stats');
@@ -1438,6 +1485,16 @@ function setupEventListeners() {
           } else {
             filterAndShow(dir);
           }
+        }
+      }
+
+      // Click on directory sort mode button
+      const dirSortBtn = target.closest('.dir-sort-btn');
+      if (dirSortBtn) {
+        const mode = dirSortBtn.dataset.mode;
+        if (mode) {
+          dirSortMode = mode;
+          renderStats();
         }
       }
     });
@@ -1696,6 +1753,186 @@ async function handleDeleteSavedReport() {
 
   // Refresh list
   await loadSavedReportsList();
+}
+
+// Build a tree structure from flat item list
+function buildTreeStructure(items) {
+  const root = { children: {}, files: [], dir: '', size: 0, fileCount: 0 };
+
+  for (const item of items) {
+    if (item.id === 'virtual-dir') continue;
+
+    if (item.key.endsWith('/')) {
+      // It's a directory marker
+      const parts = item.key.split('/').filter(Boolean);
+      let current = root;
+      for (const part of parts) {
+        if (!current.children[part]) {
+          current.children[part] = { children: {}, files: [], dir: current.dir + part + '/', size: 0, fileCount: 0 };
+        }
+        current = current.children[part];
+      }
+      current.fileCount++;
+    } else {
+      // It's a file - add to appropriate directory
+      const parts = item.key.split('/').filter(Boolean);
+      let current = root;
+      for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i];
+        if (!current.children[part]) {
+          current.children[part] = { children: {}, files: [], dir: current.dir + part + '/', size: 0, fileCount: 0 };
+        }
+        current = current.children[part];
+      }
+      const fileName = parts[parts.length - 1];
+      current.files.push({ name: fileName, ...item });
+      current.size += item.size || 0;
+      current.fileCount++;
+
+      // Update all parent directories
+      current = root;
+      for (const part of parts.slice(0, -1)) {
+        if (current.children[part]) {
+          current = current.children[part];
+          current.size += item.size || 0;
+          current.fileCount++;
+        }
+      }
+    }
+  }
+
+  return root;
+}
+
+// Get sorted directory keys (alphabetical)
+function getSortedDirs(node) {
+  return Object.keys(node.children).sort((a, b) => a.localeCompare(b));
+}
+
+// Render a single tree node (recursive)
+function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
+  const sortedDirs = getSortedDirs(node);
+  const hasChildren = sortedDirs.length > 0;
+  const hasFiles = node.files.length > 0;
+  const dirName = node.dir ? node.dir.replace(/\/$/, '') : 'Root';
+  const isRoot = node.dir === '';
+  
+  // Determine if this node should be expanded
+  const nodeKey = node.dir || '__root__';
+  const isExpanded = expandedDirs.has(nodeKey);
+
+  let html = '';
+  const indent = depth * 20;
+  const icon = hasChildren ? (isExpanded ? '📂' : '📁') : '📁';
+  const toggle = hasChildren ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}" style="cursor: pointer; margin-right: 4px;">${isExpanded ? '▼' : '▶'}</span>` : '<span style="width: 16px; display: inline-block;"></span>';
+
+  html += `<div class="tree-node" data-dir="${escapeHtml(nodeKey)}">`;
+  html += `<div class="tree-row" style="padding-left: ${indent}px;">`;
+  html += `${toggle}${icon} `;
+  html += `<span class="tree-dir-name" data-dir="${escapeHtml(nodeKey)}" style="cursor: pointer;">${escapeHtml(isRoot ? '(root)' : dirName)}</span> `;
+  html += `<span class="tree-meta">(${node.fileCount} files, ${formatSize(node.size)})</span>`;
+  html += `</div>`;
+
+  if (hasChildren && isExpanded) {
+    html += '<div class="tree-children">';
+    for (const childName of sortedDirs) {
+      html += renderTreeNode(node.children[childName], depth + 1, expandedDirs);
+    }
+    html += '</div>';
+  }
+
+  if (hasFiles && isExpanded) {
+    html += '<div class="tree-children">';
+    const sortedFiles = [...node.files].sort((a, b) => a.name.localeCompare(b.name));
+    for (const file of sortedFiles) {
+      const downloadUrl = buildDownloadUrl(window.bucketBaseUrl, file.key);
+      html += `<div class="tree-file" style="padding-left: ${indent + 24}px;">`;
+      html += `📄 <a href="${downloadUrl}" target="_blank">${escapeHtml(file.name)}</a> `;
+      html += `<span class="tree-meta">${formatSize(file.size)}</span>`;
+      html += `</div>`;
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// Track expanded directories
+let expandedDirs = new Set();
+
+function toggleDir(dirKey) {
+  if (expandedDirs.has(dirKey)) {
+    expandedDirs.delete(dirKey);
+  } else {
+    expandedDirs.add(dirKey);
+  }
+  renderTreeView();
+}
+
+function expandAll() {
+  function collectDirs(node, prefix = '') {
+    expandedDirs.add(prefix || '__root__');
+    for (const childName of Object.keys(node.children)) {
+      collectDirs(node.children[childName], prefix + childName + '/');
+    }
+  }
+  const tree = buildTreeStructure(filteredItems);
+  collectDirs(tree);
+  renderTreeView();
+}
+
+function collapseAll() {
+  expandedDirs.clear();
+  renderTreeView();
+}
+
+// Render the tree view
+function renderTreeView() {
+  const container = document.getElementById('treeContainer');
+  if (!container) return;
+
+  if (filteredItems.length === 0) {
+    container.innerHTML = '<div class="stats" style="text-align: center; padding: 2rem;">No data available matching your filters.</div>';
+    return;
+  }
+
+  const tree = buildTreeStructure(filteredItems);
+  const treeHtml = renderTreeNode(tree, 0, expandedDirs);
+
+  container.innerHTML = `
+    <div class="tree-toolbar" style="margin-bottom: 10px;">
+      <button id="expandAllBtn" style="padding: 2px 8px; font-size: 11px; cursor: pointer; margin-right: 5px;">Expand All</button>
+      <button id="collapseAllBtn" style="padding: 2px 8px; font-size: 11px; cursor: pointer;">Collapse All</button>
+      <span style="margin-left: 10px; font-size: 11px; color: var(--comment);">Click folders to filter. Click arrows to expand/collapse.</span>
+    </div>
+    <div class="tree-view">${treeHtml}</div>
+  `;
+
+  // Add event listeners for tree toggles
+  container.querySelectorAll('.tree-toggle').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDir(el.dataset.dir);
+    });
+  });
+
+  // Add event listeners for directory names (click to filter)
+  container.querySelectorAll('.tree-dir-name').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dir = el.dataset.dir;
+      if (dir && dir !== '__root__') {
+        filterAndShow(dir);
+      }
+    });
+  });
+
+  // Expand/Collapse all buttons
+  const expandAllBtn = document.getElementById('expandAllBtn');
+  const collapseAllBtn = document.getElementById('collapseAllBtn');
+  if (expandAllBtn) expandAllBtn.addEventListener('click', expandAll);
+  if (collapseAllBtn) collapseAllBtn.addEventListener('click', collapseAll);
 }
 
 init();

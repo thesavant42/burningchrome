@@ -1129,6 +1129,102 @@ th.sort-desc::after {
   margin-left: 5px;
 }
 
+/* Directory sort toggle buttons */
+.dir-sort-btn {
+  border-color: var(--comment);
+  color: var(--fg);
+  opacity: 0.7;
+}
+
+.dir-sort-btn:hover {
+  opacity: 1;
+}
+
+.dir-sort-btn.active {
+  background: var(--purple);
+  color: var(--bg);
+  border-color: var(--purple);
+  opacity: 1;
+}
+
+/* Tree View Styles */
+.tree-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tree-view {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.tree-node {
+  user-select: none;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: 3px;
+  cursor: default;
+}
+
+.tree-row:hover {
+  background: rgba(139, 233, 253, 0.08);
+}
+
+.tree-toggle {
+  font-size: 0.7rem;
+  color: var(--comment);
+  transition: transform 0.15s;
+}
+
+.tree-dir-name {
+  color: var(--cyan);
+  font-weight: 500;
+}
+
+.tree-dir-name:hover {
+  color: var(--green);
+  text-decoration: underline;
+}
+
+.tree-meta {
+  color: var(--comment);
+  font-size: 0.75rem;
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
+.tree-children {
+  border-left: 1px solid var(--bg-alt);
+  margin-left: 8px;
+  padding-left: 4px;
+}
+
+.tree-file {
+  display: flex;
+  align-items: center;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.tree-file:hover {
+  background: rgba(139, 233, 253, 0.05);
+}
+
+.tree-file a {
+  color: var(--fg);
+}
+
+.tree-file a:hover {
+  color: var(--green);
+}
+
 
 
 

@@ -12,7 +12,7 @@
             <div class="stats">
         <span style="float: right;">
           Theme: 
-          <select id="themeSelect" style="padding: 2px 5px; font-size: 11px; background: var(--bg-alt); color: var(--fg); border: 1px solid var(--comment); border-radius: 3px; cursor: pointer;">
+          <select id="themeSelect" title="Select theme" style="padding: 2px 5px; font-size: 11px; background: var(--bg-alt); color: var(--fg); border: 1px solid var(--comment); border-radius: 3px; cursor: pointer;">
             <option value="dracula">Dracula</option>
             <option value="tokyonight">Tokyo Night</option>
             <option value="darkpro">Dark Pro</option>
@@ -38,13 +38,15 @@
           style="width: 400px"
         />
         <button id="fetchBucket">Fetch Bucket</button>
+        <button id="importXmlBtn" style="margin-left: 5px;">Import XML</button>
+        <input type="file" id="importXmlFile" accept=".xml" style="display: none;" />
         <span id="loadingStatus"></span>
         <span
           id="savedReportsContainer"
           class="hidden"
           style="margin-left: 20px"
         >
-          <select id="savedReportsSelect">
+          <select id="savedReportsSelect" title="Saved reports">
             <option value="">Saved Reports...</option>
           </select>
           <button id="deleteSavedReport" class="danger hidden">Delete</button>
@@ -93,6 +95,7 @@
 
       <div id="viewTabs" class="view-tabs hidden" style="margin-bottom: 15px;">
         <button id="viewTableBtn" class="active">File List</button>
+        <button id="viewTreeBtn">Tree View</button>
         <button id="viewStatsBtn">Bucket Stats</button>
       </div>
 
@@ -103,6 +106,8 @@
       </div>
 
       <div id="statsContainer" class="hidden"></div>
+
+      <div id="treeContainer" class="hidden"></div>
 
       <table id="bucketTable" class="hidden">
         <thead>

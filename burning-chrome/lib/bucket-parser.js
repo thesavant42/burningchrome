@@ -1,9 +1,58 @@
-// Bucket XML Parser - Parse S3/GCS ListBucketResult XML
+// Bucket XML Parser - Parse S3/GCS ListBucketResult and Azure EnumerationResults XML
+
+/**
+ * Normalize and clean bucket/container URLs for S3, GCS, or Azure Blob Storage
+ * @param {string} url
+ * @returns {string}
+ */
+export function cleanBucketUrl(url) {
+  // Ensure URL has a protocol - default to https:// if missing
+  if (!/^https?:\/\//i.test(url)) {
+    url = 'https://' + url;
+  }
+
+  try {
+    const urlObj = new URL(url);
+    const subresources = [
+      'acl',
+      'cors',
+      'lifecycle',
+      'policy',
+      'location',
+      'logging',
+      'notification',
+      'tagging',
+      'encryption',
+      'website',
+      'versioning',
+      'requestPayment',
+      'object-lock',
+      'uploads'
+    ];
+    subresources.forEach((sub) => urlObj.searchParams.delete(sub));
+
+    const isAzure = urlObj.hostname.includes('blob.core.windows.net') ||
+                    urlObj.searchParams.get('restype') === 'container' ||
+                    urlObj.searchParams.get('comp') === 'list';
+
+    if (isAzure) {
+      urlObj.searchParams.set('restype', 'container');
+      urlObj.searchParams.set('comp', 'list');
+      urlObj.searchParams.delete('list-type');
+    } else if (!urlObj.hostname.includes('googleapis.com')) {
+      urlObj.searchParams.set('list-type', '2');
+    }
+    return urlObj.toString();
+  } catch (e) {
+    console.warn('[DEBUG] Failed to parse/clean URL:', url, e);
+    return url;
+  }
+}
 
 /**
  * Parse bucket listing XML and extract items
  * @param {string} xmlText - Raw XML string
- * @returns {{ bucketName: string, items: Array, error: string|null }}
+ * @returns {{ bucketName: string, items: Array, isTruncated: boolean, nextContinuationToken: string|null, nextMarker: string|null, error: string|null }}
  */
 export function parseBucketXml(xmlText) {
   const parser = new DOMParser();
@@ -18,6 +67,55 @@ export function parseBucketXml(xmlText) {
       nextContinuationToken: null,
       nextMarker: null,
       error: 'Invalid XML format'
+    };
+  }
+
+  // Check if it is an Azure Storage Error or standard Error response
+  if (doc.documentElement.nodeName === 'Error') {
+    const code = doc.getElementsByTagName('Code')[0]?.textContent;
+    const message = doc.getElementsByTagName('Message')[0]?.textContent;
+    return {
+      bucketName: '',
+      items: [],
+      isTruncated: false,
+      nextContinuationToken: null,
+      nextMarker: null,
+      error: message || code || 'Storage Error'
+    };
+  }
+
+  // Check if it is Azure XML
+  const isAzure = doc.documentElement.nodeName === 'EnumerationResults';
+
+  if (isAzure) {
+    const bucketName = doc.documentElement.getAttribute('ContainerName') || 'Azure Container';
+    const blobs = doc.getElementsByTagName('Blob');
+    const items = Array.from(blobs).map((b, idx) => {
+      const properties = b.getElementsByTagName('Properties')[0];
+      return {
+        id: idx,
+        key: b.getElementsByTagName('Name')[0]?.textContent || '',
+        size: parseInt(
+          properties?.getElementsByTagName('Content-Length')[0]?.textContent ||
+          b.getElementsByTagName('Content-Length')[0]?.textContent || '0',
+          10
+        ),
+        lastModified:
+          properties?.getElementsByTagName('Last-Modified')[0]?.textContent ||
+          b.getElementsByTagName('Last-Modified')[0]?.textContent || ''
+      };
+    });
+
+    const nextMarker = doc.getElementsByTagName('NextMarker')[0]?.textContent || null;
+    const isTruncated = !!nextMarker;
+
+    return {
+      bucketName,
+      items,
+      isTruncated,
+      nextContinuationToken: null,
+      nextMarker,
+      error: null
     };
   }
 
