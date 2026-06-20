@@ -10,15 +10,6 @@
   <body>
     <div id="content">
             <div class="stats">
-        <span class="page-header-spacer">
-          <select id="themeSelect" class="theme-select" title="Select theme">
-            <option value="dracula">Dracula</option>
-            <option value="tokyonight">Tokyo Night</option>
-            <option value="darkpro">Dark Pro</option>
-            <option value="vsdark">VS Dark</option>
-            <option value="vscodbg">VS Code BG</option>
-          </select>
-        </span>
         <span id="title" class="page-title">Buckets</span>
         <span id="bucketStats" class="bucket-name-display"></span>
         <span class="nav-sep">|</span>
@@ -31,7 +22,7 @@
         <a href="#" class="nav-active">Buckets</a>
       </div>
 
-      <div class="toolbar toolbar-row-1">
+      <div class="toolbar toolbar-row-main">
         <input
           type="text"
           id="bucketUrlInput"
@@ -41,21 +32,23 @@
         />
         <button id="fetchBucket">Fetch</button>
         <span id="loadingStatus"></span>
-      </div>
-
-      <div class="toolbar toolbar-row-saved">
-        <span
-          id="savedReportsContainer"
-          class="hidden"
-        >
+        <span id="savedReportsContainer" class="hidden">
           <select id="savedReportsSelect" title="Saved reports">
             <option value="">Saved Reports...</option>
           </select>
           <button id="deleteSavedReport" class="danger hidden">Delete</button>
-          <button id="exportAllReports" class="btn-action hidden">Backup All</button>
+          <button id="exportAllReports" class="btn-action">Export All</button>
           <button id="importXmlBtn" class="btn-action hidden">Import</button>
           <input type="file" id="importXmlFile" accept=".xml" style="display: none;" />
         </span>
+        <span class="spacer"></span>
+        <select id="themeSelect" class="theme-select" title="Select theme">
+          <option value="dracula">Dracula</option>
+          <option value="tokyonight">Tokyo Night</option>
+          <option value="darkpro">Dark Pro</option>
+          <option value="vsdark">VS Dark</option>
+          <option value="vscodbg">VS Code BG</option>
+        </select>
       </div>
 
       <div class="toolbar secondary toolbar-row-2">
