@@ -574,12 +574,12 @@ th.col-check button {
 .page-title {
   font-weight: 700;
   color: var(--pink);
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 /* Nav links */
 .nav-link {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 500;
 }
 
@@ -587,14 +587,14 @@ th.col-check button {
 .nav-sep {
   margin: 0 0.6rem;
   color: var(--comment);
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 /* Bucket stats count - prominent */
 #bucketStats {
   font-weight: 700;
   color: var(--cyan);
-  font-size: 1.1rem;
+  font-size: 1rem;
   margin-left: 0.75rem;
 }
 
