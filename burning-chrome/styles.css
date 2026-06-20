@@ -1225,6 +1225,225 @@ th.sort-desc::after {
   color: var(--green);
 }
 
+/* ============================================
+   UNIFIED COMPONENT STYLES
+   Replaces all inline styles for consistency
+   ============================================ */
+
+/* --- Theme Select (used across all pages) --- */
+.theme-select {
+  padding: 0.15rem 0.3rem;
+  font-size: 0.7rem;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--comment);
+  border-radius: 3px;
+  cursor: pointer;
+  line-height: normal;
+}
+
+.theme-select:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+
+/* --- Page header layout --- */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-header-spacer {
+  float: right;
+}
+
+/* --- Toolbar input sizing --- */
+.toolbar-input {
+  width: 400px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-size: 0.85rem;
+}
+
+.toolbar-input:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+
+/* --- Toolbar button spacing --- */
+.toolbar-btn-inline {
+  margin-left: 0.3rem;
+}
+
+/* --- Toolbar section spacing --- */
+.toolbar-section {
+  margin-left: 1rem;
+}
+
+/* --- Export action buttons --- */
+.btn-export {
+  margin-left: 0.6rem;
+}
+
+/* --- View tabs spacing --- */
+.view-tabs-container {
+  margin-bottom: 0.9rem;
+}
+
+/* --- Table column widths (buckets) --- */
+.col-url-bucket {
+  width: auto;
+}
+
+.col-size {
+  width: 110px;
+}
+
+.col-last-modified {
+  width: 140px;
+}
+
+.col-actions {
+  width: 80px;
+}
+
+/* --- Stats table column widths --- */
+.stats-col-key { width: 50%; }
+.stats-col-size { width: 15%; }
+.stats-col-date { width: 20%; }
+.stats-col-actions { width: 15%; }
+.stats-col-ext { width: 25%; }
+.stats-col-count { width: 37%; }
+.stats-col-total-size { width: 38%; }
+.stats-col-range { width: 35%; }
+.stats-col-date-str { width: 40%; }
+.stats-col-files-modified { width: 60%; }
+.stats-col-dir { width: 60%; }
+.stats-col-dir-stat { width: 40%; }
+
+/* --- Stats table cell wrapping --- */
+.stats-cell-wrap {
+  word-break: break-all;
+}
+
+/* --- Stats card title helpers --- */
+.stats-card-hint {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--comment);
+  opacity: 0.85;
+}
+
+.stats-card-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* --- Summary value styling --- */
+.summary-value-large {
+  font-size: 1.3rem;
+  margin-top: 5px;
+}
+
+/* --- Empty state --- */
+.stats-empty {
+  text-align: center;
+  padding: 2rem;
+}
+
+/* --- Directory sort buttons --- */
+.dir-sort-btn {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  margin-left: 0.25rem;
+  border: 1px solid var(--comment);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  border-radius: 3px;
+  line-height: normal;
+  opacity: 0.7;
+}
+
+.dir-sort-btn:hover {
+  opacity: 1;
+}
+
+.dir-sort-btn.active {
+  background: var(--purple);
+  color: var(--bg);
+  border-color: var(--purple);
+  opacity: 1;
+}
+
+/* --- Loading status buttons --- */
+.btn-loading-status {
+  margin-left: 0.6rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+  line-height: normal;
+}
+
+/* --- Locate button --- */
+.btn-locate {
+  padding: 0.1rem 0.3rem;
+  font-size: 0.7rem;
+  margin-left: 0.3rem;
+}
+
+/* --- Tree view dynamic styles --- */
+.tree-toggle {
+  cursor: pointer;
+  margin-right: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--comment);
+}
+
+.tree-toggle-placeholder {
+  width: 1rem;
+  display: inline-block;
+}
+
+.tree-row-indent {
+  padding-left: var(--tree-indent, 0px);
+}
+
+.tree-dir-name-clickable {
+  cursor: pointer;
+}
+
+.tree-file-indent {
+  padding-left: var(--tree-file-indent, 0px);
+}
+
+/* --- Tree toolbar buttons --- */
+.btn-tree-expand,
+.btn-tree-collapse {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+  line-height: normal;
+}
+
+.btn-tree-expand {
+  margin-right: 0.3rem;
+}
+
+.tree-help-text {
+  margin-left: 0.6rem;
+  font-size: 0.7rem;
+  color: var(--comment);
+}
+
+/* --- Progress span --- */
+.progress-span {
+  font-family: inherit;
+}
+
 
 
 

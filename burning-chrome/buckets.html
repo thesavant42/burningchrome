@@ -10,9 +10,9 @@
   <body>
     <div id="content">
             <div class="stats">
-        <span style="float: right;">
+        <span class="page-header-spacer">
           Theme: 
-          <select id="themeSelect" title="Select theme" style="padding: 2px 5px; font-size: 11px; background: var(--bg-alt); color: var(--fg); border: 1px solid var(--comment); border-radius: 3px; cursor: pointer;">
+          <select id="themeSelect" class="theme-select" title="Select theme">
             <option value="dracula">Dracula</option>
             <option value="tokyonight">Tokyo Night</option>
             <option value="darkpro">Dark Pro</option>
@@ -35,16 +35,15 @@
           id="bucketUrlInput"
           placeholder="Enter bucket URL (e.g. https://bucket.s3.amazonaws.com)..."
           autocomplete="off"
-          style="width: 400px"
+          class="toolbar-input"
         />
         <button id="fetchBucket">Fetch Bucket</button>
-        <button id="importXmlBtn" style="margin-left: 5px;">Import XML</button>
+        <button id="importXmlBtn" class="toolbar-btn-inline">Import XML</button>
         <input type="file" id="importXmlFile" accept=".xml" style="display: none;" />
         <span id="loadingStatus"></span>
         <span
           id="savedReportsContainer"
-          class="hidden"
-          style="margin-left: 20px"
+          class="hidden toolbar-section"
         >
           <select id="savedReportsSelect" title="Saved reports">
             <option value="">Saved Reports...</option>
@@ -62,29 +61,25 @@
         />
         <button
           id="exportJson"
-          class="btn-action hidden"
-          style="margin-left: 10px"
+          class="btn-action btn-export hidden"
         >
           Export JSON
         </button>
         <button
           id="exportCsv"
-          class="btn-action hidden"
-          style="margin-left: 10px"
+          class="btn-action btn-export hidden"
         >
           Export CSV
         </button>
         <button
           id="exportWget"
-          class="btn-action hidden"
-          style="margin-left: 10px"
+          class="btn-action btn-export hidden"
         >
           Export Wget URLs
         </button>
         <button
           id="exportZip"
-          class="btn-action hidden"
-          style="margin-left: 10px"
+          class="btn-action btn-export hidden"
         >
           Export ZIP
         </button>
@@ -93,7 +88,7 @@
         <span class="spacer"></span>
       </div>
 
-      <div id="viewTabs" class="view-tabs hidden" style="margin-bottom: 15px;">
+      <div id="viewTabs" class="view-tabs hidden view-tabs-container">
         <button id="viewTableBtn" class="active">File List</button>
         <button id="viewTreeBtn">Tree View</button>
         <button id="viewStatsBtn">Bucket Stats</button>
@@ -112,24 +107,22 @@
       <table id="bucketTable" class="hidden">
         <thead>
           <tr>
-            <th id="thKey" class="col-url sortable" data-sort="key">Key</th>
+            <th id="thKey" class="col-url-bucket sortable" data-sort="key">Key</th>
             <th
               id="thSize"
-              class="sortable"
-              style="width: 110px"
+              class="sortable col-size"
               data-sort="size"
             >
               Size
             </th>
             <th
               id="thLastModified"
-              class="sortable"
-              style="width: 140px"
+              class="sortable col-last-modified"
               data-sort="lastModified"
             >
               Last Modified
             </th>
-            <th style="width: 80px">Actions</th>
+            <th class="col-actions">Actions</th>
           </tr>
         </thead>
         <tbody id="bucketBody"></tbody>

@@ -132,7 +132,7 @@ async function fetchBucketFromUrl(url, forceFetch = false) {
 
       const loadingStatus = document.getElementById('loadingStatus');
       if (loadingStatus) {
-        loadingStatus.innerHTML = `Loaded from cache. <button id="forceRefetchBtn" class="btn-action" style="cursor: pointer; padding: 2px 6px; font-size: 11px; margin-left: 10px;">Refetch</button>`;
+        loadingStatus.innerHTML = `Loaded from cache. <button id="forceRefetchBtn" class="btn-action btn-loading-status">Refetch</button>`;
         const refetchBtn = document.getElementById('forceRefetchBtn');
         if (refetchBtn) {
           refetchBtn.addEventListener('click', () => {
@@ -241,7 +241,7 @@ async function loadBucketXml(url, xmlText, isImported = false) {
   const loadingStatusEl = document.getElementById('loadingStatus');
 
   const updateLoadingStatus = (msg) => {
-    loadingStatusEl.innerHTML = `${msg} <button id="stopFetchBtn" class="btn-action" style="margin-left: 10px; padding: 2px 6px; font-size: 11px;">Stop</button>`;
+    loadingStatusEl.innerHTML = `${msg} <button id="stopFetchBtn" class="btn-action btn-loading-status">Stop</button>`;
     const btn = document.getElementById('stopFetchBtn');
     if (btn) {
       btn.addEventListener('click', () => {
@@ -627,7 +627,7 @@ async function downloadDirectory(dirKey) {
   const totalCount = subFiles.length;
   let isCancelled = false;
 
-  loadingStatusEl.innerHTML = `Downloading <span id="zipProgress">0/${totalCount}</span> files... <button id="stopZipBtn" class="btn-action" style="margin-left: 10px; padding: 2px 6px; font-size: 11px;">Cancel</button>`;
+  loadingStatusEl.innerHTML = `Downloading <span id="zipProgress" class="progress-span">0/${totalCount}</span> files... <button id="stopZipBtn" class="btn-action btn-loading-status">Cancel</button>`;
 
   const stopBtn = document.getElementById('stopZipBtn');
   if (stopBtn) {
@@ -1031,7 +1031,7 @@ function renderStats() {
       { key: 'size', label: 'Size' }
     ];
     return modes.map(m => 
-      `<button class="dir-sort-btn${m.key === currentMode ? ' active' : ''}" data-mode="${m.key}" data-section="${sectionId}" style="padding: 2px 8px; font-size: 11px; margin-left: 4px; border: 1px solid var(--comment); background: transparent; color: var(--fg); cursor: pointer; border-radius: 3px;">${m.label}</button>`
+      `<button class="dir-sort-btn${m.key === currentMode ? ' active' : ''}" data-mode="${m.key}" data-section="${sectionId}">${m.label}</button>`
     ).join('');
   };
 
@@ -1086,7 +1086,7 @@ function renderStats() {
     .map(
       (item) => `
     <tr>
-      <td class="clickable-stat clickable-dir" style="word-break: break-all;" data-dir="${escapeHtml(item.dir)}"><code>${escapeHtml(item.dir)}</code></td>
+      <td class="clickable-stat clickable-dir stats-cell-wrap" data-dir="${escapeHtml(item.dir)}"><code>${escapeHtml(item.dir)}</code></td>
       <td>${item.count.toLocaleString()} (${item.countPercent.toFixed(1)}%)
         <div class="stats-bar-container"><div class="stats-bar-fill count" style="width: ${item.countPercent}%"></div></div>
       </td>
@@ -1099,7 +1099,7 @@ function renderStats() {
     .map(
       (item) => `
     <tr>
-      <td class="clickable-stat clickable-dir" style="word-break: break-all;" data-dir="${escapeHtml(item.dir)}"><code>${escapeHtml(item.dir)}</code></td>
+      <td class="clickable-stat clickable-dir stats-cell-wrap" data-dir="${escapeHtml(item.dir)}"><code>${escapeHtml(item.dir)}</code></td>
       <td>${formatSize(item.size)} (${item.sizePercent.toFixed(1)}%)
         <div class="stats-bar-container"><div class="stats-bar-fill size" style="width: ${item.sizePercent}%"></div></div>
       </td>
@@ -1117,8 +1117,8 @@ function renderStats() {
         <td>${formatSize(item.size)}</td>
         <td>${formatDate(item.lastModified)}</td>
         <td>
-          <a href="${downloadUrl}" target="_blank" class="btn-action" style="margin-right: 5px;">Open</a>
-          <button class="btn-action locate-btn" data-key="${escapeHtml(item.key)}">Show in List</button>
+          <a href="${downloadUrl}" target="_blank" class="btn-action">Open</a>
+          <button class="btn-action btn-locate locate-btn" data-key="${escapeHtml(item.key)}">Show in List</button>
         </td>
       </tr>
     `;
@@ -1139,12 +1139,12 @@ function renderStats() {
       </div>
       <div class="stats-card summary">
         <h4>Oldest Modification</h4>
-        <div class="value" style="font-size: 1.3rem; margin-top: 5px;">${stats.earliestDate}</div>
+        <div class="value summary-value-large">${stats.earliestDate}</div>
         <div class="sub-value">Earliest file timestamp</div>
       </div>
       <div class="stats-card summary">
         <h4>Latest Modification</h4>
-        <div class="value" style="font-size: 1.3rem; margin-top: 5px;">${stats.latestDate}</div>
+        <div class="value summary-value-large">${stats.latestDate}</div>
         <div class="sub-value">Most recent update</div>
       </div>
     </div>
@@ -1155,10 +1155,10 @@ function renderStats() {
         <table class="stats-table">
           <thead>
             <tr>
-              <th style="width: 50%;">Key</th>
-              <th style="width: 15%;">Size</th>
-              <th style="width: 20%;">Last Modified</th>
-              <th style="width: 15%;">Actions</th>
+              <th class="stats-col-key">Key</th>
+              <th class="stats-col-size">Size</th>
+              <th class="stats-col-date">Last Modified</th>
+              <th class="stats-col-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1168,14 +1168,14 @@ function renderStats() {
       </div>
 
       <div class="stats-card">
-        <h3>By Extension <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click ext to filter)</span></h3>
-        <div style="max-height: 300px; overflow-y: auto;">
+        <h3>By Extension <span class="stats-card-hint">(click ext to filter)</span></h3>
+        <div class="stats-card-scroll">
           <table class="stats-table">
             <thead>
               <tr>
-                <th style="width: 25%;">Ext</th>
-                <th style="width: 37%;">Count</th>
-                <th style="width: 38%;">Total Size</th>
+                <th class="stats-col-ext">Ext</th>
+                <th class="stats-col-count">Count</th>
+                <th class="stats-col-total-size">Total Size</th>
               </tr>
             </thead>
             <tbody>
@@ -1190,9 +1190,9 @@ function renderStats() {
         <table class="stats-table">
           <thead>
             <tr>
-              <th style="width: 35%;">Range</th>
-              <th style="width: 32%;">Count</th>
-              <th style="width: 33%;">Total Size</th>
+              <th class="stats-col-range">Range</th>
+              <th class="stats-col-count">Count</th>
+              <th class="stats-col-total-size">Total Size</th>
             </tr>
           </thead>
           <tbody>
@@ -1203,12 +1203,12 @@ function renderStats() {
 
       <div class="stats-card">
         <h3>Modification Timeline</h3>
-        <div style="max-height: 300px; overflow-y: auto;">
+        <div class="stats-card-scroll">
           <table class="stats-table">
             <thead>
               <tr>
-                <th style="width: 40%;">Year-Month</th>
-                <th style="width: 60%;">Files Modified</th>
+                <th class="stats-col-date-str">Year-Month</th>
+                <th class="stats-col-files-modified">Files Modified</th>
               </tr>
             </thead>
             <tbody>
@@ -1219,13 +1219,13 @@ function renderStats() {
       </div>
 
       <div class="stats-card">
-        <h3>All Directories (File Count) <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirCount">${buildDirSortButtons(dirSortMode, 'dirCount')}</span></h3>
-        <div style="max-height: 300px; overflow-y: auto;">
+        <h3>All Directories (File Count) <span class="stats-card-hint">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirCount">${buildDirSortButtons(dirSortMode, 'dirCount')}</span></h3>
+        <div class="stats-card-scroll">
           <table class="stats-table">
             <thead>
               <tr>
-                <th style="width: 60%;">Directory</th>
-                <th style="width: 40%;">Files</th>
+                <th class="stats-col-dir">Directory</th>
+                <th class="stats-col-dir-stat">Files</th>
               </tr>
             </thead>
             <tbody>
@@ -1236,13 +1236,13 @@ function renderStats() {
       </div>
 
       <div class="stats-card">
-        <h3>All Directories (Size Footprint) <span style="font-size: 0.75rem; font-weight: normal; color: var(--comment); opacity: 0.85;">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirSize">${buildDirSortButtons(dirSortMode, 'dirSize')}</span></h3>
-        <div style="max-height: 300px; overflow-y: auto;">
+        <h3>All Directories (Size Footprint) <span class="stats-card-hint">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirSize">${buildDirSortButtons(dirSortMode, 'dirSize')}</span></h3>
+        <div class="stats-card-scroll">
           <table class="stats-table">
             <thead>
               <tr>
-                <th style="width: 60%;">Directory</th>
-                <th style="width: 40%;">Total Size</th>
+                <th class="stats-col-dir">Directory</th>
+                <th class="stats-col-dir-stat">Total Size</th>
               </tr>
             </thead>
             <tbody>
@@ -1598,7 +1598,7 @@ async function exportZipData() {
   const totalCount = filesToZip.length;
   let isCancelled = false;
 
-  loadingStatusEl.innerHTML = `Downloading <span id="zipProgress">0/${totalCount}</span> files... <button id="stopZipBtn" class="btn-action" style="margin-left: 10px; padding: 2px 6px; font-size: 11px;">Cancel</button>`;
+  loadingStatusEl.innerHTML = `Downloading <span id="zipProgress" class="progress-span">0/${totalCount}</span> files... <button id="stopZipBtn" class="btn-action btn-loading-status">Cancel</button>`;
 
   const stopBtn = document.getElementById('stopZipBtn');
   if (stopBtn) {
@@ -1824,12 +1824,12 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   let html = '';
   const indent = depth * 20;
   const icon = hasChildren ? (isExpanded ? '📂' : '📁') : '📁';
-  const toggle = hasChildren ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}" style="cursor: pointer; margin-right: 4px;">${isExpanded ? '▼' : '▶'}</span>` : '<span style="width: 16px; display: inline-block;"></span>';
+  const toggle = hasChildren ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-toggle-placeholder"></span>';
 
-  html += `<div class="tree-node" data-dir="${escapeHtml(nodeKey)}">`;
-  html += `<div class="tree-row" style="padding-left: ${indent}px;">`;
+  html += `<div class="tree-node tree-row-indent" data-dir="${escapeHtml(nodeKey)}" style="--tree-indent: ${indent}px;">`;
+  html += `<div class="tree-row">`;
   html += `${toggle}${icon} `;
-  html += `<span class="tree-dir-name" data-dir="${escapeHtml(nodeKey)}" style="cursor: pointer;">${escapeHtml(isRoot ? '(root)' : dirName)}</span> `;
+  html += `<span class="tree-dir-name tree-dir-name-clickable" data-dir="${escapeHtml(nodeKey)}">${escapeHtml(isRoot ? '(root)' : dirName)}</span> `;
   html += `<span class="tree-meta">(${node.fileCount} files, ${formatSize(node.size)})</span>`;
   html += `</div>`;
 
@@ -1846,7 +1846,7 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
     const sortedFiles = [...node.files].sort((a, b) => a.name.localeCompare(b.name));
     for (const file of sortedFiles) {
       const downloadUrl = buildDownloadUrl(window.bucketBaseUrl, file.key);
-      html += `<div class="tree-file" style="padding-left: ${indent + 24}px;">`;
+      html += `<div class="tree-file tree-file-indent" style="--tree-file-indent: ${indent + 24}px;">`;
       html += `📄 <a href="${downloadUrl}" target="_blank">${escapeHtml(file.name)}</a> `;
       html += `<span class="tree-meta">${formatSize(file.size)}</span>`;
       html += `</div>`;
@@ -1893,7 +1893,7 @@ function renderTreeView() {
   if (!container) return;
 
   if (filteredItems.length === 0) {
-    container.innerHTML = '<div class="stats" style="text-align: center; padding: 2rem;">No data available matching your filters.</div>';
+    container.innerHTML = '<div class="stats stats-empty">No data available matching your filters.</div>';
     return;
   }
 
@@ -1901,10 +1901,10 @@ function renderTreeView() {
   const treeHtml = renderTreeNode(tree, 0, expandedDirs);
 
   container.innerHTML = `
-    <div class="tree-toolbar" style="margin-bottom: 10px;">
-      <button id="expandAllBtn" style="padding: 2px 8px; font-size: 11px; cursor: pointer; margin-right: 5px;">Expand All</button>
-      <button id="collapseAllBtn" style="padding: 2px 8px; font-size: 11px; cursor: pointer;">Collapse All</button>
-      <span style="margin-left: 10px; font-size: 11px; color: var(--comment);">Click folders to filter. Click arrows to expand/collapse.</span>
+    <div class="tree-toolbar">
+      <button id="expandAllBtn" class="btn-tree-expand">Expand All</button>
+      <button id="collapseAllBtn" class="btn-tree-collapse">Collapse All</button>
+      <span class="tree-help-text">Click folders to filter. Click arrows to expand/collapse.</span>
     </div>
     <div class="tree-view">${treeHtml}</div>
   `;

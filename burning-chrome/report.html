@@ -12,9 +12,9 @@
       <pre id="debugLog" class="debug-log"></pre>
 
             <div class="stats">
-        <span style="float: right;">
+        <span class="page-header-spacer">
           Theme: 
-          <select id="themeSelect" style="padding: 2px 5px; font-size: 11px; background: var(--bg-alt); color: var(--fg); border: 1px solid var(--comment); border-radius: 3px; cursor: pointer;">
+          <select id="themeSelect" class="theme-select" title="Select theme">
             <option value="dracula">Dracula</option>
             <option value="tokyonight">Tokyo Night</option>
             <option value="darkpro">Dark Pro</option>
@@ -212,7 +212,7 @@
             </div>
           </div>
           <div class="modal-body edit-form">
-            <textarea id="editUrl"></textarea>
+            <textarea id="editUrl" title="URL" placeholder="Enter URL"></textarea>
             <input type="hidden" id="editTimestamp" />
             <input type="hidden" id="editStatus" />
             <input type="hidden" id="editMime" />
