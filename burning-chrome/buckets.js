@@ -891,43 +891,6 @@ function calculateStats(items) {
     }))
     .sort((a, b) => b.count - a.count);
 
-  // Size Ranges
-  const ranges = [
-    { name: 'Tiny (< 10 KB)', min: 0, max: 10240 },
-    { name: 'Small (10 KB - 100 KB)', min: 10240, max: 102400 },
-    { name: 'Medium (100 KB - 1 MB)', min: 102400, max: 1048576 },
-    { name: 'Large (1 MB - 10 MB)', min: 1048576, max: 10485760 },
-    { name: 'Very Large (10 MB - 100 MB)', min: 10485760, max: 104857600 },
-    { name: 'Huge (> 100 MB)', min: 104857600, max: Infinity }
-  ];
-
-  const rangeMap = ranges.map((r) => ({
-    name: r.name,
-    min: r.min,
-    max: r.max,
-    count: 0,
-    size: 0
-  }));
-
-  files.forEach((file) => {
-    const size = file.size || 0;
-    for (const r of rangeMap) {
-      if (size >= r.min && size < r.max) {
-        r.count++;
-        r.size += size;
-        break;
-      }
-    }
-  });
-
-  const bySizeRange = rangeMap.map((r) => ({
-    range: r.name,
-    count: r.count,
-    countPercent: (r.count / totalFiles) * 100,
-    size: r.size,
-    sizePercent: totalSize > 0 ? (r.size / totalSize) * 100 : 0
-  }));
-
   // Modified Dates
   const dateMap = {};
   let earliest = null;
@@ -984,26 +947,13 @@ function calculateStats(items) {
       return b.count - a.count;
     });
 
-  const byDirectorySize = Object.entries(dirMap)
-    .map(([dir, data]) => ({
-      dir,
-      size: data.size,
-      sizePercent: totalSize > 0 ? (data.size / totalSize) * 100 : 0
-    }))
-    .sort((a, b) => {
-      if (dirSortMode === 'alpha') return a.dir.localeCompare(b.dir);
-      return b.size - a.size;
-    });
-
   return {
     totalFiles,
     totalSize,
     bySize,
     byExtension,
-    bySizeRange,
     byModifiedDate,
     byDirectoryCount,
-    byDirectorySize,
     earliestDate: earliest
       ? formatDate(new Date(earliest).toISOString())
       : 'N/A',
@@ -1017,7 +967,7 @@ function renderStats() {
 
   if (filteredItems.length === 0) {
     container.innerHTML =
-      '<div class="stats" style="text-align: center; padding: 2rem;">No data available matching your filters.</div>';
+      '<div class="stats stats-empty">No data available matching your filters.</div>';
     return;
   }
 
@@ -1051,22 +1001,6 @@ function renderStats() {
     )
     .join('');
 
-  const rangeRowsHtml = stats.bySizeRange
-    .map(
-      (item) => `
-    <tr>
-      <td>${escapeHtml(item.range)}</td>
-      <td>${item.count.toLocaleString()} (${item.countPercent.toFixed(1)}%)
-        <div class="stats-bar-container"><div class="stats-bar-fill count" style="width: ${item.countPercent}%"></div></div>
-      </td>
-      <td>${formatSize(item.size)} (${item.sizePercent.toFixed(1)}%)
-        <div class="stats-bar-container"><div class="stats-bar-fill size" style="width: ${item.sizePercent}%"></div></div>
-      </td>
-    </tr>
-  `
-    )
-    .join('');
-
   const timelineRowsHtml = stats.byModifiedDate
     .map((item) => {
       const percent =
@@ -1089,19 +1023,6 @@ function renderStats() {
       <td class="clickable-stat clickable-dir stats-cell-wrap" data-dir="${escapeHtml(item.dir)}"><code>${escapeHtml(item.dir)}</code></td>
       <td>${item.count.toLocaleString()} (${item.countPercent.toFixed(1)}%)
         <div class="stats-bar-container"><div class="stats-bar-fill count" style="width: ${item.countPercent}%"></div></div>
-      </td>
-    </tr>
-  `
-    )
-    .join('');
-
-  const dirSizeRowsHtml = stats.byDirectorySize
-    .map(
-      (item) => `
-    <tr>
-      <td class="clickable-stat clickable-dir stats-cell-wrap" data-dir="${escapeHtml(item.dir)}"><code>${escapeHtml(item.dir)}</code></td>
-      <td>${formatSize(item.size)} (${item.sizePercent.toFixed(1)}%)
-        <div class="stats-bar-container"><div class="stats-bar-fill size" style="width: ${item.sizePercent}%"></div></div>
       </td>
     </tr>
   `
@@ -1186,22 +1107,6 @@ function renderStats() {
       </div>
 
       <div class="stats-card">
-        <h3>By Size Range</h3>
-        <table class="stats-table">
-          <thead>
-            <tr>
-              <th class="stats-col-range">Range</th>
-              <th class="stats-col-count">Count</th>
-              <th class="stats-col-total-size">Total Size</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rangeRowsHtml || '<tr><td colspan="3">No files found</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="stats-card">
         <h3>Modification Timeline</h3>
         <div class="stats-card-scroll">
           <table class="stats-table">
@@ -1219,34 +1124,17 @@ function renderStats() {
       </div>
 
       <div class="stats-card">
-        <h3>All Directories (File Count) <span class="stats-card-hint">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirCount">${buildDirSortButtons(dirSortMode, 'dirCount')}</span></h3>
+        <h3>All Directories <span class="stats-card-hint">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirCount">${buildDirSortButtons(dirSortMode, 'dirCount')}</span></h3>
         <div class="stats-card-scroll">
           <table class="stats-table">
             <thead>
               <tr>
                 <th class="stats-col-dir">Directory</th>
-                <th class="stats-col-dir-stat">Files</th>
+                <th class="stats-col-count">Files</th>
               </tr>
             </thead>
             <tbody>
               ${dirCountRowsHtml || '<tr><td colspan="2">No directories found</td></tr>'}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="stats-card">
-        <h3>All Directories (Size Footprint) <span class="stats-card-hint">(click path to filter)</span> <span class="dir-sort-buttons" data-section="dirSize">${buildDirSortButtons(dirSortMode, 'dirSize')}</span></h3>
-        <div class="stats-card-scroll">
-          <table class="stats-table">
-            <thead>
-              <tr>
-                <th class="stats-col-dir">Directory</th>
-                <th class="stats-col-dir-stat">Total Size</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${dirSizeRowsHtml || '<tr><td colspan="2">No directories found</td></tr>'}
             </tbody>
           </table>
         </div>

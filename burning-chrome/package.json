@@ -1,6 +1,6 @@
 {
   "name": "burning-chrome",
-  "version": "1.0.123",
+  "version": "1.0.124",
   "type": "module",
   "scripts": {
     "build": "rollup -c"
