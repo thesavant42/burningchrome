@@ -201,6 +201,29 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
   margin-top: 0.75rem;
 }
 
+/* Saved reports toolbar row */
+.toolbar-row-saved {
+  margin-top: 0.5rem;
+}
+
+.toolbar-row-saved select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-size: 0.95rem;
+  cursor: pointer;
+  height: 42px;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.toolbar-row-saved select:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+
 .toolbar .spacer {
   flex: 1 1 auto;
   min-width: 0;
@@ -707,7 +730,6 @@ th.col-check button {
   color: var(--fg);
   font-weight: 700;
   font-size: 1rem;
-  pointer-events: none;
   cursor: default;
 }
 
@@ -715,6 +737,11 @@ th.col-check button {
 .hidden { display: none !important; }
 .wildcard { color: var(--orange); }
 .error { color: var(--red); }
+
+/* Page header gap */
+.stats {
+  margin-bottom: 0.75rem;
+}
 
 /* Debug log - fixed 2 rows visible, always shown */
 .debug-log {
