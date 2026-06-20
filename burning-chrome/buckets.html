@@ -20,12 +20,13 @@
         </span>
         <span id="title" class="page-title">Buckets</span>
         <span id="bucketStats"></span>
-        <span class="nav-separator">|</span>
-        <a href="landing.html">Back to Projects</a> |
-        <a id="navDomains" href="domains.html">Domains</a> |
-        <a id="navPoi" href="poi.html">POI</a> |
-        <a id="navGithub" href="github.html">GitHub</a> |
-        <a id="navDockerhub" href="dockerhub.html">DockerHub</a> |
+        <span class="nav-sep">|</span>
+        <a href="landing.html" class="nav-link">Back to Projects</a>
+        <span class="nav-sep">|</span>
+        <a id="navDomains" href="domains.html" class="nav-link">Domains</a>
+        <span class="nav-sep">|</span>
+        <a id="navDockerhub" href="dockerhub.html" class="nav-link">DockerHub</a>
+        <span class="nav-sep">|</span>
         <a href="#" class="nav-active">Buckets</a>
       </div>
 
@@ -38,8 +39,6 @@
           class="toolbar-input toolbar-input-lg"
         />
         <button id="fetchBucket">Fetch Bucket</button>
-        <button id="importXmlBtn" class="toolbar-btn-inline">Import XML</button>
-        <input type="file" id="importXmlFile" accept=".xml" style="display: none;" />
         <span id="loadingStatus"></span>
         <span
           id="savedReportsContainer"
@@ -49,7 +48,9 @@
             <option value="">Saved Reports...</option>
           </select>
           <button id="deleteSavedReport" class="danger hidden">Delete</button>
-          <button id="exportAllReports" class="btn-action toolbar-btn-inline hidden">Export All</button>
+          <button id="exportAllReports" class="btn-action hidden">Export All</button>
+          <button id="importXmlBtn" class="btn-action hidden">Import XML</button>
+          <input type="file" id="importXmlFile" accept=".xml" style="display: none;" />
         </span>
       </div>
 
@@ -75,9 +76,10 @@
             <option value="zip">Export ZIP</option>
           </select>
         </div>
-        <span class="spacer"></span>
+      </div>
+
+      <div id="paginationTopRow" class="pagination-top-row hidden">
         <span id="paginationTop" class="pagination-inline"></span>
-        <span class="spacer"></span>
       </div>
 
       <div id="errorState" class="stats error hidden"></div>

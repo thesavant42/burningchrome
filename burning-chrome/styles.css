@@ -543,20 +543,27 @@ th.col-check button {
 .page-title {
   font-weight: 700;
   color: var(--pink);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
+}
+
+/* Nav links */
+.nav-link {
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 /* Nav separator */
-.nav-separator {
-  margin: 0 0.5rem;
+.nav-sep {
+  margin: 0 0.6rem;
   color: var(--comment);
+  font-size: 1.1rem;
 }
 
 /* Bucket stats count - prominent */
 #bucketStats {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--cyan);
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   margin-left: 0.75rem;
 }
 
@@ -583,13 +590,15 @@ th.col-check button {
 }
 
 .view-tabs-inline button {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
   border: 1px solid var(--comment);
   background: transparent;
   color: var(--comment);
   cursor: pointer;
   border-radius: 0;
+  height: 40px;
+  line-height: normal;
 }
 
 .view-tabs-inline button:first-child {
@@ -609,20 +618,34 @@ th.col-check button {
 
 /* Export dropdown */
 .export-dropdown-container select {
-  padding: 0.4rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--comment);
   border-radius: 4px;
   background: var(--bg-alt);
   color: var(--fg);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  height: 34px;
-  min-width: 140px;
+  height: 40px;
+  min-width: 150px;
 }
 
 .export-dropdown-container select:focus {
   outline: none;
   border-color: var(--purple);
+}
+
+/* Pagination top row - centered above table */
+.pagination-top-row {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+}
+
+.pagination-top-row .pagination-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Inline range info for title row */
@@ -1312,14 +1335,15 @@ th.sort-desc::after {
 
 /* --- Theme Select (used across all pages) --- */
 .theme-select {
-  padding: 0.15rem 0.3rem;
-  font-size: 0.7rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.9rem;
   background: var(--bg-alt);
   color: var(--fg);
   border: 1px solid var(--comment);
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   line-height: normal;
+  height: 40px;
 }
 
 .theme-select:focus {

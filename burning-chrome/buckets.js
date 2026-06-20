@@ -774,8 +774,10 @@ function renderTable() {
     // clear pagination controls when viewing stats
     const pagTop = document.getElementById('paginationTop');
     const pagBot = document.getElementById('paginationBottom');
+    const pagTopRow = document.getElementById('paginationTopRow');
     if (pagTop) pagTop.innerHTML = '';
     if (pagBot) pagBot.innerHTML = '';
+    if (pagTopRow) pagTopRow.classList.add('hidden');
   } else {
     pageItems.forEach((item) => {
       const tr = document.createElement('tr');
@@ -824,6 +826,10 @@ function renderTable() {
       },
       handlePageChange
     );
+
+    // Show the centered pagination top row
+    const pagTopRow = document.getElementById('paginationTopRow');
+    if (pagTopRow) pagTopRow.classList.remove('hidden');
 
     updateSortHeadersUI();
   }
