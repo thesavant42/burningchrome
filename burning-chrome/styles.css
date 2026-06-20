@@ -573,28 +573,29 @@ th.col-check button {
 /* Page title inline with nav */
 .page-title {
   font-weight: 700;
-  color: var(--pink);
   font-size: 1rem;
+  color: var(--fg);
 }
 
 /* Nav links */
 .nav-link {
   font-size: 1rem;
   font-weight: 500;
+  color: var(--fg);
 }
 
 /* Nav separator */
 .nav-sep {
   margin: 0 0.6rem;
-  color: var(--comment);
   font-size: 1rem;
+  color: var(--fg);
 }
 
 /* Bucket stats count - prominent */
 #bucketStats {
   font-weight: 700;
-  color: var(--cyan);
   font-size: 1rem;
+  color: var(--fg);
   margin-left: 0.75rem;
 }
 
@@ -703,8 +704,9 @@ th.col-check button {
 
 /* Active nav link (current page) */
 .nav-active {
-  color: var(--pink);
-  font-weight: 600;
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 1rem;
   pointer-events: none;
   cursor: default;
 }
