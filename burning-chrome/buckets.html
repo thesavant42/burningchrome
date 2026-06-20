@@ -18,15 +18,15 @@
             <option value="darkpro">Dark Pro</option>
           </select>
         </span>
-        <span id="title" class="page-title">Buckets</span> |
+        <span id="title" class="page-title">Buckets</span>
+        <span id="bucketStats"></span>
+        <span class="nav-separator">|</span>
         <a href="landing.html">Back to Projects</a> |
         <a id="navDomains" href="domains.html">Domains</a> |
         <a id="navPoi" href="poi.html">POI</a> |
         <a id="navGithub" href="github.html">GitHub</a> |
         <a id="navDockerhub" href="dockerhub.html">DockerHub</a> |
-        <a href="#" class="nav-active">Buckets</a> |
-        <a id="navCreds" href="creds.html">Creds</a>
-        <span id="bucketStats"></span>
+        <a href="#" class="nav-active">Buckets</a>
       </div>
 
       <div class="toolbar">
@@ -35,7 +35,7 @@
           id="bucketUrlInput"
           placeholder="Enter bucket URL (e.g. https://bucket.s3.amazonaws.com)..."
           autocomplete="off"
-          class="toolbar-input"
+          class="toolbar-input toolbar-input-lg"
         />
         <button id="fetchBucket">Fetch Bucket</button>
         <button id="importXmlBtn" class="toolbar-btn-inline">Import XML</button>
@@ -49,6 +49,7 @@
             <option value="">Saved Reports...</option>
           </select>
           <button id="deleteSavedReport" class="danger hidden">Delete</button>
+          <button id="exportAllReports" class="btn-action toolbar-btn-inline hidden">Export All</button>
         </span>
       </div>
 
@@ -58,40 +59,25 @@
           id="searchInput"
           placeholder="Filter keys (e.g. data -css -png)..."
           autocomplete="off"
+          class="toolbar-input toolbar-input-sm"
         />
-        <button
-          id="exportJson"
-          class="btn-action btn-export hidden"
-        >
-          Export JSON
-        </button>
-        <button
-          id="exportCsv"
-          class="btn-action btn-export hidden"
-        >
-          Export CSV
-        </button>
-        <button
-          id="exportWget"
-          class="btn-action btn-export hidden"
-        >
-          Export Wget URLs
-        </button>
-        <button
-          id="exportZip"
-          class="btn-action btn-export hidden"
-        >
-          Export ZIP
-        </button>
+        <div id="viewTabs" class="view-tabs view-tabs-inline hidden">
+          <button id="viewTableBtn" class="active">File List</button>
+          <button id="viewTreeBtn">Tree View</button>
+          <button id="viewStatsBtn">Bucket Stats</button>
+        </div>
+        <div class="export-dropdown-container hidden">
+          <select id="exportFormatSelect" title="Export format">
+            <option value="">Export...</option>
+            <option value="json">Export JSON</option>
+            <option value="csv">Export CSV</option>
+            <option value="wget">Export Wget URLs</option>
+            <option value="zip">Export ZIP</option>
+          </select>
+        </div>
         <span class="spacer"></span>
         <span id="paginationTop" class="pagination-inline"></span>
         <span class="spacer"></span>
-      </div>
-
-      <div id="viewTabs" class="view-tabs hidden view-tabs-container">
-        <button id="viewTableBtn" class="active">File List</button>
-        <button id="viewTreeBtn">Tree View</button>
-        <button id="viewStatsBtn">Bucket Stats</button>
       </div>
 
       <div id="errorState" class="stats error hidden"></div>

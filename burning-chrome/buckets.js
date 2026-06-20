@@ -217,11 +217,13 @@ async function loadBucketXml(url, xmlText, isImported = false) {
   const tableBtn = document.getElementById('viewTableBtn');
   const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
+  const viewTabsContainer = document.getElementById('viewTabs');
   const statsContainer = document.getElementById('statsContainer');
   const treeContainer = document.getElementById('treeContainer');
   if (tableBtn) tableBtn.classList.add('active');
   if (treeBtn) treeBtn.classList.remove('active');
   if (statsBtn) statsBtn.classList.remove('active');
+  if (viewTabsContainer) viewTabsContainer.classList.remove('hidden');
   if (statsContainer) statsContainer.classList.add('hidden');
   if (treeContainer) treeContainer.classList.add('hidden');
 
@@ -411,11 +413,13 @@ async function loadCachedBucket(url) {
   const tableBtn = document.getElementById('viewTableBtn');
   const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
+  const viewTabsContainer = document.getElementById('viewTabs');
   const statsContainer = document.getElementById('statsContainer');
   const treeContainer = document.getElementById('treeContainer');
   if (tableBtn) tableBtn.classList.add('active');
   if (treeBtn) treeBtn.classList.remove('active');
   if (statsBtn) statsBtn.classList.remove('active');
+  if (viewTabsContainer) viewTabsContainer.classList.remove('hidden');
   if (statsContainer) statsContainer.classList.add('hidden');
   if (treeContainer) treeContainer.classList.add('hidden');
 
@@ -754,20 +758,11 @@ function renderTable() {
     }
   }
 
-  const exportJsonBtn = document.getElementById('exportJson');
-  const exportCsvBtn = document.getElementById('exportCsv');
-  const exportWgetBtn = document.getElementById('exportWget');
-  const exportZipBtn = document.getElementById('exportZip');
+  const exportDropdown = document.querySelector('.export-dropdown-container');
   if (allItems.length > 0) {
-    exportJsonBtn.classList.remove('hidden');
-    exportCsvBtn.classList.remove('hidden');
-    exportWgetBtn.classList.remove('hidden');
-    exportZipBtn.classList.remove('hidden');
+    exportDropdown.classList.remove('hidden');
   } else {
-    exportJsonBtn.classList.add('hidden');
-    exportCsvBtn.classList.add('hidden');
-    exportWgetBtn.classList.add('hidden');
-    exportZipBtn.classList.add('hidden');
+    exportDropdown.classList.add('hidden');
   }
 
   // Build table rows
@@ -1158,6 +1153,7 @@ function switchTab(tabName) {
   const tableBtn = document.getElementById('viewTableBtn');
   const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
+  const viewTabsContainer = document.getElementById('viewTabs');
   const statsContainer = document.getElementById('statsContainer');
   const treeContainer = document.getElementById('treeContainer');
 
@@ -1165,12 +1161,14 @@ function switchTab(tabName) {
     if (tableBtn) tableBtn.classList.add('active');
     if (treeBtn) treeBtn.classList.remove('active');
     if (statsBtn) statsBtn.classList.remove('active');
+    if (viewTabsContainer) viewTabsContainer.classList.remove('hidden');
     if (statsContainer) statsContainer.classList.add('hidden');
     if (treeContainer) treeContainer.classList.add('hidden');
   } else if (tabName === 'tree') {
     if (tableBtn) tableBtn.classList.remove('active');
     if (treeBtn) treeBtn.classList.add('active');
     if (statsBtn) statsBtn.classList.remove('active');
+    if (viewTabsContainer) viewTabsContainer.classList.remove('hidden');
     if (statsContainer) statsContainer.classList.add('hidden');
     if (treeContainer) treeContainer.classList.remove('hidden');
     renderTreeView();
@@ -1178,6 +1176,7 @@ function switchTab(tabName) {
     if (tableBtn) tableBtn.classList.remove('active');
     if (treeBtn) treeBtn.classList.remove('active');
     if (statsBtn) statsBtn.classList.add('active');
+    if (viewTabsContainer) viewTabsContainer.classList.remove('hidden');
     if (statsContainer) statsContainer.classList.remove('hidden');
     if (treeContainer) treeContainer.classList.add('hidden');
   }
@@ -1278,15 +1277,22 @@ function setupEventListeners() {
     .getElementById('deleteSavedReport')
     .addEventListener('click', handleDeleteSavedReport);
 
-  // Export buttons
+  // Export dropdown
   document
-    .getElementById('exportJson')
-    .addEventListener('click', exportJsonData);
-  document.getElementById('exportCsv').addEventListener('click', exportCsvData);
+    .getElementById('exportFormatSelect')
+    .addEventListener('change', (e) => {
+      const format = e.target.value;
+      if (format === 'json') exportJsonData();
+      else if (format === 'csv') exportCsvData();
+      else if (format === 'wget') exportWgetData();
+      else if (format === 'zip') exportZipData();
+      e.target.value = ''; // Reset dropdown
+    });
+
+  // Export all saved reports
   document
-    .getElementById('exportWget')
-    .addEventListener('click', exportWgetData);
-  document.getElementById('exportZip').addEventListener('click', exportZipData);
+    .getElementById('exportAllReports')
+    .addEventListener('click', exportAllReports);
 
   // Sorting header click events
   ['thKey', 'thSize', 'thLastModified'].forEach((id) => {
@@ -1589,7 +1595,8 @@ async function loadSavedReportsList() {
     const cached = await getBucket(url);
     const option = document.createElement('option');
     option.value = url;
-    option.textContent = cached?.bucketName || url;
+    // Show bucket name + URL for easy identification
+    option.textContent = `${cached?.bucketName || url} — ${url}`;
     select.appendChild(option);
   }
 
@@ -1641,6 +1648,43 @@ async function handleDeleteSavedReport() {
 
   // Refresh list
   await loadSavedReportsList();
+}
+
+// Export all saved reports as a single JSON backup
+async function exportAllReports() {
+  const urls = await listBuckets();
+  if (urls.length === 0) {
+    alert('No saved reports to export.');
+    return;
+  }
+
+  const backup = {
+    exportedAt: new Date().toISOString(),
+    totalReports: urls.length,
+    reports: []
+  };
+
+  for (const url of urls) {
+    const cached = await getBucket(url);
+    if (cached) {
+      backup.reports.push({
+        url: cached.url,
+        bucketName: cached.bucketName,
+        savedAt: cached.savedAt,
+        itemCount: cached.items?.length || 0,
+        items: cached.items
+      });
+    }
+  }
+
+  const filename = `burningchrome-backup-${new Date().toISOString().split('T')[0]}.json`;
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {
+    type: 'application/json'
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
 }
 
 // Build a tree structure from flat item list

@@ -543,6 +543,86 @@ th.col-check button {
 .page-title {
   font-weight: 700;
   color: var(--pink);
+  font-size: 1.1rem;
+}
+
+/* Nav separator */
+.nav-separator {
+  margin: 0 0.5rem;
+  color: var(--comment);
+}
+
+/* Bucket stats count - prominent */
+#bucketStats {
+  font-weight: 600;
+  color: var(--cyan);
+  font-size: 0.95rem;
+  margin-left: 0.75rem;
+}
+
+/* Toolbar input sizes */
+.toolbar-input-lg {
+  width: 400px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  height: 38px;
+}
+
+.toolbar-input-sm {
+  width: 280px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  height: 34px;
+}
+
+/* Inline view tabs (secondary toolbar) */
+.view-tabs-inline {
+  display: flex;
+  gap: 0;
+  margin: 0 0.5rem;
+}
+
+.view-tabs-inline button {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--comment);
+  background: transparent;
+  color: var(--comment);
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.view-tabs-inline button:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.view-tabs-inline button:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+}
+
+.view-tabs-inline button.active {
+  background: var(--purple);
+  color: var(--bg);
+  border-color: var(--purple);
+}
+
+/* Export dropdown */
+.export-dropdown-container select {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--comment);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-size: 0.85rem;
+  cursor: pointer;
+  height: 34px;
+  min-width: 140px;
+}
+
+.export-dropdown-container select:focus {
+  outline: none;
+  border-color: var(--purple);
 }
 
 /* Inline range info for title row */
