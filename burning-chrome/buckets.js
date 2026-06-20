@@ -1762,7 +1762,7 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   let html = '';
   const indent = depth * 20;
   const icon = hasChildren ? (isExpanded ? '📂' : '📁') : '📁';
-  const toggle = hasChildren ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-toggle-placeholder"></span>';
+  const toggle = (hasChildren || hasFiles) ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-toggle-placeholder"></span>';
 
   html += `<div class="tree-node tree-row-indent" data-dir="${escapeHtml(nodeKey)}" style="--tree-indent: ${indent}px;">`;
   html += `<div class="tree-row">`;
