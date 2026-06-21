@@ -427,6 +427,11 @@ th.col-check button {
   text-decoration: none;
 }
 
+.bucket-action-btn {
+  width: 64px;
+  margin-right: 0;
+}
+
 /* Pagination controls */
 .pagination {
   display: flex;
@@ -1415,6 +1420,7 @@ th.sort-desc::after {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .page-header-spacer {
@@ -1445,6 +1451,44 @@ th.sort-desc::after {
 /* --- Toolbar section spacing --- */
 .toolbar-section {
   margin-left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 320px;
+  min-width: 260px;
+}
+
+.toolbar-row-1 {
+  flex-wrap: wrap;
+}
+
+.toolbar-section select {
+  flex: 1 1 260px;
+  min-width: 220px;
+}
+
+.toolbar-row-1 .toolbar-input-lg {
+  flex: 1 1 520px;
+  max-width: 720px;
+}
+
+.toolbar-row-2 {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.toolbar-row-2 .toolbar-input-sm {
+  flex: 1 1 640px;
+  width: auto;
+  min-width: 280px;
+}
+
+.toolbar-row-2 .view-tabs-inline {
+  margin-left: 0;
+}
+
+.toolbar-row-2 .export-dropdown-container {
+  margin-left: 0.25rem;
 }
 
 /* --- Export action buttons --- */
@@ -1606,6 +1650,3 @@ th.sort-desc::after {
 .progress-span {
   font-family: inherit;
 }
-
-
-

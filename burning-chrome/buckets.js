@@ -852,17 +852,17 @@ function renderTable() {
 
       if (isDir) {
         keyHtml = `<a href="#" class="directory-link" data-key="${escapeHtml(item.key)}">📁 ${escapeHtml(item.key)}</a>`;
-        actionHtml = `<a href="#" class="btn-action directory-zip-btn" data-key="${escapeHtml(item.key)}">ZIP</a>`;
+        actionHtml = `<a href="#" class="btn-action bucket-action-btn directory-zip-btn" data-key="${escapeHtml(item.key)}">ZIP</a>`;
       } else {
         keyHtml = `<a href="${downloadUrl}" target="_blank">${escapeHtml(item.key)}</a>`;
-        actionHtml = `<a href="${downloadUrl}" target="_blank" class="btn-action">Open</a>`;
+        actionHtml = `<a href="${downloadUrl}" target="_blank" class="btn-action bucket-action-btn">Open</a>`;
       }
 
       tr.innerHTML = `
         <td class="col-url">${keyHtml}</td>
         <td>${isDir ? '-' : formatSize(item.size)}</td>
         <td>${formatDate(item.lastModified)}</td>
-        <td>${actionHtml}</td>
+        <td class="col-actions">${actionHtml}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -1790,31 +1790,24 @@ function buildTreeStructure(items) {
         }
         current = current.children[part];
       }
-      current.fileCount++;
     } else {
       // It's a file - add to appropriate directory
       const parts = item.key.split('/').filter(Boolean);
       let current = root;
+      const ancestors = [root];
       for (let i = 0; i < parts.length - 1; i++) {
         const part = parts[i];
         if (!current.children[part]) {
           current.children[part] = { children: {}, files: [], dir: current.dir + part + '/', size: 0, fileCount: 0 };
         }
         current = current.children[part];
+        ancestors.push(current);
       }
       const fileName = parts[parts.length - 1];
       current.files.push({ name: fileName, ...item });
-      current.size += item.size || 0;
-      current.fileCount++;
-
-      // Update all parent directories
-      current = root;
-      for (const part of parts.slice(0, -1)) {
-        if (current.children[part]) {
-          current = current.children[part];
-          current.size += item.size || 0;
-          current.fileCount++;
-        }
+      for (const ancestor of ancestors) {
+        ancestor.size += item.size || 0;
+        ancestor.fileCount++;
       }
     }
   }

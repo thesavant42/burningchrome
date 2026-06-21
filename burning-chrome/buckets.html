@@ -9,29 +9,12 @@
   </head>
   <body>
     <div id="content">
-            <div class="stats">
-        <span class="page-header-spacer">
-          <select id="themeSelect" class="theme-select" title="Select theme">
-            <option value="dracula">Dracula</option>
-            <option value="tokyonight">Tokyo Night</option>
-            <option value="darkpro">Dark Pro</option>
-            <option value="vsdark">VS Dark</option>
-            <option value="vscodbg">VS Code BG</option>
-          </select>
-        </span>
-        <span id="title" class="page-title">Buckets</span>
-        <span id="bucketStats" class="bucket-name-display"></span>
-        <span class="nav-sep">|</span>
-        <a href="landing.html" class="nav-link">Back to Projects</a>
-        <span class="nav-sep">|</span>
-        <a id="navDomains" href="domains.html" class="nav-link">Domains</a>
-        <span class="nav-sep">|</span>
-        <a id="navDockerhub" href="dockerhub.html" class="nav-link">DockerHub</a>
-        <span class="nav-sep">|</span>
-        <a href="#" class="nav-active">Buckets</a>
-      </div>
+    <div class="stats page-header">
+      <span id="title" class="page-title">Buckets</span>
+      <span id="bucketStats" class="bucket-name-display"></span>
+    </div>
 
-      <div class="toolbar toolbar-row-1">
+    <div class="toolbar toolbar-row-1">
         <input
           type="text"
           id="bucketUrlInput"
@@ -41,7 +24,8 @@
         />
         <button id="fetchBucket">Fetch</button>
         <span id="loadingStatus"></span>
-        <span id="savedReportsContainer" class="toolbar-section">
+        <span class="spacer"></span>
+        <div id="savedReportsContainer" class="toolbar-section">
           <select id="savedReportsSelect" title="Saved reports" disabled>
             <option value="">Saved Reports...</option>
           </select>
@@ -49,7 +33,14 @@
           <button id="exportAllReports" class="btn-action" disabled>Backup All</button>
           <button id="importXmlBtn" class="btn-action">Import</button>
           <input type="file" id="importXmlFile" accept=".xml" style="display: none;" />
-        </span>
+        </div>
+        <select id="themeSelect" class="theme-select" title="Select theme">
+          <option value="dracula">Dracula</option>
+          <option value="tokyonight">Tokyo Night</option>
+          <option value="darkpro">Dark Pro</option>
+          <option value="vsdark">VS Dark</option>
+          <option value="vscodbg">VS Code BG</option>
+        </select>
       </div>
 
       <div class="toolbar secondary toolbar-row-2">
