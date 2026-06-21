@@ -9,7 +9,12 @@ import {
   cleanBucketUrl
 } from './lib/bucket-parser.js';
 import { renderPaginationControls } from './lib/bucket-pagination.js';
-import { saveBucket, getBucket, deleteBucket, listBuckets } from './lib/db.js';
+import {
+  saveBucket,
+  getBucket,
+  deleteBucket,
+  listBuckets
+} from './lib/db.js';
 
 let bucketName = '';
 let bucketUrl = ''; // Current bucket URL (for saving)
@@ -1738,39 +1743,98 @@ async function handleDeleteSavedReport() {
 
 // Export all saved reports as a single JSON backup
 async function exportAllReports() {
-  const urls = await listBuckets();
-  if (urls.length === 0) {
-    alert('No saved reports to export.');
-    return;
-  }
+  const loadingStatusEl = document.getElementById('loadingStatus');
+  const exportAllBtn = document.getElementById('exportAllReports');
 
-  const backup = {
-    exportedAt: new Date().toISOString(),
-    totalReports: urls.length,
-    reports: []
-  };
+  try {
+    if (loadingStatusEl) {
+      loadingStatusEl.textContent = 'Preparing backup...';
+    }
+    if (exportAllBtn) {
+      exportAllBtn.disabled = true;
+    }
 
-  for (const url of urls) {
-    const cached = await getBucket(url);
-    if (cached) {
-      backup.reports.push({
+    const urls = await listBuckets();
+    if (urls.length === 0) {
+      alert('No saved reports to export.');
+      if (loadingStatusEl) {
+        loadingStatusEl.textContent = '';
+      }
+      return;
+    }
+
+    const exportedAt = new Date().toISOString();
+    const chunks = [
+      `{"exportedAt":${JSON.stringify(exportedAt)},"totalReports":${urls.length},"reports":[`
+    ];
+
+    for (let i = 0; i < urls.length; i++) {
+      const cached = await getBucket(urls[i]);
+      if (!cached) {
+        continue;
+      }
+
+      if (loadingStatusEl) {
+        loadingStatusEl.textContent = `Preparing backup ${i + 1}/${urls.length}...`;
+      }
+
+      const report = {
         url: cached.url,
         bucketName: cached.bucketName,
         savedAt: cached.savedAt,
         itemCount: cached.items?.length || 0,
         items: cached.items
-      });
+      };
+
+      if (chunks.length > 1) {
+        chunks.push(',');
+      }
+      chunks.push(JSON.stringify(report));
+
+      // Yield periodically so large exports don't look hung.
+      if ((i + 1) % 5 === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+
+    chunks.push(']}');
+
+    const filename = `burningchrome-backup-${new Date().toISOString().split('T')[0]}.json`;
+    const blob = new Blob(chunks, {
+      type: 'application/json'
+    });
+
+    if (loadingStatusEl) {
+      loadingStatusEl.textContent = 'Starting download...';
+    }
+
+    const downloadUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+
+    if (loadingStatusEl) {
+      loadingStatusEl.textContent = 'Backup download started.';
+      setTimeout(() => {
+        if (loadingStatusEl.textContent === 'Backup download started.') {
+          loadingStatusEl.textContent = '';
+        }
+      }, 3000);
+    }
+  } catch (err) {
+    if (loadingStatusEl) {
+      loadingStatusEl.textContent = `Backup failed: ${err.message}`;
+    }
+  } finally {
+    if (exportAllBtn) {
+      exportAllBtn.disabled = false;
     }
   }
-
-  const filename = `burningchrome-backup-${new Date().toISOString().split('T')[0]}.json`;
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {
-    type: 'application/json'
-  });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
 }
 
 // Build a tree structure from flat item list
