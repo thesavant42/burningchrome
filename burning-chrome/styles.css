@@ -1622,11 +1622,17 @@ th.sort-desc::after {
   margin-right: 0.25rem;
   font-size: 0.7rem;
   color: var(--comment);
+  padding: 0.3rem;
+  min-width: 1.2rem;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
 }
 
-.tree-toggle-placeholder {
-  width: 1rem;
-  display: inline-block;
+.tree-toggle:hover {
+  background: rgba(102, 217, 239, 0.15);
 }
 
 .tree-row-indent {

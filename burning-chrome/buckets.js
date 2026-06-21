@@ -1938,8 +1938,8 @@ function getSortedDirs(node) {
 // Render a single tree node (recursive)
 function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   const sortedDirs = getSortedDirs(node);
-  const hasChildren = sortedDirs.length > 0;
   const hasFiles = node.files.length > 0;
+  const hasChildren = sortedDirs.length > 0 || hasFiles;
   const dirName = node.dir ? node.dir.replace(/\/$/, '') : 'Root';
   const isRoot = node.dir === '';
   
