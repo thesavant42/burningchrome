@@ -1656,6 +1656,7 @@ async function loadSavedReportsList() {
   const savedReportsContainer = document.getElementById(
     'savedReportsContainer'
   );
+  const exportAllBtn = document.getElementById('exportAllReports');
 
   if (!select) {
     return;
@@ -1684,8 +1685,14 @@ async function loadSavedReportsList() {
     }
 
     select.disabled = urls.length === 0;
+    if (exportAllBtn) {
+      exportAllBtn.disabled = urls.length === 0;
+    }
   } catch (err) {
     select.disabled = true;
+    if (exportAllBtn) {
+      exportAllBtn.disabled = true;
+    }
     showError(`Failed to load saved bucket reports: ${err.message}`);
   }
 }

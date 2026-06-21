@@ -41,16 +41,13 @@
         />
         <button id="fetchBucket">Fetch</button>
         <span id="loadingStatus"></span>
-        <span
-          id="savedReportsContainer"
-          class="hidden toolbar-section"
-        >
-          <select id="savedReportsSelect" title="Saved reports">
+        <span id="savedReportsContainer" class="toolbar-section">
+          <select id="savedReportsSelect" title="Saved reports" disabled>
             <option value="">Saved Reports...</option>
           </select>
           <button id="deleteSavedReport" class="danger hidden">Delete</button>
-          <button id="exportAllReports" class="btn-action hidden">Backup All</button>
-          <button id="importXmlBtn" class="btn-action hidden">Import</button>
+          <button id="exportAllReports" class="btn-action" disabled>Backup All</button>
+          <button id="importXmlBtn" class="btn-action">Import</button>
           <input type="file" id="importXmlFile" accept=".xml" style="display: none;" />
         </span>
       </div>
@@ -63,13 +60,13 @@
           autocomplete="off"
           class="toolbar-input toolbar-input-sm"
         />
-        <div id="viewTabs" class="view-tabs view-tabs-inline hidden">
+        <div id="viewTabs" class="view-tabs view-tabs-inline">
           <button id="viewTableBtn" class="active">File List</button>
-          <button id="viewTreeBtn">Tree View</button>
-          <button id="viewStatsBtn">Bucket Stats</button>
+          <button id="viewTreeBtn" disabled>Tree View</button>
+          <button id="viewStatsBtn" disabled>Bucket Stats</button>
         </div>
-        <div class="export-dropdown-container hidden">
-          <select id="exportFormatSelect" title="Export format">
+        <div class="export-dropdown-container">
+          <select id="exportFormatSelect" title="Export format" disabled>
             <option value="">Export...</option>
             <option value="json">JSON</option>
             <option value="csv">CSV</option>
