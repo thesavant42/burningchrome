@@ -1832,6 +1832,7 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   const sortedDirs = getSortedDirs(node);
   const hasChildren = sortedDirs.length > 0;
   const hasFiles = node.files.length > 0;
+  const isExpandable = hasChildren || hasFiles;
   const dirName = node.dir ? node.dir.replace(/\/$/, '') : 'Root';
   const isRoot = node.dir === '';
   
@@ -1841,8 +1842,8 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
 
   let html = '';
   const indent = depth * 20;
-  const icon = hasChildren ? (isExpanded ? '📂' : '📁') : '📁';
-  const toggle = hasChildren ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-toggle-placeholder"></span>';
+  const icon = isExpandable ? (isExpanded ? '📂' : '📁') : '📁';
+  const toggle = isExpandable ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-toggle-placeholder"></span>';
 
   html += `<div class="tree-node tree-row-indent" data-dir="${escapeHtml(nodeKey)}" style="--tree-indent: ${indent}px;">`;
   html += `<div class="tree-row">`;
