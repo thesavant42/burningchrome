@@ -102,6 +102,51 @@
   --yellow: #dcdcaa;
 }
 
+:root.theme-houston {
+  /* Houston-inspired neon cool palette */
+  --bg: #0e1222;
+  --bg-alt: #1a2036;
+  --fg: #d7e7ff;
+  --comment: #7f92ba;
+  --cyan: #66e7ff;
+  --green: #7af2c6;
+  --orange: #ffb57b;
+  --pink: #ff8ad8;
+  --purple: #8d85ff;
+  --red: #ff7395;
+  --yellow: #ffe08c;
+}
+
+:root.theme-dokiasuna {
+  /* Doki Asuna-inspired pink-violet palette */
+  --bg: #1b1a2b;
+  --bg-alt: #26243d;
+  --fg: #f5edff;
+  --comment: #9d92b8;
+  --cyan: #7de9ff;
+  --green: #9cf2a7;
+  --orange: #ffb489;
+  --pink: #ff79c6;
+  --purple: #c49dff;
+  --red: #ff76a3;
+  --yellow: #ffd88f;
+}
+
+:root.theme-dokirory {
+  /* Doki Rory-inspired dark crimson palette (matched to saved SVG) */
+  --bg: #141417;
+  --bg-alt: #161619;
+  --fg: #f2edf0;
+  --comment: #9e8a90;
+  --cyan: #d6d9e7;
+  --green: #df8c96;
+  --orange: #d49a7b;
+  --pink: #b53241;
+  --purple: #b7a4c8;
+  --red: #8b2b36;
+  --yellow: #e1bf9f;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
