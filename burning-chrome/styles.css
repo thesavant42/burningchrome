@@ -8,6 +8,7 @@
 
 :root {
   /* Component sizes */
+  --toolbar-control-height: 42px;
   --checkbox-size: 16px;
   --btn-icon-size: 24px;
   --btn-icon-margin: 2px;
@@ -127,7 +128,8 @@ a:hover { color: var(--green); text-decoration: underline; }
 
 .toolbar input[type="text"] {
   width: 250px;
-  padding: 0.4rem 0.75rem;
+  padding: 0 0.75rem;
+  height: var(--toolbar-control-height);
   border: 1px solid var(--comment);
   border-radius: 4px;
   background: var(--bg-alt);
@@ -144,7 +146,8 @@ a:hover { color: var(--green); text-decoration: underline; }
 }
 
 .toolbar button {
-  padding: 0.5rem 1rem;
+  height: var(--toolbar-control-height);
+  padding: 0 1rem;
   border: 1px solid var(--purple);
   border-radius: 4px;
   background: transparent;
@@ -228,7 +231,8 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 }
 
 .toolbar select {
-  padding: 0.4rem 0.75rem;
+  padding: 0 0.75rem;
+  height: var(--toolbar-control-height);
   border: 1px solid var(--comment);
   border-radius: 4px;
   background: var(--bg-alt);
@@ -612,16 +616,16 @@ th.col-check button {
 /* Toolbar input sizes */
 .toolbar-input-lg {
   width: 450px;
-  padding: 0.5rem 0.75rem;
+  padding: 0 0.75rem;
   font-size: 0.95rem;
-  height: 42px;
+  height: var(--toolbar-control-height);
 }
 
 .toolbar-input-sm {
   width: 280px;
-  padding: 0.5rem 0.75rem;
+  padding: 0 0.75rem;
   font-size: 0.95rem;
-  height: 42px;
+  height: var(--toolbar-control-height);
 }
 
 /* Inline view tabs (secondary toolbar) */
@@ -632,14 +636,14 @@ th.col-check button {
 }
 
 .view-tabs-inline button {
-  padding: 0.5rem 1rem;
+  padding: 0 1rem;
   font-size: 0.95rem;
   border: 1px solid var(--comment);
   background: transparent;
   color: var(--comment);
   cursor: pointer;
   border-radius: 0;
-  height: 42px;
+  height: var(--toolbar-control-height);
   line-height: normal;
 }
 
@@ -670,14 +674,14 @@ th.col-check button {
 
 /* Export dropdown */
 .export-dropdown-container select {
-  padding: 0.5rem 0.75rem;
+  padding: 0 0.75rem;
   border: 1px solid var(--comment);
   border-radius: 4px;
   background: var(--bg-alt);
   color: var(--fg);
   font-size: 0.95rem;
   cursor: pointer;
-  height: 42px;
+  height: var(--toolbar-control-height);
   min-width: 150px;
 }
 
@@ -1399,7 +1403,7 @@ th.sort-desc::after {
 
 /* --- Theme Select (used across all pages) --- */
 .theme-select {
-  padding: 0.5rem 0.5rem;
+  padding: 0 0.5rem;
   font-size: 0.95rem;
   background: var(--bg-alt);
   color: var(--fg);
@@ -1407,7 +1411,18 @@ th.sort-desc::after {
   border-radius: 4px;
   cursor: pointer;
   line-height: normal;
-  height: 42px;
+  height: var(--toolbar-control-height);
+}
+
+#loadingStatus.page-loading-status {
+  margin-left: 0.75rem;
+  color: var(--yellow);
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-height: 1.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .theme-select:focus {
@@ -1454,8 +1469,8 @@ th.sort-desc::after {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex: 1 1 320px;
-  min-width: 260px;
+  flex: 1 1 520px;
+  min-width: 380px;
 }
 
 .toolbar-row-1 {
@@ -1463,8 +1478,13 @@ th.sort-desc::after {
 }
 
 .toolbar-section select {
-  flex: 1 1 260px;
-  min-width: 220px;
+  flex: 1 1 420px;
+  min-width: 340px;
+}
+
+#savedReportsSelect {
+  flex: 1 1 520px;
+  min-width: 420px;
 }
 
 .toolbar-row-1 .toolbar-input-lg {

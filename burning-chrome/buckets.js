@@ -857,17 +857,17 @@ function renderTable() {
 
       if (isDir) {
         keyHtml = `<a href="#" class="directory-link" data-key="${escapeHtml(item.key)}">📁 ${escapeHtml(item.key)}</a>`;
-        actionHtml = `<a href="#" class="btn-action bucket-action-btn directory-zip-btn" data-key="${escapeHtml(item.key)}">ZIP</a>`;
+        actionHtml = `<a href="#" class="btn-action directory-zip-btn" data-key="${escapeHtml(item.key)}">ZIP</a>`;
       } else {
         keyHtml = `<a href="${downloadUrl}" target="_blank">${escapeHtml(item.key)}</a>`;
-        actionHtml = `<a href="${downloadUrl}" target="_blank" class="btn-action bucket-action-btn">Open</a>`;
+        actionHtml = `<a href="${downloadUrl}" target="_blank" class="btn-action">Open</a>`;
       }
 
       tr.innerHTML = `
         <td class="col-url">${keyHtml}</td>
         <td>${isDir ? '-' : formatSize(item.size)}</td>
         <td>${formatDate(item.lastModified)}</td>
-        <td class="col-actions">${actionHtml}</td>
+        <td>${actionHtml}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -1364,10 +1364,10 @@ function setupEventListeners() {
       e.target.value = ''; // Reset dropdown
     });
 
-  // Export all saved reports
+  // Backup
   document
     .getElementById('exportAllReports')
-    .addEventListener('click', exportAllReports);
+    .addEventListener('click', backupDatabase);
 
   // Sorting header click events
   ['thKey', 'thSize', 'thLastModified'].forEach((id) => {
@@ -1661,19 +1661,18 @@ async function loadSavedReportsList() {
   const savedReportsContainer = document.getElementById(
     'savedReportsContainer'
   );
-  const exportAllBtn = document.getElementById('exportAllReports');
 
   if (!select) {
     return;
   }
 
-  if (savedReportsContainer) {
-    savedReportsContainer.classList.remove('hidden');
-  }
-
   // Clear existing options (except first placeholder)
   while (select.options.length > 1) {
     select.remove(1);
+  }
+
+  if (savedReportsContainer) {
+    savedReportsContainer.classList.remove('hidden');
   }
 
   try {
@@ -1684,20 +1683,13 @@ async function loadSavedReportsList() {
       const cached = await getBucket(url);
       const option = document.createElement('option');
       option.value = url;
-      // Show bucket name + URL for easy identification
       option.textContent = `${cached?.bucketName || url} — ${url}`;
       select.appendChild(option);
     }
 
     select.disabled = urls.length === 0;
-    if (exportAllBtn) {
-      exportAllBtn.disabled = urls.length === 0;
-    }
   } catch (err) {
     select.disabled = true;
-    if (exportAllBtn) {
-      exportAllBtn.disabled = true;
-    }
     showError(`Failed to load saved bucket reports: ${err.message}`);
   }
 }
@@ -1741,99 +1733,151 @@ async function handleDeleteSavedReport() {
   await loadSavedReportsList();
 }
 
-// Export all saved reports as a single JSON backup
-async function exportAllReports() {
-  const loadingStatusEl = document.getElementById('loadingStatus');
-  const exportAllBtn = document.getElementById('exportAllReports');
+// Backup all saved bucket reports as JSON, exporting one report at a time.
+async function backupDatabase() {
+  const btn = document.getElementById('exportAllReports');
+  const statusEl = document.getElementById('loadingStatus');
+  const startedAt = Date.now();
+  const date = new Date().toISOString().split('T')[0];
+  const filename = `burningchrome-backup-${date}.json`;
 
   try {
-    if (loadingStatusEl) {
-      loadingStatusEl.textContent = 'Preparing backup...';
-    }
-    if (exportAllBtn) {
-      exportAllBtn.disabled = true;
-    }
+    if (btn) btn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Loading saved reports...';
 
     const urls = await listBuckets();
     if (urls.length === 0) {
-      alert('No saved reports to export.');
-      if (loadingStatusEl) {
-        loadingStatusEl.textContent = '';
-      }
+      alert('No saved reports to back up.');
       return;
     }
 
+    if (typeof window.showSaveFilePicker !== 'function') {
+      throw new Error(
+        'Streaming backup is unavailable in this browser context (showSaveFilePicker missing).'
+      );
+    }
+
+    const fileHandle = await window.showSaveFilePicker({
+      suggestedName: filename,
+      types: [
+        {
+          description: 'JSON backup',
+          accept: { 'application/json': ['.json'] }
+        }
+      ]
+    });
+
+    const writable = await fileHandle.createWritable();
+
     const exportedAt = new Date().toISOString();
-    const chunks = [
-      `{"exportedAt":${JSON.stringify(exportedAt)},"totalReports":${urls.length},"reports":[`
-    ];
+    let writeBuffer = '';
+    const FLUSH_THRESHOLD = 512 * 1024;
+
+    const append = async (text) => {
+      writeBuffer += text;
+      if (writeBuffer.length >= FLUSH_THRESHOLD) {
+        await writable.write(writeBuffer);
+        writeBuffer = '';
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    };
+
+    await append('{"schema":"burningchrome-buckets-backup-v1","exportedAt":');
+    await append(JSON.stringify(exportedAt));
+    await append(',"totalReports":');
+    await append(String(urls.length));
+    await append(',"reports":[');
+
+    let exportedReports = 0;
+    let exportedItems = 0;
+    let firstReport = true;
+    const ITEM_BATCH_SIZE = 500;
 
     for (let i = 0; i < urls.length; i++) {
-      const cached = await getBucket(urls[i]);
-      if (!cached) {
+      const url = urls[i];
+      const report = await getBucket(url);
+      if (!report) {
         continue;
       }
 
-      if (loadingStatusEl) {
-        loadingStatusEl.textContent = `Preparing backup ${i + 1}/${urls.length}...`;
+      if (!firstReport) {
+        await append(',');
       }
+      firstReport = false;
 
-      const report = {
-        url: cached.url,
-        bucketName: cached.bucketName,
-        savedAt: cached.savedAt,
-        itemCount: cached.items?.length || 0,
-        items: cached.items
-      };
+      const reportUrl = report.url || url;
+      const reportName = report.bucketName || '';
+      const reportSavedAt = report.savedAt || null;
+      const items = Array.isArray(report.items) ? report.items : [];
 
-      if (chunks.length > 1) {
-        chunks.push(',');
-      }
-      chunks.push(JSON.stringify(report));
+      await append('{"url":');
+      await append(JSON.stringify(reportUrl));
+      await append(',"bucketName":');
+      await append(JSON.stringify(reportName));
+      await append(',"savedAt":');
+      await append(JSON.stringify(reportSavedAt));
+      await append(',"items":[');
 
-      // Yield periodically so large exports don't look hung.
-      if ((i + 1) % 5 === 0) {
+      let firstItem = true;
+      for (let j = 0; j < items.length; j += ITEM_BATCH_SIZE) {
+        const batch = items.slice(j, j + ITEM_BATCH_SIZE);
+        const batchJson = batch.map((item) => JSON.stringify(item)).join(',');
+        if (!firstItem && batchJson.length > 0) {
+          await append(',');
+        }
+        if (batchJson.length > 0) {
+          await append(batchJson);
+          firstItem = false;
+        }
+
+        exportedItems += batch.length;
+
+        if (statusEl) {
+          const processed = Math.min(j + batch.length, items.length);
+          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+          statusEl.textContent = `Backing up report ${i + 1}/${urls.length} (${processed}/${items.length} items) | total ${exportedItems.toLocaleString()} items | ${elapsed}s`;
+        }
+
+        // Yield each batch so Chrome can paint and avoid unresponsive warnings.
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
+
+      await append(']}');
+
+      exportedReports++;
+
+      if (statusEl) {
+        const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+        statusEl.textContent = `Backing up reports... ${exportedReports}/${urls.length} reports | ${exportedItems.toLocaleString()} items | ${elapsed}s`;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
-    chunks.push(']}');
-
-    const filename = `burningchrome-backup-${new Date().toISOString().split('T')[0]}.json`;
-    const blob = new Blob(chunks, {
-      type: 'application/json'
-    });
-
-    if (loadingStatusEl) {
-      loadingStatusEl.textContent = 'Starting download...';
+    await append(']}');
+    if (writeBuffer.length > 0) {
+      await writable.write(writeBuffer);
+      writeBuffer = '';
     }
+    await writable.close();
 
-    const downloadUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-
-    if (loadingStatusEl) {
-      loadingStatusEl.textContent = 'Backup download started.';
+    if (statusEl) {
+      // We do not keep the full backup in memory, so report counts and time only.
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+      statusEl.textContent = `Backup complete: ${exportedReports}/${urls.length} reports (${exportedItems.toLocaleString()} items) saved to ${filename} in ${elapsed}s`;
       setTimeout(() => {
-        if (loadingStatusEl.textContent === 'Backup download started.') {
-          loadingStatusEl.textContent = '';
-        }
-      }, 3000);
+        statusEl.textContent = '';
+      }, 5000);
     }
   } catch (err) {
-    if (loadingStatusEl) {
-      loadingStatusEl.textContent = `Backup failed: ${err.message}`;
+    if (err && err.name === 'AbortError') {
+      if (statusEl) statusEl.textContent = 'Backup cancelled.';
+      return;
     }
+    console.error('Backup failed:', err);
+    if (statusEl) statusEl.textContent = `Backup failed: ${err.message}`;
   } finally {
-    if (exportAllBtn) {
-      exportAllBtn.disabled = false;
-    }
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -1854,24 +1898,31 @@ function buildTreeStructure(items) {
         }
         current = current.children[part];
       }
+      current.fileCount++;
     } else {
       // It's a file - add to appropriate directory
       const parts = item.key.split('/').filter(Boolean);
       let current = root;
-      const ancestors = [root];
       for (let i = 0; i < parts.length - 1; i++) {
         const part = parts[i];
         if (!current.children[part]) {
           current.children[part] = { children: {}, files: [], dir: current.dir + part + '/', size: 0, fileCount: 0 };
         }
         current = current.children[part];
-        ancestors.push(current);
       }
       const fileName = parts[parts.length - 1];
       current.files.push({ name: fileName, ...item });
-      for (const ancestor of ancestors) {
-        ancestor.size += item.size || 0;
-        ancestor.fileCount++;
+      current.size += item.size || 0;
+      current.fileCount++;
+
+      // Update all parent directories
+      current = root;
+      for (const part of parts.slice(0, -1)) {
+        if (current.children[part]) {
+          current = current.children[part];
+          current.size += item.size || 0;
+          current.fileCount++;
+        }
       }
     }
   }
@@ -1889,7 +1940,6 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   const sortedDirs = getSortedDirs(node);
   const hasChildren = sortedDirs.length > 0;
   const hasFiles = node.files.length > 0;
-  const isExpandable = hasChildren || hasFiles;
   const dirName = node.dir ? node.dir.replace(/\/$/, '') : 'Root';
   const isRoot = node.dir === '';
   
@@ -1899,8 +1949,8 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
 
   let html = '';
   const indent = depth * 20;
-  const icon = isExpandable ? (isExpanded ? '📂' : '📁') : '📁';
-  const toggle = isExpandable ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-toggle-placeholder"></span>';
+  const icon = hasChildren ? (isExpanded ? '📂' : '📁') : '📁';
+  const toggle = hasChildren ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-toggle-placeholder"></span>';
 
   html += `<div class="tree-node tree-row-indent" data-dir="${escapeHtml(nodeKey)}" style="--tree-indent: ${indent}px;">`;
   html += `<div class="tree-row">`;

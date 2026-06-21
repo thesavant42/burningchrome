@@ -109,3 +109,31 @@ export async function listBuckets() {
   const db = await dbPromise;
   return db.getAllKeys('buckets');
 }
+
+export async function getDatabaseSummary() {
+  const db = await dbPromise;
+  const stores = Array.from(db.objectStoreNames);
+  const counts = {};
+  let totalRecords = 0;
+  const tx = db.transaction(stores, 'readonly');
+  const countEntries = await Promise.all(
+    stores.map(async (storeName) => [storeName, await tx.objectStore(storeName).count()])
+  );
+
+  await tx.done;
+
+  for (const [storeName, count] of countEntries) {
+    counts[storeName] = count;
+    totalRecords += count;
+  }
+
+  return {
+    name: db.name,
+    version: db.version,
+    stores,
+    counts,
+    totalRecords
+  };
+}
+
+

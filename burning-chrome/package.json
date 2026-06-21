@@ -1,6 +1,6 @@
 {
   "name": "burning-chrome",
-  "version": "1.1.2",
+  "version": "1.1.19",
   "type": "module",
   "scripts": {
     "build": "rollup -c"
@@ -12,6 +12,8 @@
     "rollup": "^4.53.5"
   },
   "dependencies": {
+    "dexie": "^4.4.4",
+    "dexie-export-import": "^4.4.0",
     "idb": "^8.0.3",
     "idb-keyval": "^6.2.1",
     "jszip": "^3.10.1",
