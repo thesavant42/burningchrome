@@ -28,6 +28,39 @@ let dirSortMode = 'count';
 let _viewMode = false;
 let currentTab = 'table';
 
+function updateDataDependentControls() {
+  const hasBucketData = allItems.length > 0;
+  const searchInput = document.getElementById('searchInput');
+  const viewTabs = document.getElementById('viewTabs');
+  const tableBtn = document.getElementById('viewTableBtn');
+  const treeBtn = document.getElementById('viewTreeBtn');
+  const statsBtn = document.getElementById('viewStatsBtn');
+  const exportContainer = document.querySelector('.export-dropdown-container');
+  const exportSelect = document.getElementById('exportFormatSelect');
+
+  if (searchInput) {
+    searchInput.disabled = !hasBucketData;
+  }
+  if (viewTabs) {
+    viewTabs.classList.remove('hidden');
+  }
+  if (tableBtn) {
+    tableBtn.disabled = false;
+  }
+  if (treeBtn) {
+    treeBtn.disabled = !hasBucketData;
+  }
+  if (statsBtn) {
+    statsBtn.disabled = !hasBucketData;
+  }
+  if (exportContainer) {
+    exportContainer.classList.remove('hidden');
+  }
+  if (exportSelect) {
+    exportSelect.disabled = !hasBucketData;
+  }
+}
+
 async function init() {
   // Set version number from manifest
   const version = chrome.runtime.getManifest().version;
@@ -68,9 +101,9 @@ async function init() {
   // Check if context menu passed bucket data
   await checkForStoredBucket();
 
-  // Show empty state initially if no data loaded
+  // Render the empty structured state if no data loaded
   if (allItems.length === 0) {
-    document.getElementById('emptyState').classList.remove('hidden');
+    renderTable();
   }
 }
 
@@ -737,44 +770,68 @@ function renderTable() {
   const table = document.getElementById('bucketTable');
   const emptyState = document.getElementById('emptyState');
   const viewTabs = document.getElementById('viewTabs');
+  const tbody = document.getElementById('bucketBody');
+  const exportDropdown = document.querySelector('.export-dropdown-container');
+  const pagTop = document.getElementById('paginationTop');
+  const pagBot = document.getElementById('paginationBottom');
+  const pagTopRow = document.getElementById('paginationTopRow');
 
-  if (allItems.length === 0) {
-    table.classList.add('hidden');
-    emptyState.classList.remove('hidden');
-    if (viewTabs) viewTabs.classList.add('hidden');
-  } else {
+  updateDataDependentControls();
+
+  if (emptyState) {
     emptyState.classList.add('hidden');
-    if (viewTabs) viewTabs.classList.remove('hidden');
-
-    if (currentTab === 'table') {
-      if (filteredItems.length === 0) {
-        table.classList.add('hidden');
-      } else {
-        table.classList.remove('hidden');
-      }
-    } else {
-      // Hide table for tree and stats views
-      table.classList.add('hidden');
-    }
+  }
+  if (viewTabs) {
+    viewTabs.classList.remove('hidden');
+  }
+  if (exportDropdown) {
+    exportDropdown.classList.remove('hidden');
   }
 
-  const exportDropdown = document.querySelector('.export-dropdown-container');
-  if (allItems.length > 0) {
-    exportDropdown.classList.remove('hidden');
+  if (allItems.length === 0) {
+    table.classList.remove('hidden');
+    tbody.innerHTML = `
+      <tr class="table-empty-row">
+        <td colspan="4" class="table-empty-state">
+          No bucket loaded yet. Enter a bucket URL above or open a saved report to populate this view.
+        </td>
+      </tr>
+    `;
+    if (pagTop) pagTop.innerHTML = '';
+    if (pagBot) pagBot.innerHTML = '';
+    if (pagTopRow) pagTopRow.classList.add('hidden');
+    return;
+  }
+
+  if (currentTab === 'table') {
+    table.classList.remove('hidden');
   } else {
-    exportDropdown.classList.add('hidden');
+    // Hide table for tree and stats views
+    table.classList.add('hidden');
   }
 
   // Build table rows
-  const tbody = document.getElementById('bucketBody');
   tbody.innerHTML = '';
+
+  if (currentTab === 'table' && filteredItems.length === 0) {
+    table.classList.remove('hidden');
+    tbody.innerHTML = `
+      <tr class="table-empty-row">
+        <td colspan="4" class="table-empty-state">
+          No bucket items match the current filter.
+        </td>
+      </tr>
+    `;
+    if (pagTop) pagTop.innerHTML = '';
+    if (pagBot) pagBot.innerHTML = '';
+    if (pagTopRow) pagTopRow.classList.add('hidden');
+    updateSortHeadersUI();
+    return;
+  }
 
   if (currentTab === 'stats') {
     renderStats();
     // clear pagination controls when viewing stats
-    const pagTop = document.getElementById('paginationTop');
-    const pagBot = document.getElementById('paginationBottom');
-    const pagTopRow = document.getElementById('paginationTopRow');
     if (pagTop) pagTop.innerHTML = '';
     if (pagBot) pagBot.innerHTML = '';
     if (pagTopRow) pagTopRow.classList.add('hidden');
@@ -826,9 +883,8 @@ function renderTable() {
       },
       handlePageChange
     );
-
     // Show the centered pagination top row
-    const pagTopRow = document.getElementById('paginationTopRow');
+    // Show the centered pagination top row
     if (pagTopRow) pagTopRow.classList.remove('hidden');
 
     updateSortHeadersUI();
@@ -1208,7 +1264,9 @@ function showError(message) {
   const errorEl = document.getElementById('errorState');
   errorEl.textContent = `Error: ${message}`;
   errorEl.classList.remove('hidden');
-  document.getElementById('bucketTable').classList.add('hidden');
+  if (allItems.length === 0) {
+    renderTable();
+  }
 }
 
 function hideError() {
@@ -1606,14 +1664,14 @@ async function loadSavedReportsList() {
     select.appendChild(option);
   }
 
-  // Show/hide the saved reports section based on whether we have saved reports
   const savedReportsContainer = document.getElementById(
     'savedReportsContainer'
   );
-  if (urls.length > 0) {
+  if (savedReportsContainer) {
     savedReportsContainer.classList.remove('hidden');
-  } else {
-    savedReportsContainer.classList.add('hidden');
+  }
+  if (select) {
+    select.disabled = urls.length === 0;
   }
 }
 

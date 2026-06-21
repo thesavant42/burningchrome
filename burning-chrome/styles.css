@@ -137,6 +137,12 @@ a:hover { color: var(--green); text-decoration: underline; }
 
 .toolbar input:focus { outline: none; border-color: var(--purple); }
 
+.toolbar input:disabled,
+.toolbar select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .toolbar button {
   padding: 0.5rem 1rem;
   border: 1px solid var(--purple);
@@ -647,6 +653,16 @@ th.col-check button {
   border-color: var(--purple);
 }
 
+.view-tabs-inline button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.view-tabs-inline button:disabled:hover {
+  background: transparent;
+  color: var(--comment);
+}
+
 /* Export dropdown */
 .export-dropdown-container select {
   padding: 0.5rem 0.75rem;
@@ -713,6 +729,18 @@ th.col-check button {
 .hidden { display: none !important; }
 .wildcard { color: var(--orange); }
 .error { color: var(--red); }
+
+.table-empty-row:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+.table-empty-state {
+  padding: 1rem 0.6rem;
+  color: var(--comment);
+  font-style: italic;
+  text-align: center;
+}
 
 /* Debug log - fixed 2 rows visible, always shown */
 .debug-log {
@@ -1578,7 +1606,6 @@ th.sort-desc::after {
 .progress-span {
   font-family: inherit;
 }
-
 
 
 
