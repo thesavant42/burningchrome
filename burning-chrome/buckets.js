@@ -77,12 +77,18 @@ async function init() {
   // Update nav links with project parameter if present
   if (projectName) {
     const projectParam = `?project=${encodeURIComponent(projectName)}`;
-    document.getElementById('navDomains').href = `domains.html${projectParam}`;
-    document.getElementById('navPoi').href = `poi.html${projectParam}`;
-    document.getElementById('navGithub').href = `github.html${projectParam}`;
-    document.getElementById('navDockerhub').href =
-      `dockerhub.html${projectParam}`;
-    document.getElementById('navCreds').href = `creds.html${projectParam}`;
+    const navTargets = {
+      navDomains: `domains.html${projectParam}`,
+      navPoi: `poi.html${projectParam}`,
+      navGithub: `github.html${projectParam}`,
+      navDockerhub: `dockerhub.html${projectParam}`,
+      navCreds: `creds.html${projectParam}`
+    };
+
+    Object.entries(navTargets).forEach(([id, href]) => {
+      const el = document.getElementById(id);
+      if (el) el.href = href;
+    });
   }
 
   // Setup event listeners
@@ -1646,32 +1652,41 @@ async function exportZipData() {
 
 // Load saved reports list from IndexedDB
 async function loadSavedReportsList() {
-  const urls = await listBuckets();
   const select = document.getElementById('savedReportsSelect');
+  const savedReportsContainer = document.getElementById(
+    'savedReportsContainer'
+  );
+
+  if (!select) {
+    return;
+  }
+
+  if (savedReportsContainer) {
+    savedReportsContainer.classList.remove('hidden');
+  }
 
   // Clear existing options (except first placeholder)
   while (select.options.length > 1) {
     select.remove(1);
   }
 
-  // Populate with saved bucket URLs
-  for (const url of urls) {
-    const cached = await getBucket(url);
-    const option = document.createElement('option');
-    option.value = url;
-    // Show bucket name + URL for easy identification
-    option.textContent = `${cached?.bucketName || url} — ${url}`;
-    select.appendChild(option);
-  }
+  try {
+    const urls = await listBuckets();
 
-  const savedReportsContainer = document.getElementById(
-    'savedReportsContainer'
-  );
-  if (savedReportsContainer) {
-    savedReportsContainer.classList.remove('hidden');
-  }
-  if (select) {
+    // Populate with saved bucket URLs
+    for (const url of urls) {
+      const cached = await getBucket(url);
+      const option = document.createElement('option');
+      option.value = url;
+      // Show bucket name + URL for easy identification
+      option.textContent = `${cached?.bucketName || url} — ${url}`;
+      select.appendChild(option);
+    }
+
     select.disabled = urls.length === 0;
+  } catch (err) {
+    select.disabled = true;
+    showError(`Failed to load saved bucket reports: ${err.message}`);
   }
 }
 

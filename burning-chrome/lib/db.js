@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'BurningChromeDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 const dbPromise = openDB(DB_NAME, DB_VERSION, {
   upgrade(db, oldVersion) {
@@ -19,6 +19,21 @@ const dbPromise = openDB(DB_NAME, DB_VERSION, {
     }
     // Version 2: Add buckets store
     if (oldVersion < 2) {
+      if (!db.objectStoreNames.contains('buckets')) {
+        db.createObjectStore('buckets');
+      }
+    }
+    // Version 3: Repair installs missing the buckets store after prior upgrades
+    if (oldVersion < 3) {
+      if (!db.objectStoreNames.contains('timemap')) {
+        db.createObjectStore('timemap');
+      }
+      if (!db.objectStoreNames.contains('crtsh')) {
+        db.createObjectStore('crtsh');
+      }
+      if (!db.objectStoreNames.contains('meta')) {
+        db.createObjectStore('meta');
+      }
       if (!db.objectStoreNames.contains('buckets')) {
         db.createObjectStore('buckets');
       }
