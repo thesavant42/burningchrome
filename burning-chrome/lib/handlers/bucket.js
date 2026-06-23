@@ -23,15 +23,18 @@ export async function handleBucketRequest(tab) {
   await chrome.tabs.create({ url: bucketsPageUrl });
 
   try {
-    const response = await fetch(bucketUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    const response = await chrome.runtime.sendMessage({
+      type: 'fetch-bucket',
+      url: bucketUrl
+    });
+
+    if (response.error) {
+      throw new Error(response.error);
     }
-    const xmlText = await response.text();
 
     await storage.set('bucketData', {
       url: bucketUrl,
-      xml: xmlText,
+      xml: response.xml,
       loading: false,
       error: null,
       timestamp: Date.now()

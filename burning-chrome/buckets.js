@@ -67,6 +67,7 @@ function updateDataDependentControls() {
 }
 
 async function init() {
+  console.log('[init] reached');
   // Set version number from manifest
   const version = chrome.runtime.getManifest().version;
   const versionEl = document.getElementById('extVersion');
@@ -99,8 +100,11 @@ async function init() {
   // Setup event listeners
   setupEventListeners();
 
-  // Load saved reports list
-  await loadSavedReportsList();
+  // Load saved reports list — defer past first paint so cursor returns immediately
+  setTimeout(() => {
+    console.log('[init] loadSavedReportsList deferred');
+    loadSavedReportsList();
+  }, 0);
 
   // Check for view mode (loading cached data from IndexedDB)
   if (viewUrl) {
@@ -119,6 +123,7 @@ async function init() {
 }
 
 async function checkForStoredBucket() {
+  console.log('[checkForStoredBucket] reached');
   const data = await storage.get('bucketData');
 
   if (!data) return;
@@ -162,6 +167,7 @@ async function checkForStoredBucket() {
 }
 
 async function fetchBucketFromUrl(url, forceFetch = false) {
+  console.log('[fetchBucketFromUrl] reached');
   // Clear previous state
   hideError();
 
@@ -453,6 +459,7 @@ async function loadBucketXml(url, xmlText, isImported = false) {
 
 // Load cached bucket data from IndexedDB (view mode)
 async function loadCachedBucket(url) {
+  console.log('[loadCachedBucket] reached');
   currentTab = 'table';
   const tableBtn = document.getElementById('viewTableBtn');
   const treeBtn = document.getElementById('viewTreeBtn');
@@ -1657,6 +1664,7 @@ async function exportZipData() {
 
 // Load saved reports list from IndexedDB
 async function loadSavedReportsList() {
+  console.log('[loadSavedReportsList] reached');
   const select = document.getElementById('savedReportsSelect');
   const savedReportsContainer = document.getElementById(
     'savedReportsContainer'
@@ -1692,18 +1700,17 @@ async function loadSavedReportsList() {
     select.disabled = true;
     showError(`Failed to load saved bucket reports: ${err.message}`);
   }
+  console.timeEnd('loadSavedReportsList-db');
+  console.log('[loadSavedReportsList] END');
 }
 
 // Handle saved report selection
 async function handleSavedReportChange(e) {
+  console.log('[handleSavedReportChange] reached');
   const url = e.target.value;
   if (!url) {
-    document.getElementById('deleteSavedReport').classList.add('hidden');
     return;
   }
-
-  // Show delete button when a report is selected
-  document.getElementById('deleteSavedReport').classList.remove('hidden');
 
   // Load the selected cached bucket
   await loadCachedBucket(url);
@@ -1711,6 +1718,7 @@ async function handleSavedReportChange(e) {
 
 // Handle delete saved report
 async function handleDeleteSavedReport() {
+  console.log('[handleDeleteSavedReport] reached');
   const select = document.getElementById('savedReportsSelect');
   const url = select.value;
 
@@ -1727,7 +1735,6 @@ async function handleDeleteSavedReport() {
 
   // Reset selection
   select.value = '';
-  document.getElementById('deleteSavedReport').classList.add('hidden');
 
   // Refresh list
   await loadSavedReportsList();

@@ -1463,6 +1463,10 @@ th.sort-desc::after {
   flex: none;
 }
 
+.delete-anchor {
+  margin-left: auto;
+}
+
 .toolbar-row-1 .toolbar-input-lg {
   flex: 1 1 520px;
   max-width: 720px;
