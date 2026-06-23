@@ -31,7 +31,7 @@ export async function handleBucketRequest(tab) {
 
     await storage.set('bucketData', {
       url: bucketUrl,
-      xml: xmlText
+      xml: xmlTextow()
     });
   } catch (error) {
     console.error('Bucket fetch failed:', error);
