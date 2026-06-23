@@ -14,17 +14,8 @@
   --btn-icon-margin: 2px;
   --col-check-gap: 13px;
 
-  /* Table column widths */
-  --col-check-width: calc(var(--checkbox-size) + var(--col-check-gap) + var(--btn-icon-size));
-  --col-date-width: 110px;
-  --col-status-width: 50px;
-  --col-mime-width: 64px;
-  --col-actions-width: 170px;
-
   /* Edit modal sizing */
-  --modal-wide-max-width: 90vw;
   --btn-icon-wide-width: 40px;
-  --edit-url-height: 180px;
 }
 
 :root, :root.theme-dracula {
@@ -519,14 +510,16 @@ th.col-check button {
   cursor: not-allowed;
 }
 
-.pagination-inline .page-info {
+.pagination-inline .page-info,
+.pagination .page-info {
   color: var(--cyan);
   font-size: 0.9rem;
   font-weight: 500;
   padding: 0 0.5rem;
 }
 
-.pagination-inline .page-jump {
+.pagination-inline .page-jump,
+.pagination .page-jump {
   width: 60px;
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--comment);
@@ -537,12 +530,28 @@ th.col-check button {
   text-align: center;
 }
 
-.pagination-inline .page-jump:focus {
+.pagination-inline .page-jump:focus,
+.pagination .page-jump:focus {
   outline: none;
   border-color: var(--purple);
 }
 
-.pagination-inline .range-info {
+.pagination-inline .page-jump::-webkit-outer-spin-button,
+.pagination-inline .page-jump::-webkit-inner-spin-button,
+.pagination .page-jump::-webkit-outer-spin-button,
+.pagination .page-jump::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pagination-inline .page-jump[type=number],
+.pagination .page-jump[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.pagination-inline .range-info,
+.pagination .range-info {
   color: var(--comment);
   font-size: 0.8rem;
   padding-left: 0.5rem;
@@ -568,46 +577,6 @@ th.col-check button {
 .pagination button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.pagination .page-info {
-  color: var(--cyan);
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 0 0.5rem;
-}
-
-.pagination .page-jump {
-  width: 60px;
-  padding: 0.4rem 0.5rem;
-  border: 1px solid var(--comment);
-  border-radius: 4px;
-  background: var(--bg-alt);
-  color: var(--fg);
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-.pagination .page-jump:focus {
-  outline: none;
-  border-color: var(--purple);
-}
-
-.pagination .page-jump::-webkit-outer-spin-button,
-.pagination .page-jump::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.pagination .page-jump[type=number] {
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.pagination .range-info {
-  color: var(--comment);
-  font-size: 0.8rem;
-  padding-left: 0.5rem;
 }
 
 .pagination-select-all {
@@ -841,24 +810,8 @@ th.col-check button {
   color: var(--fg);
 }
 
-/* CDX action button */
-.cdx-btn {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--cyan);
-  border-radius: 3px;
-  background: transparent;
-  color: var(--cyan);
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.cdx-btn:hover {
-  background: var(--cyan);
-  color: var(--bg);
-}
-
-/* Open action button */
+/* Action buttons sharing the same accent treatment */
+.cdx-btn,
 .open-btn {
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--cyan);
@@ -870,6 +823,7 @@ th.col-check button {
   cursor: pointer;
 }
 
+.cdx-btn:hover,
 .open-btn:hover {
   background: var(--cyan);
   color: var(--bg);
@@ -1351,23 +1305,6 @@ th.sort-desc::after {
 }
 
 /* Directory sort toggle buttons */
-.dir-sort-btn {
-  border-color: var(--comment);
-  color: var(--fg);
-  opacity: 0.7;
-}
-
-.dir-sort-btn:hover {
-  opacity: 1;
-}
-
-.dir-sort-btn.active {
-  background: var(--purple);
-  color: var(--bg);
-  border-color: var(--purple);
-  opacity: 1;
-}
-
 /* Tree View Styles */
 .tree-toolbar {
   display: flex;
@@ -1396,12 +1333,6 @@ th.sort-desc::after {
 
 .tree-row:hover {
   background: rgba(139, 233, 253, 0.08);
-}
-
-.tree-toggle {
-  font-size: 0.7rem;
-  color: var(--comment);
-  transition: transform 0.15s;
 }
 
 .tree-dir-name {
@@ -1489,7 +1420,7 @@ th.sort-desc::after {
 }
 
 .page-header-spacer {
-  float: right;
+  margin-left: auto;
 }
 
 /* --- Toolbar input sizing --- */
@@ -1528,7 +1459,8 @@ th.sort-desc::after {
 }
 
 #savedReportsSelect {
-   flex: 1 1 auto;
+  width: 200px;
+  flex: none;
 }
 
 .toolbar-row-1 .toolbar-input-lg {
