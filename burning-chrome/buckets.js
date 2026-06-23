@@ -1,4 +1,4 @@
-console.log('[BURNING-CHROME] buckets.js loaded');
+﻿console.log('[BURNING-CHROME] buckets.js loaded');
 import JSZip from 'jszip/dist/jszip.min.js';
 import { storage } from './lib/storage.js';
 import {
@@ -10,12 +10,7 @@ import {
   cleanBucketUrl
 } from './lib/bucket-parser.js';
 import { renderPaginationControls } from './lib/bucket-pagination.js';
-import {
-  saveBucket,
-  getBucket,
-  deleteBucket,
-  listBuckets
-} from './lib/db.js';
+import { saveBucket, getBucket, deleteBucket, listBuckets } from './lib/db.js';
 
 let bucketName = '';
 let bucketUrl = ''; // Current bucket URL (for saving)
@@ -35,7 +30,9 @@ let _viewMode = false;
 let currentTab = 'table';
 
 function updateDataDependentControls() {
-  console.log('[BURNING-CHROME] I am now calling updateDataDependentControls()');
+  console.log(
+    '[BURNING-CHROME] I am now calling updateDataDependentControls()'
+  );
   const hasBucketData = allItems.length > 0;
   const searchInput = document.getElementById('searchInput');
   const viewTabs = document.getElementById('viewTabs');
@@ -134,7 +131,7 @@ async function checkForStoredBucket() {
     const pollInterval = setInterval(async () => {
       const updatedData = await storage.get('bucketData');
 
-      if (!updatedData || updatedData.loading === false) {
+      if (!updatedData || updatedData.loading !== true) {
         clearInterval(pollInterval);
         document.getElementById('loadingStatus').textContent = '';
 
@@ -347,7 +344,9 @@ async function loadBucketXml(url, xmlText, isImported = false) {
       ` | ${allItemsList.length} items fetched`;
 
     if (isImported) {
-      console.log('[DEBUG] XML was imported locally, stopping next page fetch.');
+      console.log(
+        '[DEBUG] XML was imported locally, stopping next page fetch.'
+      );
       hasMore = false;
       break;
     }
@@ -1056,9 +1055,12 @@ function renderStats() {
       { key: 'count', label: 'Count' },
       { key: 'size', label: 'Size' }
     ];
-    return modes.map(m => 
-      `<button class="dir-sort-btn${m.key === currentMode ? ' active' : ''}" data-mode="${m.key}" data-section="${sectionId}">${m.label}</button>`
-    ).join('');
+    return modes
+      .map(
+        (m) =>
+          `<button class="dir-sort-btn${m.key === currentMode ? ' active' : ''}" data-mode="${m.key}" data-section="${sectionId}">${m.label}</button>`
+      )
+      .join('');
   };
 
   let extRowsHtml = stats.byExtension
@@ -1360,6 +1362,11 @@ function setupEventListeners() {
   document
     .getElementById('savedReportsSelect')
     .addEventListener('change', handleSavedReportChange);
+
+  // Lazy-load saved reports list on dropdown focus
+  document
+    .getElementById('savedReportsSelect')
+    .addEventListener('focus', loadSavedReportsList);
 
   // Delete saved report button
   document
@@ -1677,13 +1684,16 @@ const REPORTS_CACHE_TTL = 5000; // 5 second cache to avoid repeated IndexedDB re
 
 async function loadSavedReportsList() {
   console.log('[BURNING-CHROME] I am now calling loadSavedReportsList');
-  console.log('[BURNING-CHROME] loadSavedReportsList call stack:', new Error().stack);
+  console.log(
+    '[BURNING-CHROME] loadSavedReportsList call stack:',
+    new Error().stack
+  );
   const select = document.getElementById('savedReportsSelect');
   if (!select) return;
 
   // Use cache to avoid repeated IndexedDB reads
   const now = Date.now();
-  if (savedReportsCache && (now - savedReportsCacheTime) < REPORTS_CACHE_TTL) {
+  if (savedReportsCache && now - savedReportsCacheTime < REPORTS_CACHE_TTL) {
     populateDropdown(select, savedReportsCache);
     return;
   }
@@ -1922,7 +1932,13 @@ function buildTreeStructure(items) {
       let current = root;
       for (const part of parts) {
         if (!current.children[part]) {
-          current.children[part] = { children: {}, files: [], dir: current.dir + part + '/', size: 0, fileCount: 0 };
+          current.children[part] = {
+            children: {},
+            files: [],
+            dir: current.dir + part + '/',
+            size: 0,
+            fileCount: 0
+          };
         }
         current = current.children[part];
       }
@@ -1934,7 +1950,13 @@ function buildTreeStructure(items) {
       for (let i = 0; i < parts.length - 1; i++) {
         const part = parts[i];
         if (!current.children[part]) {
-          current.children[part] = { children: {}, files: [], dir: current.dir + part + '/', size: 0, fileCount: 0 };
+          current.children[part] = {
+            children: {},
+            files: [],
+            dir: current.dir + part + '/',
+            size: 0,
+            fileCount: 0
+          };
         }
         current = current.children[part];
       }
@@ -1970,7 +1992,7 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   const hasChildren = sortedDirs.length > 0 || hasFiles;
   const dirName = node.dir ? node.dir.replace(/\/$/, '') : 'Root';
   const isRoot = node.dir === '';
-  
+
   // Determine if this node should be expanded
   const nodeKey = node.dir || '__root__';
   const isExpanded = expandedDirs.has(nodeKey);
@@ -1978,7 +2000,9 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   let html = '';
   const indent = depth * 20;
   const icon = hasChildren ? (isExpanded ? '📂' : '📁') : '📁';
-  const toggle = hasChildren ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-toggle-placeholder"></span>';
+  const toggle = hasChildren
+    ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>`
+    : '<span class="tree-toggle-placeholder"></span>';
 
   html += `<div class="tree-node tree-row-indent" data-dir="${escapeHtml(nodeKey)}" style="--tree-indent: ${indent}px;">`;
   html += `<div class="tree-row">`;
@@ -1997,7 +2021,9 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
 
   if (hasFiles && isExpanded) {
     html += '<div class="tree-children">';
-    const sortedFiles = [...node.files].sort((a, b) => a.name.localeCompare(b.name));
+    const sortedFiles = [...node.files].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
     for (const file of sortedFiles) {
       const downloadUrl = buildDownloadUrl(window.bucketBaseUrl, file.key);
       html += `<div class="tree-file tree-file-indent" style="--tree-file-indent: ${indent + 24}px;">`;
@@ -2047,7 +2073,8 @@ function renderTreeView() {
   if (!container) return;
 
   if (filteredItems.length === 0) {
-    container.innerHTML = '<div class="stats stats-empty">No data available matching your filters.</div>';
+    container.innerHTML =
+      '<div class="stats stats-empty">No data available matching your filters.</div>';
     return;
   }
 
@@ -2064,7 +2091,7 @@ function renderTreeView() {
   `;
 
   // Add event listeners for tree toggles
-  container.querySelectorAll('.tree-toggle').forEach(el => {
+  container.querySelectorAll('.tree-toggle').forEach((el) => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       toggleDir(el.dataset.dir);
@@ -2072,7 +2099,7 @@ function renderTreeView() {
   });
 
   // Add event listeners for directory names (click to filter)
-  container.querySelectorAll('.tree-dir-name').forEach(el => {
+  container.querySelectorAll('.tree-dir-name').forEach((el) => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       const dir = el.dataset.dir;
