@@ -112,7 +112,7 @@ async function init() {
 
   // Render the empty structured state if no data loaded
   if (allItems.length === 0) {
-    renderTable();
+    renderTreeView();
   }
 }
 
@@ -253,19 +253,19 @@ function getNextPageUrl(
 
 async function loadBucketXml(url, xmlText, isImported = false) {
   console.log('[BURNING-CHROME] I am now calling loadBucketXml()');
-  currentTab = 'table';
+  currentTab = 'tree';
   const tableBtn = document.getElementById('viewTableBtn');
   const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
   const viewTabsContainer = document.getElementById('viewTabs');
   const statsContainer = document.getElementById('statsContainer');
   const treeContainer = document.getElementById('treeContainer');
-  if (tableBtn) tableBtn.classList.add('active');
-  if (treeBtn) treeBtn.classList.remove('active');
+  if (tableBtn) tableBtn.classList.remove('active');
+  if (treeBtn) treeBtn.classList.add('active');
   if (statsBtn) statsBtn.classList.remove('active');
   if (viewTabsContainer) viewTabsContainer.classList.remove('hidden');
   if (statsContainer) statsContainer.classList.add('hidden');
-  if (treeContainer) treeContainer.classList.add('hidden');
+  if (treeContainer) treeContainer.classList.remove('hidden');
 
   // Clean initial URL
   url = cleanBucketUrl(url);
@@ -453,19 +453,19 @@ async function loadBucketXml(url, xmlText, isImported = false) {
 async function loadCachedBucket(url) {
   console.log('[BURNING-CHROME] I am now calling loadCachedBucket()');
   console.log('[loadCachedBucket] reached');
-  currentTab = 'table';
+  currentTab = 'tree';
   const tableBtn = document.getElementById('viewTableBtn');
   const treeBtn = document.getElementById('viewTreeBtn');
   const statsBtn = document.getElementById('viewStatsBtn');
   const viewTabsContainer = document.getElementById('viewTabs');
   const statsContainer = document.getElementById('statsContainer');
   const treeContainer = document.getElementById('treeContainer');
-  if (tableBtn) tableBtn.classList.add('active');
-  if (treeBtn) treeBtn.classList.remove('active');
+  if (tableBtn) tableBtn.classList.remove('active');
+  if (treeBtn) treeBtn.classList.add('active');
   if (statsBtn) statsBtn.classList.remove('active');
   if (viewTabsContainer) viewTabsContainer.classList.remove('hidden');
   if (statsContainer) statsContainer.classList.add('hidden');
-  if (treeContainer) treeContainer.classList.add('hidden');
+  if (treeContainer) treeContainer.classList.remove('hidden');
 
   const cached = await getBucket(url);
 
@@ -588,7 +588,13 @@ function applyFilter(preservePage = false) {
   if (!preservePage) {
     currentPage = 1;
   }
-  renderTable();
+  if (currentTab === 'tree') {
+    renderTreeView();
+  } else if (currentTab === 'stats') {
+    renderStats();
+  } else {
+    renderTable();
+  }
 }
 
 function sortItems() {
