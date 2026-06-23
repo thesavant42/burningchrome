@@ -1,3 +1,4 @@
+console.log('[BURNING-CHROME] buckets.js loaded');
 import JSZip from 'jszip/dist/jszip.min.js';
 import { storage } from './lib/storage.js';
 import {
@@ -34,6 +35,7 @@ let _viewMode = false;
 let currentTab = 'table';
 
 function updateDataDependentControls() {
+  console.log('[BURNING-CHROME] I am now calling updateDataDependentControls()');
   const hasBucketData = allItems.length > 0;
   const searchInput = document.getElementById('searchInput');
   const viewTabs = document.getElementById('viewTabs');
@@ -67,6 +69,7 @@ function updateDataDependentControls() {
 }
 
 async function init() {
+  console.log('[BURNING-CHROME] I am now calling init()');
   console.log('[init] reached');
   // Set version number from manifest
   const version = chrome.runtime.getManifest().version;
@@ -100,12 +103,6 @@ async function init() {
   // Setup event listeners
   setupEventListeners();
 
-  // Load saved reports list — defer past first paint so cursor returns immediately
-  setTimeout(() => {
-    console.log('[init] loadSavedReportsList deferred');
-    loadSavedReportsList();
-  }, 0);
-
   // Check for view mode (loading cached data from IndexedDB)
   if (viewUrl) {
     _viewMode = true;
@@ -123,6 +120,7 @@ async function init() {
 }
 
 async function checkForStoredBucket() {
+  console.log('[BURNING-CHROME] I am now calling checkForStoredBucket()');
   console.log('[checkForStoredBucket] reached');
   const data = await storage.get('bucketData');
 
@@ -167,6 +165,7 @@ async function checkForStoredBucket() {
 }
 
 async function fetchBucketFromUrl(url, forceFetch = false) {
+  console.log('[BURNING-CHROME] I am now calling fetchBucketFromUrl()');
   console.log('[fetchBucketFromUrl] reached');
   // Clear previous state
   hideError();
@@ -216,6 +215,7 @@ function getNextPageUrl(
   nextMarker,
   lastKey
 ) {
+  console.log('[BURNING-CHROME] I am now calling getNextPageUrl()');
   const urlObj = new URL(currentUrl);
 
   // Strip S3/GCS subresource query parameters that interfere with ListObjects listing
@@ -255,6 +255,7 @@ function getNextPageUrl(
 }
 
 async function loadBucketXml(url, xmlText, isImported = false) {
+  console.log('[BURNING-CHROME] I am now calling loadBucketXml()');
   currentTab = 'table';
   const tableBtn = document.getElementById('viewTableBtn');
   const treeBtn = document.getElementById('viewTreeBtn');
@@ -451,6 +452,7 @@ async function loadBucketXml(url, xmlText, isImported = false) {
 
 // Load cached bucket data from IndexedDB (view mode)
 async function loadCachedBucket(url) {
+  console.log('[BURNING-CHROME] I am now calling loadCachedBucket()');
   console.log('[loadCachedBucket] reached');
   currentTab = 'table';
   const tableBtn = document.getElementById('viewTableBtn');
@@ -501,6 +503,7 @@ async function loadCachedBucket(url) {
 
 // Save current bucket report to IndexedDB (auto-save on fetch)
 async function saveBucketToCache() {
+  console.log('[BURNING-CHROME] I am now calling saveBucketToCache()');
   if (!bucketUrl || allItems.length === 0) {
     return;
   }
@@ -513,12 +516,10 @@ async function saveBucketToCache() {
   };
 
   await saveBucket(bucketUrl, data);
-
-  // Refresh saved reports list
-  await loadSavedReportsList();
 }
 
 function applyFilter(preservePage = false) {
+  console.log('[BURNING-CHROME] I am now calling applyFilter()');
   const query = document.getElementById('searchInput').value.trim();
 
   if (query) {
@@ -592,6 +593,7 @@ function applyFilter(preservePage = false) {
 }
 
 function sortItems() {
+  console.log('[BURNING-CHROME] I am now calling sortItems()');
   if (!sortField) return;
 
   filteredItems.sort((a, b) => {
@@ -615,6 +617,7 @@ function sortItems() {
 }
 
 function handleSort(field) {
+  console.log('[BURNING-CHROME] I am now calling handleSort()');
   if (sortField === field) {
     sortAsc = !sortAsc;
   } else {
@@ -625,6 +628,7 @@ function handleSort(field) {
 }
 
 function updateSortHeadersUI() {
+  console.log('[BURNING-CHROME] I am now calling updateSortHeadersUI()');
   const headers = {
     key: document.getElementById('thKey'),
     size: document.getElementById('thSize'),
@@ -641,12 +645,14 @@ function updateSortHeadersUI() {
 }
 
 async function base64ToUint8Array(base64) {
+  console.log('[BURNING-CHROME] I am now calling base64ToUint8Array()');
   const res = await fetch(`data:application/octet-stream;base64,${base64}`);
   const buf = await res.arrayBuffer();
   return new Uint8Array(buf);
 }
 
 async function downloadDirectory(dirKey) {
+  console.log('[BURNING-CHROME] I am now calling downloadDirectory()');
   const loadingStatusEl = document.getElementById('loadingStatus');
   loadingStatusEl.textContent = 'Scanning directory...';
 
@@ -765,6 +771,7 @@ async function downloadDirectory(dirKey) {
 }
 
 function renderTable() {
+  console.log('[BURNING-CHROME] I am now calling renderTable()');
   const totalPages = Math.max(
     1,
     Math.ceil(filteredItems.length / ROWS_PER_PAGE)
@@ -902,6 +909,7 @@ function renderTable() {
 }
 
 function calculateStats(items) {
+  console.log('[BURNING-CHROME] I am now calling calculateStats()');
   const files = items.filter(
     (item) => item.id !== 'virtual-dir' && !item.key.endsWith('/')
   );
@@ -1029,6 +1037,7 @@ function calculateStats(items) {
 }
 
 function renderStats() {
+  console.log('[BURNING-CHROME] I am now calling renderStats()');
   const container = document.getElementById('statsContainer');
   if (!container) return;
 
@@ -1211,6 +1220,7 @@ function renderStats() {
 }
 
 function filterAndShow(queryText) {
+  console.log('[BURNING-CHROME] I am now calling filterAndShow()');
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
     searchInput.value = queryText;
@@ -1220,6 +1230,7 @@ function filterAndShow(queryText) {
 }
 
 function switchTab(tabName) {
+  console.log('[BURNING-CHROME] I am now calling switchTab()');
   currentTab = tabName;
 
   const tableBtn = document.getElementById('viewTableBtn');
@@ -1257,6 +1268,7 @@ function switchTab(tabName) {
 }
 
 function handlePageChange(newPage) {
+  console.log('[BURNING-CHROME] I am now calling handlePageChange()');
   const totalPages = Math.max(
     1,
     Math.ceil(filteredItems.length / ROWS_PER_PAGE)
@@ -1271,6 +1283,7 @@ function handlePageChange(newPage) {
 }
 
 function showError(message) {
+  console.log('[BURNING-CHROME] I am now calling showError()');
   const errorEl = document.getElementById('errorState');
   errorEl.textContent = `Error: ${message}`;
   errorEl.classList.remove('hidden');
@@ -1280,10 +1293,12 @@ function showError(message) {
 }
 
 function hideError() {
+  console.log('[BURNING-CHROME] I am now calling hideError()');
   document.getElementById('errorState').classList.add('hidden');
 }
 
 function setupEventListeners() {
+  console.log('[BURNING-CHROME] I am now calling setupEventListeners()');
   const importXmlBtn = document.getElementById('importXmlBtn');
   const importXmlFile = document.getElementById('importXmlFile');
   if (importXmlBtn && importXmlFile) {
@@ -1654,46 +1669,60 @@ async function exportZipData() {
   }, 3000);
 }
 
-// Load saved reports list from IndexedDB
+console.log('[BURNING-CHROME] buckets.js loaded');
+// Load saved reports list from IndexedDB (lazy-loaded on dropdown focus)
+let savedReportsCache = null;
+let savedReportsCacheTime = 0;
+const REPORTS_CACHE_TTL = 5000; // 5 second cache to avoid repeated IndexedDB reads
+
 async function loadSavedReportsList() {
-  console.log('[loadSavedReportsList] reached');
+  console.log('[BURNING-CHROME] I am now calling loadSavedReportsList');
+  console.log('[BURNING-CHROME] loadSavedReportsList call stack:', new Error().stack);
   const select = document.getElementById('savedReportsSelect');
-  const savedReportsContainer = document.getElementById(
-    'savedReportsContainer'
-  );
+  if (!select) return;
 
-  if (!select) {
+  // Use cache to avoid repeated IndexedDB reads
+  const now = Date.now();
+  if (savedReportsCache && (now - savedReportsCacheTime) < REPORTS_CACHE_TTL) {
+    populateDropdown(select, savedReportsCache);
     return;
-  }
-
-  // Clear existing options (except first placeholder)
-  while (select.options.length > 1) {
-    select.remove(1);
-  }
-
-  if (savedReportsContainer) {
-    savedReportsContainer.classList.remove('hidden');
   }
 
   try {
     const urls = await listBuckets();
-
-    // Populate with saved bucket URLs
-    for (const url of urls) {
-      const cached = await getBucket(url);
-      const option = document.createElement('option');
-      option.value = url;
-      option.textContent = `${cached?.bucketName || url} — ${url}`;
-      select.appendChild(option);
-    }
-
-    select.disabled = urls.length === 0;
+    savedReportsCache = urls;
+    savedReportsCacheTime = now;
+    populateDropdown(select, urls);
   } catch (err) {
-    select.disabled = true;
-    showError(`Failed to load saved bucket reports: ${err.message}`);
+    console.error('[loadSavedReportsList] failed:', err);
   }
-  console.timeEnd('loadSavedReportsList-db');
-  console.log('[loadSavedReportsList] END');
+}
+
+function populateDropdown(select, urls) {
+  const currentValue = select.value;
+  select.innerHTML = '<option value="">Saved Reports...</option>';
+
+  if (!urls || urls.length === 0) {
+    select.disabled = true;
+    return;
+  }
+
+  // Sort by savedAt descending (newest first)
+  urls.sort().reverse();
+
+  urls.forEach((url) => {
+    const option = document.createElement('option');
+    option.value = url;
+    // Try to get bucket name from cached data for display
+    option.textContent = url;
+    select.appendChild(option);
+  });
+
+  select.disabled = false;
+  // Restore selection if still valid
+  if (currentValue && urls.includes(currentValue)) {
+    select.value = currentValue;
+  }
 }
 
 // Handle saved report selection
@@ -1729,7 +1758,7 @@ async function handleDeleteSavedReport() {
   select.value = '';
 
   // Refresh list
-  await loadSavedReportsList();
+  // await loadSavedReportsList();
 }
 
 // Backup all saved bucket reports as JSON, exporting one report at a time.

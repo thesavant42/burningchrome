@@ -1,0 +1,56 @@
+/* Row 1 */
+.toolbar-row-1 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid;
+}
+
+#bucketUrlInput {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px;
+}
+
+#fetchBucket {
+  padding: 8px 12px;
+}
+
+#savedReportsSelect {
+  padding: 8px;
+}
+
+#deleteSavedReport,
+#importXmlBtn,
+#exportAllReports {
+  padding: 8px 12px;
+}
+
+#themeSelect {
+  padding: 8px;
+}
+
+/* Row 2 */
+.toolbar.secondary.toolbar-row-2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+#searchInput {
+  flex: 1;
+  min-width: 300px;
+  padding: 8px;
+}
+
+#viewTabs button {
+  padding: 8px 12px;
+}
+
+#exportFormatSelect {
+  padding: 8px;
+}
