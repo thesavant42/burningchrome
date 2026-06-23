@@ -197,21 +197,13 @@ async function fetchBucketFromUrl(url, forceFetch = false) {
   document.getElementById('loadingStatus').textContent = 'Fetching...';
 
   try {
-    const response = await chrome.runtime.sendMessage({
-      type: 'fetch-bucket',
-      url: url
-    });
-
+    const response = await fetch(bucketUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const xmlText = await response.text();
     document.getElementById('loadingStatus').textContent = '';
-
-    if (response.error) {
-      showError(response.error);
-      return;
-    }
-
-    if (response.xml) {
-      await loadBucketXml(url, response.xml);
-    }
+    await loadBucketXml(url, xmlText);
   } catch (err) {
     document.getElementById('loadingStatus').textContent = '';
     showError(err.message);
