@@ -1713,7 +1713,6 @@ function populateDropdown(select, urls) {
   select.innerHTML = '<option value="">Saved Reports...</option>';
 
   if (!urls || urls.length === 0) {
-    select.disabled = true;
     return;
   }
 

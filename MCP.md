@@ -1,20 +1,11 @@
-# Building and Coding Standards
-
-## Building Effectively
-
-```sh
-Push-Location burning-chrome; npm run build
-```
-
 ## Searching Efficiently
 
 The project comes with `context7` mcp for updating docs, and `codebase-memory-mcp`, which indexes the code into a vector database. The project is indexed but must be updated with current project code.
 
 ### MCP codebase-memory-mcp
-
 - Always use the mcp, it's way fast and safer on your context budget
-- The project name is "C-Users-jbras-GitHub-burningchrome"
-  - (with dashes instead of slashes). Let me retry with the correct project name.
+- The project name is `C-Users-jbras-GitHub-burningchrome`
+    - **with dashes instead of slashes**. Let me retry with the correct project name.
 
 ---
 
@@ -25,7 +16,6 @@ Now I have a clear picture of the call graph. Let me trace the flow:
 
 - `init()` calls:
 
-```sh
     `setupEventListeners()` - setup UI
     `loadCachedBucket()` - if view mode
     `checkForStoredBucket()` - check for context menu data
@@ -40,13 +30,11 @@ Now I have a clear picture of the call graph. Let me trace the flow:
           `showError()` - show errors
           `loadBucketXml()` - load bucket XML
           `storage.remove()` - remove from storage
-```
 
-Now I need to trace where `loadSavedReportsList()` is actually invoked during initialization and understand the full call chain to identify the root cause.
+ - Now I need to trace where `loadSavedReportsList()` is actually invoked during initialization and understand the full call chain to identify the root cause.
 
 ### The Init Sequence Summary
-
-Looking at the init sequence, I see it calls `setupEventListeners()`, then `loadSavedReportsList()`, then `loadCachedBucket()`, then `checkForStoredBucket()`, and finally `renderTable()`.
+Looking at the init sequence, I see it calls `setupEventListeners()`, then `loadSavedReportsList()`, then `loadCachedBucket()`, then `checkForStoredBucket()`, and finally `renderTable()`. 
 
 - The problem is that `loadSavedReportsList()` is being called during `init`, which triggers `listBuckets()` and **causes a full table scan.**
 
@@ -54,16 +42,15 @@ Looking at the init sequence, I see it calls `setupEventListeners()`, then `load
 
  
  ### The Flow
-
- -The flow is:
-    - context menu sets `bucketData.loading = true` and opens `buckets.html`,
-        - which calls `checkForStoredBucket()`.
-        - It:
-            - detects loading is `true`,
+ The flow is: 
+    - context menu sets `bucketData.loading = true` and opens `buckets.html`, 
+        - which calls `checkForStoredBucket()`. 
+        - It 
+            - detects loading is `true`, 
             - starts polling every `500ms`,
             - and when complete,
                 - calls `loadBucketXml()`
-                    - which eventually triggers
+                    - which eventually triggers 
                         - `saveBucketToCache()` and
                         - `loadSavedReportsList()`.
 
