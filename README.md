@@ -22,8 +22,7 @@ The project comes with `context7` mcp for updating docs, and `codebase-memory-mc
 
 Now I have a clear picture of the call graph. Let me trace the flow:
 
-
-- `init()` calls:
+Firstly, `init()` calls:
 
 ```sh
     `setupEventListeners()` - setup UI
@@ -52,8 +51,7 @@ Looking at the init sequence, I see it calls `setupEventListeners()`, then `load
 
  I need to check if `setupEventListeners()` is where this is being invoked, and then trace through `checkForStoredBucket()` to see how it handles the polling and data loading.
 
- 
- ### The Flow
+### The Flow
 
  -The flow is:
     - context menu sets `bucketData.loading = true` and opens `buckets.html`,

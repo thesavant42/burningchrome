@@ -27,7 +27,7 @@ The project comes with `context7` mcp for updating docs, and `codebase-memory-mc
 
 Now I have a clear picture of the call graph. Let me trace the flow:
 
-
+```sh
 - `init()` calls:
 
     `setupEventListeners()` - setup UI
@@ -35,7 +35,6 @@ Now I have a clear picture of the call graph. Let me trace the flow:
     `checkForStoredBucket()` - check for context menu data
     `renderTable()` - render empty state
     `loadSavedReportsList()` is called by:
-
       `init()` - during page load (PROBLEM)
       `saveBucketToCache()` - after saving a bucket
       `handleDeleteSavedReport()` - after deleting a report
@@ -44,27 +43,29 @@ Now I have a clear picture of the call graph. Let me trace the flow:
           `showError()` - show errors
           `loadBucketXml()` - load bucket XML
           `storage.remove()` - remove from storage
+```
 
- - Now I need to trace where `loadSavedReportsList()` is actually invoked during initialization and understand the full call chain to identify the root cause.
+- Now I need to trace where `loadSavedReportsList()` is actually invoked during initialization and understand the full call chain to identify the root cause.
 
 ### The Init Sequence Summary
-Looking at the init sequence, I see it calls `setupEventListeners()`, then `loadSavedReportsList()`, then `loadCachedBucket()`, then `checkForStoredBucket()`, and finally `renderTable()`. 
+
+Looking at the init sequence, I see it calls `setupEventListeners()`, then `loadSavedReportsList()`, then `loadCachedBucket()`, then `checkForStoredBucket()`, and finally `renderTable()`.
 
 - The problem is that `loadSavedReportsList()` is being called during `init`, which triggers `listBuckets()` and **causes a full table scan.**
 
  I need to check if `setupEventListeners()` is where this is being invoked, and then trace through `checkForStoredBucket()` to see how it handles the polling and data loading.
 
- 
- ### The Flow
- The flow is: 
-    - context menu sets `bucketData.loading = true` and opens `buckets.html`, 
-        - which calls `checkForStoredBucket()`. 
-        - It 
-            - detects loading is `true`, 
+### The Flow
+
+The flow is:
+    - context menu sets `bucketData.loading = true` and opens `buckets.html`,
+        - which calls `checkForStoredBucket()`.
+        - It:
+            - detects loading is `true`,
             - starts polling every `500ms`,
             - and when complete,
                 - calls `loadBucketXml()`
-                    - which eventually triggers 
+                    - which eventually triggers
                         - `saveBucketToCache()` and
                         - `loadSavedReportsList()`.
 

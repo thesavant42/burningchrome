@@ -1450,7 +1450,8 @@ th.sort-desc::after {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex: 0 0 auto;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .toolbar-section select {
@@ -1458,7 +1459,7 @@ th.sort-desc::after {
 }
 
 #savedReportsSelect {
-  flex: 0;
+  flex: 1 1 0;
 }
 
 .delete-anchor {
