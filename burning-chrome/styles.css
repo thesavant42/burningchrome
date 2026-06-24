@@ -268,7 +268,7 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 
 .toolbar select {
   padding: 0 0.75rem;
-  height: var(--toolbar-control-height);
+  min-height: var(--toolbar-control-height);
   border: 1px solid var(--comment);
   border-radius: 4px;
   background: var(--bg-alt);
@@ -1447,11 +1447,10 @@ th.sort-desc::after {
 /* --- Toolbar section spacing --- */
 .toolbar-section {
   /*margin-left: 1rem;*/
+  flex: 1 0 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex: 1 1 0;
-  min-width: 0;
 }
 
 .toolbar-section select {
@@ -1459,7 +1458,8 @@ th.sort-desc::after {
 }
 
 #savedReportsSelect {
-  flex: 1 1 0;
+  flex: 1 1 auto;
+  min-width: 340px;  /* ← add this */
 }
 
 .delete-anchor {
