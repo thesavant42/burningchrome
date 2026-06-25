@@ -1369,10 +1369,20 @@ function setupEventListeners() {
     .getElementById('savedReportsSelect')
     .addEventListener('change', handleSavedReportChange);
 
-  // Lazy-load saved reports list on dropdown focus
+  // Lazy-load saved reports list on dropdown focus (fallback if preload not done)
   document
     .getElementById('savedReportsSelect')
     .addEventListener('focus', loadSavedReportsList);
+
+  // Kick off background preload on first page load
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('[PRELOAD] Starting saved reports background load...');
+    loadSavedReportsList().then(() => {
+      console.log('[PRELOAD] Saved reports background load complete.');
+    }).catch((err) => {
+      console.error('[PRELOAD] Saved reports background load failed:', err);
+    });
+  });
 
   // Delete saved report button
   document

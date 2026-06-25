@@ -181,9 +181,9 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 
 /* Secondary toolbar */
 .toolbar.secondary {
-  border-top: 1px solid var(--bg-alt);
-  padding-top: 0.75rem;
-  margin-top: 0.75rem;
+  /* border-top: 1px solid var(--bg-alt); */
+  /* padding-top: 0.75rem; */
+  /* margin-top: 0.75rem; */
 }
 
 .toolbar .spacer {
@@ -627,6 +627,11 @@ th.col-check button {
 }
 
 /* Export dropdown */
+.export-dropdown-container {
+  position: relative;
+  z-index: 10;
+}
+
 .export-dropdown-container select {
   padding: 0 0.75rem;
   border: 1px solid var(--comment);
@@ -637,6 +642,8 @@ th.col-check button {
   cursor: pointer;
   height: var(--toolbar-control-height);
   min-width: 150px;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .export-dropdown-container select:focus {
@@ -1399,6 +1406,7 @@ th.sort-desc::after {
 
 #savedReportsSelect {
   flex: 1 1 auto;
+  z-index: 9999;
 }
 
 .delete-anchor {
