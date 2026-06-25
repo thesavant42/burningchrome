@@ -1,0 +1,219 @@
+1.POST - https://18ugmq58o7.execute-api.us-east-1.amazonaws.com/dev/patient (Patient Register)
+
+{
+    "firstName": "sandeep.peddinti",
+    "lastName": "peddinti",
+    "dateOfBirth": 3381991232,
+    "postAddress": "Australia",
+    "emailAddress": "sandeep.peddinti@email.com",
+    "phone": "058717827",
+    "emergencyPhone": "058717824"
+}
+
+
+2.POST - https://localhost:3000/gp (Doctor Register)
+
+{
+    "firstname": "sandeep.peddinti",
+    "lastname": "peddinti",
+    "dob": 3381991232,
+    "regNumber": 123134,
+    "emailAddress": "sandeep.peddinti@email.com",
+    "postAddress": "somewhere st, adelaide, SA 5000",
+    "phoneNumbers": ["058717824", "089123821"],
+    "location": {
+        "type": "Point",
+        "coordinates": [-34.9281805, 138.5999312]
+    }
+}
+
+3. https://18ugmq58o7.execute-api.us-east-1.amazonaws.com/dev/patients (Patient List)
+
+[
+    {
+        "id": "5d8da769b832b60001bcf2d1",
+        "firstName": "John",
+        "lastName": "Doo",
+        "dateOfBirth": 1380513296781,
+        "postAddress": "Queenland, Aus",
+        "emailAddress": "john@somewhereelse.com",
+        "phone": "0123789273",
+        "emergencyPhone": "0132878273"
+    },
+    {
+        "id": "5d8dafe8b832b600018eeff8",
+        "firstName": "Peter",
+        "lastName": "Parker",
+        "dateOfBirth": 2380513296781,
+        "postAddress": "Queenland, Aus",
+        "emailAddress": "peter@somewhereelse.com",
+        "phone": "01231312441",
+        "emergencyPhone": "0234242324"
+    },
+    {
+        "id": "5d93198c02e5960001b8167b",
+        "firstName": "sandeep.peddinti",
+        "lastName": "peddinti",
+        "dateOfBirth": 3381991232,
+        "postAddress": "Australia",
+        "emailAddress": "sandeep.peddinti@email.com",
+        "phone": "058717827",
+        "emergencyPhone": "058717824"
+    }
+]
+
+4.https://18ugmq58o7.execute-api.us-east-1.amazonaws.com/dev/patients/search (Patient search)
+
+
+
+5.https://18ugmq58o7.execute-api.us-east-1.amazonaws.com/dev/gps (Doctors List)
+
+{
+    "body": [
+        {
+            "phoneNumbers": [
+                "058717824",
+                "089123821"
+            ],
+            "_id": "5d8c111d7753290007e0f152",
+            "uid": "12313131312",
+            "firstname": "afewfef",
+            "lastname": "opoera",
+            "dob": "1970-02-09T03:26:31.232Z",
+            "regNumber": 123134,
+            "emailAddress": "detor.h@mail.com",
+            "postAddress": "somewhere st, adelaide, SA 5000",
+            "location": {
+                "coordinates": [
+                    -34.9281805,
+                    138.5999312
+                ],
+                "_id": "5d8c111d7753290007e0f153",
+                "type": "Point"
+            },
+            "createdAt": "2019-09-26T01:15:09.709Z",
+            "updatedAt": "2019-09-26T01:15:09.709Z",
+            "__v": 0
+        },
+        {
+            "phoneNumbers": [
+                "058717824",
+                "089123821"
+            ],
+            "_id": "5d93169c3010b200076ba5bd",
+            "firstname": "peddinitisandeep",
+            "lastname": "peddinti",
+            "dob": "1970-02-09T03:26:31.232Z",
+            "regNumber": 123134,
+            "emailAddress": "someone@email.com",
+            "postAddress": "somewhere st, adelaide, SA 5000",
+            "location": {
+                "coordinates": [
+                    -34.9281805,
+                    138.5999312
+                ],
+                "_id": "5d93169c3010b200076ba5be",
+                "type": "Point"
+            },
+            "createdAt": "2019-10-01T09:04:28.304Z",
+            "updatedAt": "2019-10-01T09:04:28.304Z",
+            "__v": 0
+        },
+        {
+            "phoneNumbers": [
+                "058717824",
+                "089123821"
+            ],
+            "_id": "5d9315183010b200076ba5bb",
+            "firstname": "sandeep",
+            "lastname": "peddinti",
+            "dob": "1970-02-09T03:26:31.232Z",
+            "regNumber": 123134,
+            "emailAddress": "someone@email.com",
+            "postAddress": "somewhere st, adelaide, SA 5000",
+            "location": {
+                "coordinates": [
+                    -34.9281805,
+                    138.5999312
+                ],
+                "_id": "5d9315183010b200076ba5bc",
+                "type": "Point"
+            },
+            "createdAt": "2019-10-01T08:58:00.543Z",
+            "updatedAt": "2019-10-01T08:58:00.543Z",
+            "__v": 0
+        },
+        {
+            "phoneNumbers": [
+                "058717824",
+                "089123821"
+            ],
+            "_id": "5d93171b3010b200076ba5bf",
+            "firstname": "sandeep.peddinti",
+            "lastname": "peddinti",
+            "dob": "1970-02-09T03:26:31.232Z",
+            "regNumber": 123134,
+            "emailAddress": "sandeep.peddinti@email.com",
+            "postAddress": "somewhere st, adelaide, SA 5000",
+            "location": {
+                "coordinates": [
+                    -34.9281805,
+                    138.5999312
+                ],
+                "_id": "5d93171b3010b200076ba5c0",
+                "type": "Point"
+            },
+            "createdAt": "2019-10-01T09:06:35.805Z",
+            "updatedAt": "2019-10-01T09:06:35.805Z",
+            "__v": 0
+        },
+        {
+            "phoneNumbers": [
+                "058717824",
+                "089123821"
+            ],
+            "_id": "5d93136b3010b200076ba5b9",
+            "firstname": "someone",
+            "lastname": "family",
+            "dob": "1970-02-09T03:26:31.232Z",
+            "regNumber": 123134,
+            "emailAddress": "someone@email.com",
+            "postAddress": "somewhere st, adelaide, SA 5000",
+            "location": {
+                "coordinates": [
+                    -34.9281805,
+                    138.5999312
+                ],
+                "_id": "5d93136b3010b200076ba5ba",
+                "type": "Point"
+            },
+            "createdAt": "2019-10-01T08:50:51.605Z",
+            "updatedAt": "2019-10-01T08:50:51.605Z",
+            "__v": 0
+        },
+        {
+            "phoneNumbers": [
+                "0121412414",
+                "01123123123"
+            ],
+            "_id": "5d8db0629011e500070ffb5a",
+            "firstname": "Tom",
+            "lastname": "Sawyer",
+            "dob": "1970-01-04T19:09:59.912Z",
+            "regNumber": 89001231,
+            "emailAddress": "tom@mail.com",
+            "postAddress": "In the middle of nowhere, the USA",
+            "location": {
+                "coordinates": [
+                    -34.102904234,
+                    128.01204124
+                ],
+                "_id": "5d8db0629011e500070ffb5b",
+                "type": "Point"
+            },
+            "createdAt": "2019-09-27T06:46:58.394Z",
+            "updatedAt": "2019-09-27T06:46:58.394Z",
+            "__v": 0
+        }
+    ]
+}
