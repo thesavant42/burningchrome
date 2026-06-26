@@ -27,38 +27,21 @@ let dirSortMode = 'count';
 
 // View mode: when true, we're viewing cached data
 let _viewMode = false;
-let currentTab = 'table';
+let currentTab = 'tree';
 
 function updateDataDependentControls() {
   console.log(
     '[BURNING-CHROME] I am now calling updateDataDependentControls()'
   );
-  const hasBucketData = allItems.length > 0;
   const searchInput = document.getElementById('searchInput');
   const viewTabs = document.getElementById('viewTabs');
-  const tableBtn = document.getElementById('viewTableBtn');
-  const treeBtn = document.getElementById('viewTreeBtn');
-  const statsBtn = document.getElementById('viewStatsBtn');
   const exportContainer = document.querySelector('.export-dropdown-container');
-  const exportSelect = document.getElementById('exportFormatSelect');
 
-  if (searchInput) {
-    searchInput.disabled = !hasBucketData;
-  }
   if (viewTabs) {
     viewTabs.classList.remove('hidden');
   }
-  if (tableBtn) {
-    tableBtn.disabled = false;
-  }
-  if (statsBtn) {
-    statsBtn.disabled = !hasBucketData;
-  }
   if (exportContainer) {
     exportContainer.classList.remove('hidden');
-  }
-  if (exportSelect) {
-    exportSelect.disabled = !hasBucketData;
   }
 }
 
