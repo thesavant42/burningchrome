@@ -51,9 +51,6 @@ function updateDataDependentControls() {
   if (tableBtn) {
     tableBtn.disabled = false;
   }
-  if (treeBtn) {
-    treeBtn.disabled = !hasBucketData;
-  }
   if (statsBtn) {
     statsBtn.disabled = !hasBucketData;
   }
