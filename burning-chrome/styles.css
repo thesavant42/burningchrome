@@ -18,63 +18,19 @@
   --btn-icon-wide-width: 40px;
 }
 
-:root, :root.theme-dracula {
-  /* Dracula color palette */
-  --bg: #282a36;
-  --bg-alt: #44475a; 
-  --fg: #f8f8f2;
-  --comment: #ff79c6;
-  --cyan: #8be9fd;
-  --green: #50fa7b;
-  --orange: #ffb86c;
-  --pink: #ff79c6;
-  --purple: #bd93f9;
-  --red: #ff5555;
-  --yellow: #f1fa8c;
-}
-
-:root.theme-tokyonight {
-  /* Tokyo Night color palette */
-  --bg: #1a1b26;
-  --bg-alt: #24283c;
-  --fg: #c0caf5;
-  --comment: #565f89;
-  --cyan: #7dcfff;
-  --green: #9ece6a;
-  --orange: #ff9e64;
-  --pink: #bb9af3;
-  --purple: #9d7cd8;
-  --red: #f7768e;
-  --yellow: #e0af68;
-}
-
-:root.theme-dokiasuna {
-  /* Doki Asuna-inspired pink-violet palette */
-  --bg: #1b1a2b;
-  --bg-alt: #26243d;
-  --fg: #f5edff;
-  --comment: #9d92b8;
-  --cyan: #7de9ff;
-  --green: #9cf2a7;
-  --orange: #ffb489;
-  --pink: #ff79c6;
-  --purple: #c49dff;
-  --red: #ff76a3;
-  --yellow: #ffd88f;
-}
-
-:root.theme-dokirory {
+:root, :root.theme-dokirory {
+  /* KEEP */
   /* Doki Rory-inspired dark crimson palette (matched to saved SVG) */
   --bg: #141417;
   --bg-alt: #161619;
   --fg: #ffffff;
   --comment: #ffffff;
   --cyan: #fefeff;
-  --green: #66040f;
+  --green: #920314;
   --orange: #990a0a;
-  --pink: #680b16;
+  --pink: #aa0014;
   --purple: #ffffff;
-  --red: #8b0b1a;
+  --red: #a10f20;
   --yellow: #ffffff;
 }
 
@@ -181,9 +137,9 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
 
 /* Secondary toolbar */
 .toolbar.secondary {
-  /* border-top: 1px solid var(--bg-alt); */
-  /* padding-top: 0.75rem; */
-  /* margin-top: 0.75rem; */
+  border-top: 1px solid var(--bg-alt);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
 }
 
 .toolbar .spacer {
@@ -1411,6 +1367,7 @@ th.sort-desc::after {
 
 .delete-anchor {
   /*margin-left: auto; */
+  width:auto ;
 }
 
 .toolbar-row-1 .toolbar-input-lg {
