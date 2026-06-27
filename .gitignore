@@ -11,3 +11,4 @@
 docs/fixtures/
 **/fixtures/
 data
+**/*.pem

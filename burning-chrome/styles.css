@@ -1501,7 +1501,7 @@ th.sort-desc::after {
 
 /* --- Locate button --- */
 .btn-locate {
-  padding: 0.1rem 0.3rem;
+  padding: 0.2rem 0.5rem;
   font-size: 0.7rem;
   margin-left: 0.3rem;
 }

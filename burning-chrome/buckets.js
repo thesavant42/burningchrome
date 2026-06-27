@@ -1712,8 +1712,8 @@ function populateDropdown(select, urls) {
     return;
   }
 
-  // Sort by savedAt descending (newest first)
-  urls.sort().reverse();
+  // Sort alphabetically
+  urls.sort();
 
   urls.forEach((url) => {
     const option = document.createElement('option');
@@ -1993,7 +1993,7 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   const isExpanded = expandedDirs.has(nodeKey);
 
   let html = '';
-  const indent = depth * 20;
+  const indent = depth * 5;
   const icon = hasChildren ? (isExpanded ? '📂' : '📁') : '📁';
   const toggle = hasChildren
     ? `<span class="tree-toggle" data-dir="${escapeHtml(nodeKey)}">${isExpanded ? '▼' : '▶'}</span>`
