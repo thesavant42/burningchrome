@@ -133,6 +133,21 @@ async function checkForStoredBucket() {
   // Data is ready
   if (data.error) {
     showError(data.error);
+  } else if (data.cached) {
+    // Load from cache
+    console.log(`[DEBUG] Loading cached bucket data for: ${data.url}`);
+    await loadCachedBucket(data.url);
+
+    const loadingStatus = document.getElementById('loadingStatus');
+    if (loadingStatus) {
+      loadingStatus.innerHTML = `Loaded from cache. <button id="forceRefetchBtn" class="btn-action btn-loading-status">Refetch</button>`;
+      const refetchBtn = document.getElementById('forceRefetchBtn');
+      if (refetchBtn) {
+        refetchBtn.addEventListener('click', () => {
+          fetchBucketFromUrl(data.url, true);
+        });
+      }
+    }
   } else if (data.xml) {
     loadBucketXml(data.url, data.xml);
   }

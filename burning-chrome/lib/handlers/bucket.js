@@ -3,6 +3,7 @@
 
 import { storage } from '../storage.js';
 import { cleanBucketUrl } from '../bucket-parser.js';
+import { getBucket } from '../db.js';
 
 /**
  * Handle bucket request from context menu click
@@ -11,6 +12,25 @@ import { cleanBucketUrl } from '../bucket-parser.js';
 export async function handleBucketRequest(tab) {
   const bucketUrl = cleanBucketUrl(tab.url);
 
+  // Check cache first
+  const cached = await getBucket(bucketUrl);
+  if (cached && cached.items && cached.items.length > 0) {
+    console.log(`[DEBUG] Found cached bucket data for: ${bucketUrl}`);
+
+    await storage.set('bucketData', {
+      url: bucketUrl,
+      cached: true,
+      loading: false,
+      error: null,
+      timestamp: Date.now()
+    });
+
+    const bucketsPageUrl = chrome.runtime.getURL('buckets.html');
+    await chrome.tabs.create({ url: bucketsPageUrl });
+    return;
+  }
+
+  // No cache, proceed with fetch
   await storage.set('bucketData', {
     url: bucketUrl,
     xml: null,
