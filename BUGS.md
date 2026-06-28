@@ -1,29 +1,52 @@
-# Bugs
+# build agent blues
 
-## Bug # 1 - saved report selector cannot expand
 
-- Cannot expand `savedReportsSelect` when clicked, despite being filled with over 100 reports.
-- is constrained by parent container `savedReportsContainer`?
+this is directly from the last agent who died mysteriously and not suspiciously if you know whats good for you.
 
-![before the first click](/image-001 firstclick.png)
+## Agent babble
 
-If I try to use the dropdown, thw dropdown is hidden behind something in the parent container. The menu unfurls but only a sliver of 1 record is visible through the gap.
+The user wants me to finish creating a bundled .crx extension. I need to:
 
-However, if I then click the toolbar again, it will populate correctly and work.
+Read the full manifest to understand all files needed
+Copy ALL necessary files to dist/ (HTML files, icons, CSS, etc.)
+Package dist/ as a .crx file
 
-![Second Click is fine](/image-002 SECOND CLICK copy.png)
+The user is asking if I already copied all necessary files to dist/. Let me check what's in dist/ and what the manifest requires. I need to read the full manifest and check the dist/ directory contents.
 
-### Solution Plan
 
-- Remove whatever attribute prevents the menu from oepning.
-- Link to the Buckets html page from the extension button landing page
+The user is right to ask. I need to check what's actually in dist/ and what the manifest requires. Let me read the full manifest and check dist/.
 
----
+ 
 
-## Bug # 2 - Extension landing page
 
-- The extension landing page, which is accessed by clicking the extension icon, does not link to the buckets feature.
-- The only way to actually launch a bucket is to use the context menu:
-  - Right click -> select Burning Chrome -> import bucket xml.
-- The Theme selector is not consistent with the Buckets page, should be on the **RIGHT** side of the layout.
 
+
+Read [](file:///c%3A/Users/jbras/GitHub/burningchrome/burning-chrome/manifest.json)
+
+Read [](file:///c%3A/Users/jbras/GitHub/burningchrome/burning-chrome/dist)
+
+Now I can see the issue clearly. The manifest references:
+- `icons/icon16.png`, `icons/icon32.png`, etc. — these are NOT in dist/
+- The HTML files (buckets.html, config.html, creds.html, domains.html, github.html, landing.html, poi.html, report.html) are NOT in dist/
+
+The manifest only references the compiled JS files and icons. The HTML files are likely loaded as popups or side panels by the extension's action. Let me check if there are popup references or if the HTML files are loaded differently.
+
+Looking at the manifest, there's no `popup` field in the action section, so the HTML files might be loaded programmatically by the extension. But they still need to be in the extension directory for the extension to work.
+
+I need to copy:
+1. All icon files from `icons/` to `dist/icons/`
+2. All HTML files to `dist/`
+
+Let me update copy-manifest.js to also copy these files, or create a more comprehensive copy script.
+
+
+I'll modify the script to handle copying all the necessary assets — icons and HTML files — alongside the manifest.
+
+
+The manifest requires:
+- **Icons**: `icons/icon16.png`, `icons/icon32.png`, etc. — NOT in dist/
+- **HTML files**: buckets.html, config.html, creds.html, domains.html, github.html, landing.html, poi.html, report.html — NOT in dist/
+
+dist/ only has the compiled JS files and manifest.json. I need to copy icons and HTML files too.
+
+ 
