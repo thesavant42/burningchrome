@@ -131,7 +131,7 @@ a:hover { color: var(--green); text-decoration: underline; }
 
 /* Tables */
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--bg-alt); }
+th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid rgba(248, 248, 242, 0.1); }
 th { background: var(--bg-alt); color: var(--cyan); position: sticky; top: 0; }
 tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(--pink); }
 
@@ -223,6 +223,10 @@ tr:hover { background: rgba(255, 121, 198, 0.15); box-shadow: inset 3px 0 0 var(
   word-break: break-all;
   overflow-wrap: anywhere;
   white-space: normal;
+}
+/* Indent file paths (non-directories) for hierarchy clarity */
+#bucketBody td.col-url a:not(.directory-link) {
+  padding-left: 4ch;
 }
 .col-date { white-space: nowrap; }
 .col-status { text-align: center; }
@@ -355,6 +359,7 @@ th.col-check button {
   line-height: normal;
   box-sizing: border-box;
   text-align: center;
+  min-width: 56px;
 }
 
 .btn-action:hover {
