@@ -411,6 +411,29 @@ th.col-check button {
   cursor: not-allowed;
 }
 
+.pagination button {
+  padding: 0.4rem 0.75rem;
+  min-width: 36px;
+  border: 1px solid var(--purple);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--purple);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--purple);
+  color: var(--bg);
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
 .pagination-inline .page-info,
 .pagination .page-info {
   color: var(--cyan);
@@ -458,27 +481,7 @@ th.col-check button {
   padding-left: 0.5rem;
 }
 
-.pagination button {
-  padding: 0.4rem 0.75rem;
-  min-width: 36px;
-  border: 1px solid var(--purple);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--purple);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
 
-.pagination button:hover:not(:disabled) {
-  background: var(--purple);
-  color: var(--bg);
-}
-
-.pagination button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
 
 .pagination-select-all {
   display: flex;
@@ -1438,7 +1441,7 @@ th.sort-desc::after {
 .stats-col-range { width: 35%; }
 .stats-col-date-str { width: 40%; }
 .stats-col-files-modified { width: 60%; }
-.stats-col-dir { width: 60%; }yel
+.stats-col-dir { width: 60%; }
 .stats-col-dir-stat { width: 40%; }
 
 /* --- Stats table cell wrapping --- */

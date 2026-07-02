@@ -1,0 +1,171 @@
+{
+  "name": "codebase-memory-mcp",
+  "version": "0.8.1",
+  "description": "Fast code intelligence engine for AI coding agents — single static binary MCP server",
+  "homepage": "https://github.com/DeusData/codebase-memory-mcp",
+  "tools": [
+    {
+      "name": "index_repository",
+      "description": "Index a repository into the knowledge graph. Special mode 'cross-repo-intelligence': skip extraction, only match Routes/Channels across projects to create CROSS_HTTP_CALLS/CROSS_ASYNC_CALLS/CROSS_CHANNEL edges. Requires target_projects param.",
+      "parameters": {
+        "repo_path": "Path to the repository",
+        "mode": {
+          "type": "string",
+          "enum": ["full", "moderate", "fast", "cross-repo-intelligence"],
+          "default": "full"
+        },
+        "target_projects": {
+          "type": "array",
+          "items": "string",
+          "description": "Projects to search for cross-repo links. Use [\"*\"] for all indexed projects."
+        },
+        "persistence": {
+          "type": "boolean",
+          "default": false,
+          "description": "Write compressed artifact to .codebase-memory/graph.db.zst for team sharing."
+        }
+      },
+      "required": ["repo_path"]
+    },
+    {
+      "name": "list_projects",
+      "description": "List all indexed projects",
+      "parameters": {},
+      "required": []
+    },
+    {
+      "name": "index_status",
+      "description": "Get the indexing status of a project",
+      "parameters": {
+        "project": "Project name to check"
+      },
+      "required": ["project"]
+    },
+    {
+      "name": "delete_project",
+      "description": "Delete a project from the index",
+      "parameters": {
+        "project": "Project name to delete"
+      },
+      "required": ["project"]
+    },
+    {
+      "name": "search_graph",
+      "description": "Search the code knowledge graph for functions, classes, routes, and variables. Use INSTEAD OF grep/glob when finding code definitions, implementations, or relationships. Three search modes: (1) query for BM25 full-text search, (2) name_pattern for regex matching, (3) semantic_query for vector cosine search. Supports pagination via limit/offset.",
+      "parameters": {
+        "project": "Project to search",
+        "query": "Natural-language or keyword full-text search (BM25 with camelCase splitting)",
+        "name_pattern": "Regex pattern for exact name matching",
+        "label": "Filter by node label",
+        "file_pattern": "Glob filter on file paths",
+        "relationship": "Filter by relationship type",
+        "min_degree": "Minimum degree filter",
+        "max_degree": "Maximum degree filter",
+        "semantic_query": "Array of keywords for vector cosine search",
+        "limit": "Max results per call. Default 200",
+        "offset": "Skip first N results for pagination"
+      },
+      "required": ["project"]
+    },
+    {
+      "name": "trace_path",
+      "description": "Trace paths through the code graph. Modes: calls (callers/callees), data_flow (value propagation with args at each hop), cross_service (through HTTP/async Route nodes). Use INSTEAD OF grep for callers, dependencies, impact analysis, or data flow tracing.",
+      "parameters": {
+        "function_name": "Function to trace",
+        "project": "Project name",
+        "direction": "inbound | outbound | both",
+        "depth": "Max hops. Default 3",
+        "mode": "calls | data_flow | cross_service",
+        "parameter_name": "For data_flow: scope to specific parameter",
+        "edge_types": "Array of edge types to follow",
+        "risk_labels": "Add CRITICAL/HIGH/MEDIUM/LOW risk classification",
+        "include_tests": "Include test files in results"
+      },
+      "required": ["function_name", "project"]
+    },
+    {
+      "name": "detect_changes",
+      "description": "Detect code changes and their impact",
+      "parameters": {
+        "project": "Project name",
+        "scope": "Scope of change detection",
+        "depth": "Analysis depth. Default 2",
+        "base_branch": "Base branch for comparison. Default 'main'",
+        "since": "Git ref or date to compare from (e.g. HEAD~5, v0.5.0, 2026-01-01)"
+      },
+      "required": ["project"]
+    },
+    {
+      "name": "query_graph",
+      "description": "Execute a Cypher query against the knowledge graph for complex multi-hop patterns, aggregations, and cross-service analysis. Response includes 'total' row count. 100k row ceiling. Complexity properties: cyclomatic (complexity), cognitive, loop_count, loop_depth, transitive_loop_depth, linear_scan_in_loop, alloc_in_loop, recursion_in_loop, unguarded_recursion.",
+      "parameters": {
+        "query": "Cypher query string",
+        "project": "Project name",
+        "max_rows": "Optional row limit. Default unlimited (up to 100k ceiling)"
+      },
+      "required": ["query", "project"]
+    },
+    {
+      "name": "get_graph_schema",
+      "description": "Get the schema of the knowledge graph (node labels, edge types)",
+      "parameters": {
+        "project": "Project name"
+      },
+      "required": ["project"]
+    },
+    {
+      "name": "get_code_snippet",
+      "description": "Read source code for a function/class/symbol. First call search_graph to find the exact qualified_name, then pass it here. Accepts full qualified_name (exact match) or short function name (returns suggestions if ambiguous).",
+      "parameters": {
+        "qualified_name": "Full qualified_name from search_graph, or short function name",
+        "project": "Project name",
+        "include_neighbors": "Include neighboring function definitions"
+      },
+      "required": ["qualified_name", "project"]
+    },
+    {
+      "name": "get_architecture",
+      "description": "Get high-level architecture overview — packages, services, dependencies, and project structure. Includes 'clusters': Leiden community detection over the call/import graph, surfacing de-facto modules with label, member count, cohesion score, representative top_nodes, and packages/edge_types.",
+      "parameters": {
+        "project": "Project name",
+        "aspects": "Array of aspect filters"
+      },
+      "required": ["project"]
+    },
+    {
+      "name": "search_code",
+      "description": "Graph-augmented code search. Finds text patterns via grep, then enriches results with the knowledge graph: deduplicates matches into containing functions, ranks by structural importance (definitions first, popular functions next, tests last). Modes: compact (signatures only), full (with source), files (just paths). No offset — raise limit or narrow query to see more.",
+      "parameters": {
+        "pattern": "Text pattern to search",
+        "project": "Project name",
+        "file_pattern": "Glob for grep --include (e.g. *.go)",
+        "path_filter": "Regex filter on file paths",
+        "mode": "compact | full | files",
+        "context": "Lines of context (like grep -C)",
+        "regex": "Use regex matching",
+        "limit": "Max enriched results. Default 10"
+      },
+      "required": ["pattern", "project"]
+    },
+    {
+      "name": "manage_adr",
+      "description": "Create or update Architecture Decision Records",
+      "parameters": {
+        "project": "Project name",
+        "mode": "get | update | sections",
+        "content": "ADR content (for update mode)",
+        "sections": "Array of section names (for sections mode)"
+      },
+      "required": ["project"]
+    },
+    {
+      "name": "ingest_traces",
+      "description": "Ingest runtime traces to enhance the knowledge graph",
+      "parameters": {
+        "traces": "Array of trace objects",
+        "project": "Project name"
+      },
+      "required": ["traces", "project"]
+    }
+  ]
+}

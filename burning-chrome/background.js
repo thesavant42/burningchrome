@@ -7,10 +7,16 @@ import { handleBucketRequest } from './lib/handlers/bucket.js';
 
 console.log('[BURNING-CHROME] === BACKGROUND.JS STARTUP ===');
 
-// Open landing page when extension icon is clicked
-chrome.action.onClicked.addListener(() => {
-  console.log('[BURNING-CHROME] I am now calling chrome.action.onClicked handler');
-  chrome.tabs.create({ url: chrome.runtime.getURL('landing.html') });
+// Open buckets page with current tab's URL parsed as bucket XML
+chrome.action.onClicked.addListener(async () => {
+  console.log('[BURNING-CHROME] chrome.action.onClicked handler');
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  });
+  if (tab && tab.url) {
+    await handleBucketRequest(tab);
+  }
 });
 
 // Initialize context menus
