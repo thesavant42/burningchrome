@@ -16,7 +16,9 @@
       "mcp__codebase-memory-mcp__manage_adr",
       "mcp__codebase-memory-mcp__ingest_traces",
       "Skill(untangle-css)",
-      "Agent(Explore)"
+      "Agent(Explore)",
+      "Bash(push-location *)",
+      "Bash(npm run *)"
     ]
   },
   "$version": 4

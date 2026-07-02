@@ -39,11 +39,20 @@ export function setupMessageRouter() {
 
     if (msg.type === 'fetch-bucket') {
       fetch(msg.url)
-        .then((response) => {
+        .then(async (response) => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          return response.text();
+          let xml = await response.text();
+
+          // Azure retry: if server header is Windows-Azure-Blob and body is blank, retry with &comp=list
+          if (response.headers.get('server')?.toLowerCase().includes('windows-azure-blob') && !xml.trim()) {
+            const azureUrl = msg.url.includes('?') ? `${msg.url}&comp=list` : `${msg.url}?comp=list`;
+            const retryResponse = await fetch(azureUrl);
+            if (!retryResponse.ok) throw new Error(`HTTP ${retryResponse.status}`);
+            xml = await retryResponse.text();
+          }
+
+          sendResponse({ xml });
         })
-        .then((xml) => sendResponse({ xml }))
         .catch(async (err) => {
           console.warn(`[DEBUG] service worker fetch-bucket failed: ${err.message}. Trying tab fallback...`);
           try {

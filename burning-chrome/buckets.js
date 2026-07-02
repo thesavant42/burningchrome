@@ -188,11 +188,22 @@ async function fetchBucketFromUrl(url, forceFetch = false) {
   document.getElementById('loadingStatus').textContent = 'Fetching...';
 
   try {
-    const response = await fetch(bucketUrl);
+    let response = await fetch(bucketUrl);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-    const xmlText = await response.text();
+    let xmlText = await response.text();
+
+    // Azure retry: if server header is Windows-Azure-Blob and body is blank, retry with &comp=list
+    if (response.headers.get('server')?.toLowerCase().includes('windows-azure-blob') && !xmlText.trim()) {
+      const azureUrl = bucketUrl.includes('?') ? `${bucketUrl}&comp=list` : `${bucketUrl}?comp=list`;
+      response = await fetch(azureUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      xmlText = await response.text();
+    }
+
     document.getElementById('loadingStatus').textContent = '';
     await loadBucketXml(url, xmlText);
   } catch (err) {
