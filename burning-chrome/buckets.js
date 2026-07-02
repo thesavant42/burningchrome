@@ -2059,8 +2059,8 @@ function renderTreeNode(node, depth = 0, expandedDirs = new Set()) {
   return html;
 }
 
-// Track expanded directories
-let expandedDirs = new Set();
+// Track expanded directories — root always expanded by default
+let expandedDirs = new Set(['__root__']);
 
 function toggleDir(dirKey) {
   if (expandedDirs.has(dirKey)) {
